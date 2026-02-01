@@ -1,0 +1,359 @@
+{
+  "project_name": "Casa Blanca",
+  "theme": {
+    "mode": "dark",
+    "primary_color": "#D4AF37",
+    "secondary_color": "#FFFFFF"
+  },
+  "contact": {
+    "whatsapp": "5534999999999",
+    "phone": "(34) 99999-9999",
+    "instagram": "@casablancapattos",
+    "facebook": "casablancapattos",
+    "youtube": "casablancapattos",
+    "address": {
+      "street": "Rua João Cândido",
+      "number": "907",
+      "neighborhood": "Centro",
+      "zip": "38705-102",
+      "city": "Patos de Minas",
+      "state": "MG",
+      "map_link": "https://maps.google.com/?q=-18.5788,-46.5181",
+      "coordinates": {
+        "lat": -18.5788,
+        "lng": -46.5181
+      }
+    }
+  },
+  "business_hours": {
+    "timezone": "America/Sao_Paulo",
+    "schedule": [
+      { "day": "Segunda", "dayNumber": 1, "open": "18:00", "close": "23:00", "closed": false },
+      { "day": "Terça", "dayNumber": 2, "open": "18:00", "close": "23:00", "closed": false },
+      { "day": "Quarta", "dayNumber": 3, "open": "18:00", "close": "23:00", "closed": false },
+      { "day": "Quinta", "dayNumber": 4, "open": "18:00", "close": "23:00", "closed": false },
+      { "day": "Sexta", "dayNumber": 5, "open": "18:00", "close": "00:00", "closed": false },
+      { "day": "Sábado", "dayNumber": 6, "open": "12:00", "close": "00:00", "closed": false },
+      { "day": "Domingo", "dayNumber": 0, "open": "12:00", "close": "22:00", "closed": false }
+    ]
+  },
+  "sections_content": {
+    "hero": {
+      "headline": "Gastronomia de\nAlta Performance",
+      "subheadline": "Experiência única em Patos de Minas",
+      "media_url": "/images/hero-bg.jpg",
+      "media_type": "image",
+      "cta_text": "Fazer Pedido"
+    },
+    "intro": {
+      "headline": "Nossos Sabores",
+      "subheadline": "Descubra o melhor da culinária mineira com toques contemporâneos"
+    },
+    "about": {
+      "pre_headline": "Nossa História",
+      "headline": "Tradição que se Renova",
+      "text": "Fundada em 2015, a Casa Blanca nasceu do sonho de trazer para Patos de Minas uma experiência gastronômica diferenciada. Nossa cozinha combina técnicas clássicas da culinária mineira com inovações contemporâneas, sempre priorizando ingredientes frescos e de qualidade.\n\nCada prato é preparado com dedicação e carinho, mantendo viva a tradição de reunir família e amigos ao redor de uma boa mesa. Nosso ambiente acolhedor e sofisticado foi pensado para proporcionar momentos inesquecíveis.\n\nVenha nos visitar e descubra por que somos referência em gastronomia na região.",
+      "owner_photo": "/images/owner-portrait.jpg",
+      "owner_name": "Chef Maria Luiza",
+      "owner_title": "Chef Executiva & Proprietária"
+    },
+    "location": {
+      "pre_headline": "Venha nos Visitar",
+      "headline": "Nossa Localização",
+      "subheadline": "Estamos no coração de Patos de Minas",
+      "map_preview": "/images/restaurant-facade.jpg"
+    },
+    "footer": {
+      "cta_headline": "Pronto para uma experiência única?",
+      "cta_subheadline": "Entre em contato e faça sua reserva",
+      "copyright": "© 2026 Casa Blanca. Todos os direitos reservados.",
+      "developer": "Desenvolvido com ❤️"
+    }
+  },
+  "feedbacks": [
+    {
+      "id": "1",
+      "author_name": "Carlos Eduardo",
+      "author_photo": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+      "rating": 5,
+      "date": "2025-12-15",
+      "text": "Simplesmente espetacular! A picanha estava no ponto perfeito e o atendimento foi impecável. Ambiente sofisticado e acolhedor. Com certeza voltarei!",
+      "verified": true,
+      "photos": ["/images/signature-dish.jpg"]
+    },
+    {
+      "id": "2",
+      "author_name": "Ana Paula Mendes",
+      "author_photo": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+      "rating": 5,
+      "date": "2025-12-10",
+      "text": "Melhor restaurante de Patos de Minas! Fui comemorar meu aniversário e a equipe preparou uma surpresa linda. A comida é divina e os drinks são incríveis.",
+      "verified": true,
+      "photos": ["/images/cocktail-bar.jpg"]
+    },
+    {
+      "id": "3",
+      "author_name": "Roberto Silva",
+      "author_photo": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+      "rating": 5,
+      "date": "2025-11-28",
+      "text": "Excelente custo-benefício! Porções generosas e sabor incomparável. O risoto de camarão é uma obra de arte. Recomendo demais!",
+      "verified": true,
+      "photos": []
+    },
+    {
+      "id": "4",
+      "author_name": "Fernanda Costa",
+      "author_photo": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+      "rating": 4,
+      "date": "2025-11-20",
+      "text": "Ambiente muito agradável e comida deliciosa. Só achei que demorou um pouco para servir, mas valeu a pena a espera. Voltarei com certeza!",
+      "verified": true,
+      "photos": []
+    },
+    {
+      "id": "5",
+      "author_name": "Marcos Oliveira",
+      "author_photo": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+      "rating": 5,
+      "date": "2025-11-15",
+      "text": "Levei minha esposa para um jantar romântico e foi perfeito! Velas na mesa, música ambiente e uma comida sensacional. O melhor da cidade!",
+      "verified": true,
+      "photos": []
+    }
+  ],
+  "catalog": [
+    {
+      "id": "cat-1",
+      "category_name": "Bebidas",
+      "category_icon": "wine",
+      "highlight_on_home": true,
+      "products": [
+        {
+          "id": "prod-1",
+          "name": "Coca-Cola Lata",
+          "price": 6.90,
+          "images": ["https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=400&fit=crop"],
+          "description": "Refrigerante Coca-Cola lata 350ml, bem gelada.",
+          "available": true
+        },
+        {
+          "id": "prod-2",
+          "name": "Guaraná Antarctica",
+          "price": 6.90,
+          "images": ["https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=400&h=400&fit=crop"],
+          "description": "Refrigerante Guaraná Antarctica lata 350ml.",
+          "available": true
+        },
+        {
+          "id": "prod-3",
+          "name": "Água Mineral",
+          "price": 4.90,
+          "images": ["https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&h=400&fit=crop"],
+          "description": "Água mineral sem gás 500ml.",
+          "available": true
+        },
+        {
+          "id": "prod-4",
+          "name": "Suco Natural de Laranja",
+          "price": 12.90,
+          "images": ["https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&h=400&fit=crop"],
+          "description": "Suco de laranja natural, feito na hora. 400ml.",
+          "available": true
+        },
+        {
+          "id": "prod-5",
+          "name": "Cerveja Heineken",
+          "price": 14.90,
+          "images": ["https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=400&fit=crop"],
+          "description": "Cerveja Heineken long neck 330ml, bem gelada.",
+          "available": true
+        },
+        {
+          "id": "prod-6",
+          "name": "Caipirinha de Limão",
+          "price": 18.90,
+          "images": ["https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=400&h=400&fit=crop"],
+          "description": "Caipirinha tradicional com limão, cachaça artesanal e açúcar.",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "cat-2",
+      "category_name": "Entradas",
+      "category_icon": "utensils",
+      "highlight_on_home": false,
+      "products": [
+        {
+          "id": "prod-7",
+          "name": "Bolinho de Bacalhau",
+          "price": 32.90,
+          "images": ["https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&h=400&fit=crop"],
+          "description": "6 unidades de bolinho de bacalhau crocante, acompanha molho tártaro.",
+          "available": true
+        },
+        {
+          "id": "prod-8",
+          "name": "Bruschetta Italiana",
+          "price": 28.90,
+          "images": ["https://images.unsplash.com/photo-1572695157366-5e585ab2b69f?w=400&h=400&fit=crop"],
+          "description": "Torradas com tomate, manjericão, azeite e parmesão.",
+          "available": true
+        },
+        {
+          "id": "prod-9",
+          "name": "Carpaccio de Carne",
+          "price": 45.90,
+          "images": ["https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=400&fit=crop"],
+          "description": "Finas fatias de carne crua com rúcula, parmesão e molho especial.",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "cat-3",
+      "category_name": "Pratos Principais",
+      "category_icon": "beef",
+      "highlight_on_home": true,
+      "products": [
+        {
+          "id": "prod-10",
+          "name": "Picanha na Brasa",
+          "price": 89.90,
+          "images": ["/images/signature-dish.jpg", "https://images.unsplash.com/photo-1558030006-450675393462?w=400&h=400&fit=crop"],
+          "description": "Picanha premium grelhada no ponto, acompanha arroz, farofa, vinagrete e batata frita. Serve 2 pessoas.",
+          "available": true
+        },
+        {
+          "id": "prod-11",
+          "name": "Filé Mignon ao Molho Madeira",
+          "price": 79.90,
+          "images": ["https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=400&fit=crop"],
+          "description": "Medalhões de filé mignon com molho madeira, arroz e batatas rústicas.",
+          "available": true
+        },
+        {
+          "id": "prod-12",
+          "name": "Risoto de Camarão",
+          "price": 75.90,
+          "images": ["https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400&h=400&fit=crop"],
+          "description": "Risoto cremoso com camarões frescos, finalizado com parmesão.",
+          "available": true
+        },
+        {
+          "id": "prod-13",
+          "name": "Salmão Grelhado",
+          "price": 82.90,
+          "images": ["https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=400&fit=crop"],
+          "description": "Filé de salmão grelhado com legumes salteados e purê de batata.",
+          "available": true
+        },
+        {
+          "id": "prod-14",
+          "name": "Frango à Parmegiana",
+          "price": 54.90,
+          "images": ["https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=400&h=400&fit=crop"],
+          "description": "Filé de frango empanado com molho de tomate e queijo gratinado, arroz e fritas.",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "cat-4",
+      "category_name": "Massas",
+      "category_icon": "wheat",
+      "highlight_on_home": false,
+      "products": [
+        {
+          "id": "prod-15",
+          "name": "Espaguete à Carbonara",
+          "price": 48.90,
+          "images": ["https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=400&fit=crop"],
+          "description": "Massa al dente com molho cremoso de ovos, bacon crocante e parmesão.",
+          "available": true
+        },
+        {
+          "id": "prod-16",
+          "name": "Lasanha Bolonhesa",
+          "price": 52.90,
+          "images": ["https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400&h=400&fit=crop"],
+          "description": "Lasanha tradicional com molho bolonhesa, bechamel e queijo gratinado.",
+          "available": true
+        },
+        {
+          "id": "prod-17",
+          "name": "Fettuccine Alfredo",
+          "price": 46.90,
+          "images": ["https://images.unsplash.com/photo-1645112411341-6c4fd023714a?w=400&h=400&fit=crop"],
+          "description": "Fettuccine com molho cremoso de parmesão e manteiga.",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "cat-5",
+      "category_name": "Sobremesas",
+      "category_icon": "cake",
+      "highlight_on_home": false,
+      "products": [
+        {
+          "id": "prod-18",
+          "name": "Petit Gâteau",
+          "price": 28.90,
+          "images": ["https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=400&h=400&fit=crop"],
+          "description": "Bolo de chocolate com centro cremoso, acompanha sorvete de creme.",
+          "available": true
+        },
+        {
+          "id": "prod-19",
+          "name": "Cheesecake de Frutas Vermelhas",
+          "price": 24.90,
+          "images": ["https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&h=400&fit=crop"],
+          "description": "Cheesecake cremoso com calda de frutas vermelhas.",
+          "available": true
+        },
+        {
+          "id": "prod-20",
+          "name": "Pudim de Leite",
+          "price": 18.90,
+          "images": ["https://images.unsplash.com/photo-1528975604071-b4dc52a2d18c?w=400&h=400&fit=crop"],
+          "description": "Pudim de leite condensado tradicional com calda de caramelo.",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "cat-6",
+      "category_name": "Drinks",
+      "category_icon": "martini",
+      "highlight_on_home": false,
+      "products": [
+        {
+          "id": "prod-21",
+          "name": "Mojito",
+          "price": 24.90,
+          "images": ["https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=400&h=400&fit=crop"],
+          "description": "Rum, hortelã fresca, limão, açúcar e água com gás.",
+          "available": true
+        },
+        {
+          "id": "prod-22",
+          "name": "Gin Tônica",
+          "price": 28.90,
+          "images": ["https://images.unsplash.com/photo-1560512823-829485b8bf24?w=400&h=400&fit=crop"],
+          "description": "Gin premium com água tônica, pepino e especiarias.",
+          "available": true
+        },
+        {
+          "id": "prod-23",
+          "name": "Whisky Sour",
+          "price": 32.90,
+          "images": ["https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&h=400&fit=crop"],
+          "description": "Whisky, suco de limão, xarope de açúcar e clara de ovo.",
+          "available": true
+        }
+      ]
+    }
+  ]
+}
