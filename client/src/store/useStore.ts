@@ -8,6 +8,9 @@ interface SiteDataState {
   isLoading: boolean;
   error: string | null;
   fetchData: () => Promise<void>;
+  setData: (data: SiteData) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
 export const useSiteData = create<SiteDataState>((set) => ({
@@ -25,11 +28,16 @@ export const useSiteData = create<SiteDataState>((set) => ({
       set({ error: (error as Error).message, isLoading: false });
     }
   },
+  setData: (data) => set({ data, error: null }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error }),
 }));
 
-// Cart Store with persistence
+// Cart Store with persistence and multi-tenant support
 interface CartState {
+  tenantId: number | null;
   items: CartItem[];
+  setTenantId: (tenantId: number) => void;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -41,7 +49,18 @@ interface CartState {
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
+      tenantId: null,
       items: [],
+      
+      setTenantId: (tenantId: number) => {
+        const currentTenantId = get().tenantId;
+        // Clear cart if switching tenants
+        if (currentTenantId !== null && currentTenantId !== tenantId) {
+          set({ tenantId, items: [] });
+        } else {
+          set({ tenantId });
+        }
+      },
       
       addItem: (product: Product, quantity = 1) => {
         set((state) => {
@@ -99,9 +118,17 @@ export const useCart = create<CartState>()(
     }),
     {
       name: 'casa-blanca-cart',
+      // Custom storage key based on tenant
+      partialize: (state) => ({
+        tenantId: state.tenantId,
+        items: state.items,
+      }),
     }
   )
 );
+
+// Alias for backward compatibility
+export const useCartStore = useCart;
 
 // UI State Store
 interface UIState {
@@ -112,6 +139,7 @@ interface UIState {
   isBottomSheetOpen: boolean;
   isWhatsAppModalOpen: boolean;
   isScheduleModalOpen: boolean;
+  isCartDrawerOpen: boolean;
   
   openOrderOverlay: () => void;
   closeOrderOverlay: () => void;
@@ -123,6 +151,8 @@ interface UIState {
   closeWhatsAppModal: () => void;
   openScheduleModal: () => void;
   closeScheduleModal: () => void;
+  openCartDrawer: () => void;
+  closeCartDrawer: () => void;
 }
 
 export const useUI = create<UIState>((set) => ({
@@ -133,6 +163,7 @@ export const useUI = create<UIState>((set) => ({
   isBottomSheetOpen: false,
   isWhatsAppModalOpen: false,
   isScheduleModalOpen: false,
+  isCartDrawerOpen: false,
   
   openOrderOverlay: () => set({ isOrderOverlayOpen: true }),
   closeOrderOverlay: () => set({ 
@@ -148,4 +179,9 @@ export const useUI = create<UIState>((set) => ({
   closeWhatsAppModal: () => set({ isWhatsAppModalOpen: false }),
   openScheduleModal: () => set({ isScheduleModalOpen: true }),
   closeScheduleModal: () => set({ isScheduleModalOpen: false }),
+  openCartDrawer: () => set({ isCartDrawerOpen: true }),
+  closeCartDrawer: () => set({ isCartDrawerOpen: false }),
 }));
+
+// Alias for backward compatibility
+export const useUIStore = useUI;
