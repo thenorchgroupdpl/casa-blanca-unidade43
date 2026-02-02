@@ -51,3 +51,17 @@
 - [x] Testar isolamento de dados entre tenants
 - [x] Testar carrinho isolado por sessão
 - [x] Ajustes de responsividade
+
+## Fase 9: Melhorias de UX
+- [ ] Toast de "Produto adicionado" em box estilizado com cor personalizável
+- [ ] Substituir menu hambúrguer por ícone de carrinho no header mobile
+- [ ] Criar popup do carrinho ao clicar no ícone
+
+## Fase 10: Sistema de Login Próprio
+- [x] Criar rotas de autenticação com email/senha no backend
+- [x] Criar página de login personalizada (sem OAuth Manus)
+- [x] Criar usuário Super Admin de teste (admin@casablanca.com)
+- [x] Criar usuário Client Admin de teste (lojista@casablanca.com)
+- [x] Proteger rotas do dashboard com verificação de sessão
+- [x] Testar fluxo completo de login
+- [x] Criar rota /admin que redireciona para o dashboard correto baseado no role

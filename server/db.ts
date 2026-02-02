@@ -419,3 +419,45 @@ export async function getFullTenantDataBySlug(slug: string) {
 
   return getFullTenantData(tenant.id);
 }
+
+
+// ============================================
+// EMAIL/PASSWORD AUTHENTICATION FUNCTIONS
+// ============================================
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createUserWithPassword(data: {
+  email: string;
+  passwordHash: string;
+  name: string;
+  role: 'user' | 'admin' | 'super_admin' | 'client_admin';
+  tenantId?: number;
+}): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(users).values({
+    email: data.email,
+    passwordHash: data.passwordHash,
+    name: data.name,
+    role: data.role,
+    tenantId: data.tenantId ?? null,
+    loginMethod: 'email',
+  });
+  
+  return Number(result[0].insertId);
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+}

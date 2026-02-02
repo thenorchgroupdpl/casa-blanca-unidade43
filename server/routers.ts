@@ -10,12 +10,13 @@ import * as db from "./db";
 import { tenantsRouter } from "./routers/tenants";
 import { categoriesRouter, productsRouter } from "./routers/catalog";
 import { storeRouter, publicStoreRouter } from "./routers/store";
+import { emailAuthRouter } from "./routers/auth";
 
 export const appRouter = router({
   // System routes
   system: systemRouter,
   
-  // Auth routes
+  // Auth routes (OAuth)
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -35,6 +36,9 @@ export const appRouter = router({
       };
     }),
   }),
+
+  // Email/Password Auth routes
+  emailAuth: emailAuthRouter,
 
   // ============================================
   // SUPER ADMIN ROUTES

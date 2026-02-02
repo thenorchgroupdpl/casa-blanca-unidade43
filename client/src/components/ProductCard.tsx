@@ -1,16 +1,15 @@
 /**
  * Product Card Component - Casa Blanca
  * Design: Warm Luxury - Light card on dark background
- * Features: Image gallery navigation, price, add to cart CTA
+ * Features: Image gallery navigation, price, add to cart CTA, inline toast
  */
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useCart, useUI } from '@/store/useStore';
 import type { Product } from '@/types';
-import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: Product;
@@ -20,10 +19,19 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0, variant = 'showcase' }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showAddedFeedback, setShowAddedFeedback] = useState(false);
   const { addItem } = useCart();
   const { openProductSheet } = useUI();
 
   const hasMultipleImages = product.images.length > 1;
+
+  // Auto-hide feedback after 2 seconds
+  useEffect(() => {
+    if (showAddedFeedback) {
+      const timer = setTimeout(() => setShowAddedFeedback(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showAddedFeedback]);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -39,15 +47,43 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    console.log('Adding to cart:', product.name);
     addItem(product, 1);
-    toast.success('Produto adicionado!', {
-      description: `${product.name} foi adicionado à sacola.`,
-    });
+    setShowAddedFeedback(true);
+    console.log('showAddedFeedback set to true');
   };
 
   const handleCardClick = () => {
     openProductSheet(product);
   };
+
+  // Feedback toast component
+  const AddedFeedback = () => (
+    <AnimatePresence>
+      {showAddedFeedback && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className={cn(
+            'absolute top-2 left-2 right-2 z-20',
+            'bg-[#1a472a] text-white px-3 py-2 rounded-lg',
+            'flex items-center gap-2 shadow-lg',
+            'border border-green-600/30'
+          )}
+        >
+          <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+            <Check className="w-3 h-3 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium">Produto adicionado!</p>
+            <p className="text-xs text-green-200/80 truncate">{product.name} foi adicionado à sacola.</p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   if (variant === 'grid') {
     return (
@@ -64,6 +100,9 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
         transition={{ duration: 0.4, delay: index * 0.05 }}
         whileHover={{ y: -4 }}
       >
+        {/* Added Feedback Toast */}
+        <AddedFeedback />
+
         {/* Image */}
         <div className="relative aspect-square overflow-hidden">
           <img
@@ -110,6 +149,9 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
       transition={{ duration: 0.4, delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
+      {/* Added Feedback Toast */}
+      <AddedFeedback />
+
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden">
         <img

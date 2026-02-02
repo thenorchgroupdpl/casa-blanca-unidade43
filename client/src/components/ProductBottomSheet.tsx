@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Check } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useUI, useCart } from '@/store/useStore';
 import { toast } from 'sonner';
@@ -39,9 +39,48 @@ export default function ProductBottomSheet() {
     if (!selectedProduct) return;
     
     addItem(selectedProduct, quantity);
-    toast.success('Produto adicionado!', {
-      description: `${quantity}x ${selectedProduct.name} adicionado à sacola.`,
+    
+    // Use Sonner toast with custom styling
+    toast.custom((t) => (
+      <div 
+        className="flex items-center gap-3 px-5 py-4 rounded-2xl w-full max-w-[400px] mx-auto"
+        style={{
+          background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+          border: '1px solid rgba(212, 175, 55, 0.4)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.2)',
+        }}
+      >
+        {/* Success Icon */}
+        <div 
+          className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)' }}
+        >
+          <Check className="w-5 h-5 text-[#D4AF37]" />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-semibold text-base m-0 leading-tight">
+            Produto adicionado!
+          </p>
+          <p className="text-gray-400 text-sm mt-1 truncate">
+            {quantity}x {selectedProduct.name} adicionado à sacola.
+          </p>
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={() => toast.dismiss(t)}
+          className="p-1.5 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
+        >
+          <X className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+    ), {
+      duration: 3000,
+      position: 'top-center',
     });
+    
     closeProductSheet();
   };
 
@@ -81,32 +120,32 @@ export default function ProductBottomSheet() {
             {/* Close Button */}
             <button
               onClick={closeProductSheet}
-              className="absolute top-4 right-4 p-2 rounded-full bg-muted/50 text-muted-foreground hover:text-foreground transition-colors z-10"
+              className="absolute right-4 top-4 p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors z-10"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
 
             {/* Content */}
             <div className="overflow-y-auto max-h-[calc(90vh-60px)]">
-              {/* Image */}
-              <div className="relative aspect-square max-h-[40vh] overflow-hidden">
+              {/* Product Image */}
+              <div className="relative aspect-square max-h-[300px] bg-muted">
                 <img
-                  src={selectedProduct.images[currentImageIndex]}
+                  src={selectedProduct.images?.[currentImageIndex] || '/images/placeholder.jpg'}
                   alt={selectedProduct.name}
                   className="w-full h-full object-cover"
                 />
-
+                
                 {/* Image Navigation Dots */}
-                {selectedProduct.images.length > 1 && (
+                {selectedProduct.images && selectedProduct.images.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                    {selectedProduct.images.map((_, idx) => (
+                    {selectedProduct.images.map((_, index) => (
                       <button
-                        key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
                         className={cn(
-                          'w-2 h-2 rounded-full transition-colors',
-                          idx === currentImageIndex
-                            ? 'bg-primary'
+                          'w-2 h-2 rounded-full transition-all',
+                          index === currentImageIndex
+                            ? 'bg-primary w-6'
                             : 'bg-white/50 hover:bg-white/70'
                         )}
                       />
@@ -116,71 +155,59 @@ export default function ProductBottomSheet() {
               </div>
 
               {/* Product Info */}
-              <div className="p-6">
-                <h2 className="font-display text-2xl text-foreground mb-2">
-                  {selectedProduct.name}
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                  {selectedProduct.description}
-                </p>
-                <p className="text-2xl font-bold text-primary">
-                  {formatPrice(selectedProduct.price)}
-                </p>
-              </div>
+              <div className="p-6 space-y-4">
+                {/* Name & Price */}
+                <div>
+                  <h2 className="font-display text-2xl text-foreground mb-2">
+                    {selectedProduct.name}
+                  </h2>
+                  <p className="text-primary text-xl font-semibold">
+                    {formatPrice(selectedProduct.price)}
+                  </p>
+                </div>
 
-              {/* Quantity Controls */}
-              <div className="px-6 pb-6">
-                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl">
+                {/* Description */}
+                {selectedProduct.description && (
+                  <p className="text-muted-foreground leading-relaxed">
+                    {selectedProduct.description}
+                  </p>
+                )}
+
+                {/* Quantity Selector */}
+                <div className="flex items-center justify-between py-4 border-t border-border">
                   <span className="text-foreground font-medium">Quantidade</span>
-                  
                   <div className="flex items-center gap-4">
                     <button
                       onClick={decrementQuantity}
                       disabled={quantity <= 1}
                       className={cn(
-                        'w-10 h-10 rounded-full flex items-center justify-center',
-                        'bg-muted text-foreground',
-                        'hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed',
-                        'transition-colors'
+                        'w-10 h-10 rounded-full flex items-center justify-center transition-colors',
+                        quantity <= 1
+                          ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                          : 'bg-muted hover:bg-muted/80 text-foreground'
                       )}
                     >
                       <Minus className="w-5 h-5" />
                     </button>
-                    
-                    <span className="text-xl font-bold text-foreground w-8 text-center">
+                    <span className="text-foreground text-xl font-semibold w-8 text-center">
                       {quantity}
                     </span>
-                    
                     <button
                       onClick={incrementQuantity}
-                      className={cn(
-                        'w-10 h-10 rounded-full flex items-center justify-center',
-                        'bg-primary text-primary-foreground',
-                        'hover:bg-primary/90 transition-colors'
-                      )}
+                      className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Add to Cart Button */}
-              <div className="p-6 pt-0 pb-8">
+                {/* Add to Cart Button */}
                 <button
                   onClick={handleAddToCart}
-                  className={cn(
-                    'w-full flex items-center justify-center gap-3',
-                    'py-4 rounded-2xl',
-                    'bg-primary text-primary-foreground font-semibold text-lg',
-                    'hover:bg-primary/90 transition-colors',
-                    'gold-glow'
-                  )}
+                  className="w-full py-4 rounded-full bg-primary text-primary-foreground font-semibold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors"
                 >
                   <ShoppingBag className="w-5 h-5" />
-                  <span>Adicionar ({quantity})</span>
-                  <span className="ml-2">-</span>
-                  <span>{formatPrice(totalPrice)}</span>
+                  Adicionar ({quantity}) - {formatPrice(totalPrice)}
                 </button>
               </div>
             </div>

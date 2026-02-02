@@ -4,10 +4,15 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import GlobalToast from "./components/GlobalToast";
 
 // Landing Page
 import Home from "./pages/Home";
 import StoreLanding from "./pages/StoreLanding";
+
+// Auth Pages
+import Login from "./pages/Login";
+import AdminRedirect from "./pages/AdminRedirect";
 
 // Super Admin Pages
 import SuperAdminDashboard from "./pages/admin/super/Dashboard";
@@ -24,6 +29,12 @@ function Router() {
     <Switch>
       {/* Home - Landing Page principal ou redirect */}
       <Route path="/" component={Home} />
+      
+      {/* Login Page */}
+      <Route path="/login" component={Login} />
+      
+      {/* Admin Redirect (redirects to appropriate dashboard) */}
+      <Route path="/admin" component={AdminRedirect} />
       
       {/* Super Admin Routes */}
       <Route path="/admin/super" component={SuperAdminDashboard} />
@@ -57,13 +68,13 @@ function App() {
           <Toaster 
             position="top-center"
             toastOptions={{
-              style: {
-                background: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                color: 'hsl(var(--foreground))',
+              unstyled: true,
+              classNames: {
+                toast: 'w-full',
               },
             }}
           />
+          <GlobalToast />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

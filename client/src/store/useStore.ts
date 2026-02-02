@@ -185,3 +185,32 @@ export const useUI = create<UIState>((set) => ({
 
 // Alias for backward compatibility
 export const useUIStore = useUI;
+
+// Toast Store
+interface ToastState {
+  isVisible: boolean;
+  title: string;
+  description: string;
+  showToast: (title: string, description: string) => void;
+  hideToast: () => void;
+}
+
+export const useToast = create<ToastState>((set, get) => ({
+  isVisible: false,
+  title: '',
+  description: '',
+  showToast: (title, description) => {
+    console.log('[Toast] showToast called:', { title, description });
+    set({ isVisible: true, title, description });
+    console.log('[Toast] State after set:', get());
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      console.log('[Toast] Auto-hiding toast');
+      set({ isVisible: false });
+    }, 3000);
+  },
+  hideToast: () => {
+    console.log('[Toast] hideToast called');
+    set({ isVisible: false });
+  },
+}));

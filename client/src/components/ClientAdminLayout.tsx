@@ -91,7 +91,7 @@ export default function ClientAdminLayout({
           </div>
           <Button
             onClick={() => {
-              window.location.href = getLoginUrl();
+              window.location.href = '/login';
             }}
             size="lg"
             className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"

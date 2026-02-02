@@ -27,6 +27,7 @@ import ProductBottomSheet from '@/components/ProductBottomSheet';
 import CartDrawer from '@/components/CartDrawer';
 import WhatsAppModal from '@/components/WhatsAppModal';
 import ScheduleModal from '@/components/ScheduleModal';
+import ToastNotification from '@/components/ToastNotification';
 
 // Loading Component
 function LoadingScreen() {
@@ -202,6 +203,9 @@ export default function StoreLanding() {
       <CartDrawer />
       <WhatsAppModal />
       <ScheduleModal />
+      
+      {/* Toast Notification */}
+      <ToastNotification />
     </div>
   );
 }
