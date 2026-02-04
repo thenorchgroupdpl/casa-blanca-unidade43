@@ -65,3 +65,6 @@
 - [x] Proteger rotas do dashboard com verificação de sessão
 - [x] Testar fluxo completo de login
 - [x] Criar rota /admin que redireciona para o dashboard correto baseado no role
+
+## Fase 11: Correções de Bugs
+- [x] Corrigir link do WhatsApp bugado na landing page (função normalizeWhatsAppNumber)

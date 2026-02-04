@@ -1,0 +1,14 @@
+{
+  "query": "SELECT whatsapp, phone FROM store_settings LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT whatsapp, phone FROM store_settings LIMIT 5;",
+  "rows": [
+    {
+      "whatsapp": "+55034991201913",
+      "phone": "34991201913"
+    }
+  ],
+  "messages": [],
+  "stdout": "whatsapp\tphone\n+55034991201913\t34991201913\n",
+  "stderr": "",
+  "execution_time_ms": 92
+}

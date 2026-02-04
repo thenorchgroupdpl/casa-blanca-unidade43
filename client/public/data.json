@@ -41,7 +41,7 @@
     "hero": {
       "headline": "Gastronomia de\nAlta Performance",
       "subheadline": "Experiência única em Patos de Minas",
-      "media_url": "/images/hero-bg.jpg",
+      "media_url": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663136954678/XsPHyECxEhysWWxd.jpg",
       "media_type": "image",
       "cta_text": "Fazer Pedido"
     },
@@ -53,7 +53,7 @@
       "pre_headline": "Nossa História",
       "headline": "Tradição que se Renova",
       "text": "Fundada em 2015, a Casa Blanca nasceu do sonho de trazer para Patos de Minas uma experiência gastronômica diferenciada. Nossa cozinha combina técnicas clássicas da culinária mineira com inovações contemporâneas, sempre priorizando ingredientes frescos e de qualidade.\n\nCada prato é preparado com dedicação e carinho, mantendo viva a tradição de reunir família e amigos ao redor de uma boa mesa. Nosso ambiente acolhedor e sofisticado foi pensado para proporcionar momentos inesquecíveis.\n\nVenha nos visitar e descubra por que somos referência em gastronomia na região.",
-      "owner_photo": "/images/owner-portrait.jpg",
+      "owner_photo": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663136954678/iKYuXPGKDveRbzFp.jpg",
       "owner_name": "Chef Maria Luiza",
       "owner_title": "Chef Executiva & Proprietária"
     },
@@ -61,7 +61,7 @@
       "pre_headline": "Venha nos Visitar",
       "headline": "Nossa Localização",
       "subheadline": "Estamos no coração de Patos de Minas",
-      "map_preview": "/images/restaurant-facade.jpg"
+      "map_preview": "https://files.manuscdn.com/user_upload_by_module/session_file/310519663136954678/SYuhSbTFtQQNGYcW.jpg"
     },
     "footer": {
       "cta_headline": "Pronto para uma experiência única?",
@@ -79,7 +79,7 @@
       "date": "2025-12-15",
       "text": "Simplesmente espetacular! A picanha estava no ponto perfeito e o atendimento foi impecável. Ambiente sofisticado e acolhedor. Com certeza voltarei!",
       "verified": true,
-      "photos": ["/images/signature-dish.jpg"]
+      "photos": ["https://files.manuscdn.com/user_upload_by_module/session_file/310519663136954678/DidGcVnAuKbfeLYl.jpg"]
     },
     {
       "id": "2",
@@ -89,7 +89,7 @@
       "date": "2025-12-10",
       "text": "Melhor restaurante de Patos de Minas! Fui comemorar meu aniversário e a equipe preparou uma surpresa linda. A comida é divina e os drinks são incríveis.",
       "verified": true,
-      "photos": ["/images/cocktail-bar.jpg"]
+      "photos": ["https://files.manuscdn.com/user_upload_by_module/session_file/310519663136954678/kbEkbKBykueYhZYM.jpg"]
     },
     {
       "id": "3",
@@ -221,7 +221,7 @@
           "id": "prod-10",
           "name": "Picanha na Brasa",
           "price": 89.90,
-          "images": ["/images/signature-dish.jpg", "https://images.unsplash.com/photo-1558030006-450675393462?w=400&h=400&fit=crop"],
+          "images": ["https://files.manuscdn.com/user_upload_by_module/session_file/310519663136954678/DidGcVnAuKbfeLYl.jpg", "https://images.unsplash.com/photo-1558030006-450675393462?w=400&h=400&fit=crop"],
           "description": "Picanha premium grelhada no ponto, acompanha arroz, farofa, vinagrete e batata frita. Serve 2 pessoas.",
           "available": true
         },

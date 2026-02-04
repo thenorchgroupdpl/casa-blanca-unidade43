@@ -15,12 +15,56 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
+// Normalize Brazilian WhatsApp number
+// Handles cases like +55034... (with extra 0 in DDD) -> 5534...
+export function normalizeWhatsAppNumber(phone: string): string {
+  // Remove all non-digit characters
+  let cleaned = phone.replace(/\D/g, '');
+  
+  // If starts with 550 followed by 2 digits (like 55034), remove the extra 0
+  // Brazilian DDDs are 2 digits (11-99), never start with 0
+  if (cleaned.startsWith('550') && cleaned.length >= 13) {
+    // Remove the 0 after 55: 55034... -> 5534...
+    cleaned = '55' + cleaned.slice(3);
+  }
+  
+  // If number doesn't start with 55 but has 10-11 digits, add 55
+  if (!cleaned.startsWith('55') && (cleaned.length === 10 || cleaned.length === 11)) {
+    // Remove leading 0 from DDD if present
+    if (cleaned.startsWith('0')) {
+      cleaned = cleaned.slice(1);
+    }
+    cleaned = '55' + cleaned;
+  }
+  
+  return cleaned;
+}
+
 // Format phone number for display
 export function formatPhone(phone: string): string {
   const cleaned = phone.replace(/\D/g, '');
+  
+  // Handle number with country code (55)
+  if (cleaned.startsWith('55') && cleaned.length >= 12) {
+    const ddd = cleaned.slice(2, 4);
+    const number = cleaned.slice(4);
+    if (number.length === 9) {
+      return `(${ddd}) ${number.slice(0, 5)}-${number.slice(5)}`;
+    } else if (number.length === 8) {
+      return `(${ddd}) ${number.slice(0, 4)}-${number.slice(4)}`;
+    }
+  }
+  
+  // Handle number without country code (11 digits)
   if (cleaned.length === 11) {
     return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
   }
+  
+  // Handle number without country code (10 digits - landline)
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+  }
+  
   return phone;
 }
 
@@ -160,7 +204,7 @@ export function generateWhatsAppMessage(
 
 // Open WhatsApp with message
 export function openWhatsApp(phone: string, message?: string): void {
-  const cleanPhone = phone.replace(/\D/g, '');
+  const cleanPhone = normalizeWhatsAppNumber(phone);
   const url = message 
     ? `https://wa.me/${cleanPhone}?text=${message}`
     : `https://wa.me/${cleanPhone}`;
