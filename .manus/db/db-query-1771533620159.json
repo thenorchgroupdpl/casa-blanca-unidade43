@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE tenants SET cnpj = '12.345.678/0001-90', subscriptionPlan = 'professional', clientStatus = 'active', landingStatus = 'published', niche = 'Restaurante', city = 'Patos de Minas', state = 'MG' WHERE slug = 'restaurante-teste';\nUPDATE tenants SET cnpj = '98.765.432/0001-10', subscriptionPlan = 'starter', clientStatus = 'implementing', landingStatus = 'draft', niche = 'Cafeteria', city = 'Uberlândia', state = 'MG' WHERE slug = 'aldeia';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute UPDATE tenants SET cnpj = '12.345.678/0001-90', subscriptionPlan = 'professional', clientStatus = 'active', landingStatus = 'published', niche = 'Restaurante', city = 'Patos de Minas', state = 'MG' WHERE slug = 'restaurante-teste';\nUPDATE tenants SET cnpj = '98.765.432/0001-10', subscriptionPlan = 'starter', clientStatus = 'implementing', landingStatus = 'draft', niche = 'Cafeteria', city = 'Uberlândia', state = 'MG' WHERE slug = 'aldeia';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 455
+}

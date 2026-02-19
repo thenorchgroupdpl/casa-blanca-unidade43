@@ -76,3 +76,15 @@
 - [x] Corrigir bug de validação do slug (sanitizar input para aceitar apenas letras minúsculas, números e hífens)
 - [x] Criar backend de users (router com list, updateRole, delete)
 - [x] Testes unitários para router de users (7 testes passando)
+
+## Fase 12: Redesign Dashboard Super Admin - Filtros e Listagem Avançada
+- [x] Atualizar schema do banco: adicionar campos CNPJ, plano, status_cliente, status_landing, nicho, cidade, estado na tabela tenants
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Criar procedure de listagem com filtros avançados (status, plano, nicho, localização)
+- [x] Criar procedure para obter opções de filtros (nichos, cidades, estados distintos)
+- [x] Redesenhar Dashboard do Super Admin com área de filtros interativa
+- [x] Criar cards detalhados de clientes (nome, URL, CNPJ, plano, status visual)
+- [x] Implementar filtros: Status do Cliente, Status da Landing Page, Plano de Assinatura
+- [x] Implementar filtros: Nicho/Categoria, Localização (Cidade/Estado)
+- [x] Escrever testes unitários para as novas procedures (14 testes passando)
+- [x] Testar fluxo completo no navegador

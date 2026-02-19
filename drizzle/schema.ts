@@ -40,6 +40,17 @@ export const tenants = mysqlTable("tenants", {
   // Basic Info
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(), // URL-friendly identifier
+  cnpj: varchar("cnpj", { length: 20 }), // CNPJ da empresa
+  
+  // Business Classification
+  subscriptionPlan: mysqlEnum("subscriptionPlan", ["starter", "professional", "enterprise"]).default("starter").notNull(),
+  clientStatus: mysqlEnum("clientStatus", ["active", "disabled", "implementing"]).default("implementing").notNull(),
+  landingStatus: mysqlEnum("landingStatus", ["published", "draft", "error"]).default("draft").notNull(),
+  niche: varchar("niche", { length: 100 }), // e.g., Restaurante, Pizzaria, Hamburgueria, Cafeteria, Doceria
+  
+  // Location
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 2 }), // UF (e.g., MG, SP, RJ)
   
   // API Integrations (managed by Super Admin only)
   googleApiKey: varchar("googleApiKey", { length: 255 }), // Google Maps/Places API Key
@@ -57,7 +68,7 @@ export const tenants = mysqlTable("tenants", {
   fontDisplay: varchar("fontDisplay", { length: 255 }).default("DM Serif Display"),
   borderRadius: varchar("borderRadius", { length: 20 }).default("0.75rem"), // rounded-xl
   
-  // Status
+  // Status (legacy - kept for backward compatibility, use clientStatus instead)
   isActive: boolean("isActive").default(true).notNull(),
   
   // Timestamps

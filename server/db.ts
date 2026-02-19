@@ -1,4 +1,4 @@
-import { eq, and, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc, like, inArray, sql, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
@@ -145,6 +145,96 @@ export async function getAllTenants(): Promise<Tenant[]> {
   if (!db) return [];
 
   return db.select().from(tenants).orderBy(desc(tenants.createdAt));
+}
+
+// Advanced filtered listing with join to store_settings for location
+export async function getTenantsFiltered(filters: {
+  search?: string;
+  clientStatus?: string[];
+  landingStatus?: string[];
+  subscriptionPlan?: string[];
+  niche?: string[];
+  city?: string[];
+  state?: string[];
+}) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions: any[] = [];
+
+  if (filters.clientStatus && filters.clientStatus.length > 0) {
+    conditions.push(inArray(tenants.clientStatus, filters.clientStatus as any));
+  }
+  if (filters.landingStatus && filters.landingStatus.length > 0) {
+    conditions.push(inArray(tenants.landingStatus, filters.landingStatus as any));
+  }
+  if (filters.subscriptionPlan && filters.subscriptionPlan.length > 0) {
+    conditions.push(inArray(tenants.subscriptionPlan, filters.subscriptionPlan as any));
+  }
+  if (filters.niche && filters.niche.length > 0) {
+    conditions.push(inArray(tenants.niche, filters.niche));
+  }
+  if (filters.city && filters.city.length > 0) {
+    conditions.push(inArray(tenants.city, filters.city));
+  }
+  if (filters.state && filters.state.length > 0) {
+    conditions.push(inArray(tenants.state, filters.state));
+  }
+  if (filters.search) {
+    const term = `%${filters.search}%`;
+    conditions.push(
+      sql`(${tenants.name} LIKE ${term} OR ${tenants.slug} LIKE ${term} OR ${tenants.cnpj} LIKE ${term})`
+    );
+  }
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+  return db.select().from(tenants)
+    .where(where)
+    .orderBy(desc(tenants.createdAt));
+}
+
+// Get distinct filter options for the UI
+export async function getTenantFilterOptions() {
+  const db = await getDb();
+  if (!db) return { niches: [], cities: [], states: [] };
+
+  const [nicheRows, cityRows, stateRows] = await Promise.all([
+    db.selectDistinct({ value: tenants.niche }).from(tenants).where(isNotNull(tenants.niche)),
+    db.selectDistinct({ value: tenants.city }).from(tenants).where(isNotNull(tenants.city)),
+    db.selectDistinct({ value: tenants.state }).from(tenants).where(isNotNull(tenants.state)),
+  ]);
+
+  return {
+    niches: nicheRows.map(r => r.value).filter(Boolean) as string[],
+    cities: cityRows.map(r => r.value).filter(Boolean) as string[],
+    states: stateRows.map(r => r.value).filter(Boolean) as string[],
+  };
+}
+
+// Get dashboard stats
+export async function getDashboardStats() {
+  const db = await getDb();
+  if (!db) return { total: 0, active: 0, implementing: 0, disabled: 0, published: 0, draft: 0, byPlan: { starter: 0, professional: 0, enterprise: 0 } };
+
+  const allTenants = await db.select().from(tenants);
+  const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
+
+  return {
+    total: allTenants.length,
+    active: allTenants.filter(t => t.clientStatus === 'active').length,
+    implementing: allTenants.filter(t => t.clientStatus === 'implementing').length,
+    disabled: allTenants.filter(t => t.clientStatus === 'disabled').length,
+    published: allTenants.filter(t => t.landingStatus === 'published').length,
+    draft: allTenants.filter(t => t.landingStatus === 'draft').length,
+    error: allTenants.filter(t => t.landingStatus === 'error').length,
+    totalUsers: Number(totalUsers[0]?.count ?? 0),
+    byPlan: {
+      starter: allTenants.filter(t => t.subscriptionPlan === 'starter').length,
+      professional: allTenants.filter(t => t.subscriptionPlan === 'professional').length,
+      enterprise: allTenants.filter(t => t.subscriptionPlan === 'enterprise').length,
+    },
+  };
 }
 
 export async function getTenantById(id: number): Promise<Tenant | undefined> {

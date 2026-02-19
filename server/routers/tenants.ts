@@ -15,6 +15,13 @@ const themeColorsSchema = z.object({
 const tenantInputSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   slug: z.string().min(1, "Slug é obrigatório").regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
+  cnpj: z.string().optional(),
+  subscriptionPlan: z.enum(["starter", "professional", "enterprise"]).optional(),
+  clientStatus: z.enum(["active", "disabled", "implementing"]).optional(),
+  landingStatus: z.enum(["published", "draft", "error"]).optional(),
+  niche: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
   googleApiKey: z.string().optional(),
   googlePlaceId: z.string().optional(),
   themeColors: themeColorsSchema,
@@ -24,10 +31,38 @@ const tenantInputSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+// Schema for advanced filters
+const filtersSchema = z.object({
+  search: z.string().optional(),
+  clientStatus: z.array(z.string()).optional(),
+  landingStatus: z.array(z.string()).optional(),
+  subscriptionPlan: z.array(z.string()).optional(),
+  niche: z.array(z.string()).optional(),
+  city: z.array(z.string()).optional(),
+  state: z.array(z.string()).optional(),
+});
+
 export const tenantsRouter = router({
   // List all tenants
   list: superAdminProcedure.query(async () => {
     return db.getAllTenants();
+  }),
+
+  // List tenants with advanced filters
+  listFiltered: superAdminProcedure
+    .input(filtersSchema)
+    .query(async ({ input }) => {
+      return db.getTenantsFiltered(input);
+    }),
+
+  // Get filter options (distinct niches, cities, states)
+  filterOptions: superAdminProcedure.query(async () => {
+    return db.getTenantFilterOptions();
+  }),
+
+  // Get dashboard stats
+  dashboardStats: superAdminProcedure.query(async () => {
+    return db.getDashboardStats();
   }),
 
   // Get single tenant by ID
