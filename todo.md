@@ -88,3 +88,8 @@
 - [x] Implementar filtros: Nicho/Categoria, Localização (Cidade/Estado)
 - [x] Escrever testes unitários para as novas procedures (14 testes passando)
 - [x] Testar fluxo completo no navegador
+
+## Fase 13: Melhorias nos Filtros do Dashboard
+- [x] Transformar filtro de Estado em combobox com busca digitável
+- [x] Transformar filtro de Cidade em combobox com busca digitável
+- [x] Melhorar barra de pesquisa principal com busca em tempo real (debounce 300ms)

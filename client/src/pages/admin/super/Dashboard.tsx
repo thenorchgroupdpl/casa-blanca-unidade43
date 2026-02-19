@@ -1,7 +1,7 @@
 import SuperAdminLayout from "@/components/SuperAdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -14,7 +14,6 @@ import {
   Globe,
   MapPin,
   Search,
-  TrendingUp,
   Users,
   X,
   FileText,
@@ -23,8 +22,9 @@ import {
   Crown,
   Rocket,
   Zap,
+  Check,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // ─── Label Maps ───────────────────────────────────────────
 const CLIENT_STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
@@ -65,11 +65,12 @@ function FilterChip({
       }`}
     >
       {label}
+      {active && <X className="inline-block h-3 w-3 ml-1.5 -mr-0.5" />}
     </button>
   );
 }
 
-// ─── Multi-Select Dropdown ────────────────────────────────
+// ─── Multi-Select Dropdown (checkbox style) ──────────────
 function FilterDropdown({
   label,
   options,
@@ -145,9 +146,158 @@ function FilterDropdown({
   );
 }
 
+// ─── Searchable Multi-Select Combobox ────────────────────
+function SearchableFilterDropdown({
+  label,
+  options,
+  selected,
+  onChange,
+  icon: Icon,
+  placeholder,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  icon?: any;
+  placeholder?: string;
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm.trim()) return options;
+    const lower = searchTerm.toLowerCase();
+    return options.filter((opt) => opt.label.toLowerCase().includes(lower));
+  }, [options, searchTerm]);
+
+  const toggle = (value: string) => {
+    if (selected.includes(value)) {
+      onChange(selected.filter((v) => v !== value));
+    } else {
+      onChange([...selected, value]);
+    }
+  };
+
+  // Focus input when popover opens
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else {
+      setSearchTerm("");
+    }
+  }, [open]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`h-9 gap-2 border-zinc-700/60 bg-zinc-800/40 text-zinc-300 hover:bg-zinc-800 hover:text-white ${
+            selected.length > 0 ? "border-amber-500/40 text-amber-400" : ""
+          }`}
+        >
+          {Icon && <Icon className="h-3.5 w-3.5" />}
+          {label}
+          {selected.length > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] bg-amber-500/20 text-amber-400 border-0">
+              {selected.length}
+            </Badge>
+          )}
+          <ChevronDown className="h-3 w-3 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0 bg-zinc-900 border-zinc-700" align="start">
+        {/* Search Input */}
+        <div className="p-2 border-b border-zinc-800">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder={placeholder ?? `Buscar ${label.toLowerCase()}...`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-3 py-2 bg-zinc-800/60 border border-zinc-700/60 rounded-md text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Options List */}
+        <div className="max-h-56 overflow-y-auto p-1.5">
+          {filteredOptions.length === 0 ? (
+            <div className="px-3 py-4 text-center text-sm text-zinc-500">
+              Nenhum resultado para "{searchTerm}"
+            </div>
+          ) : (
+            <div className="space-y-0.5">
+              {filteredOptions.map((opt) => {
+                const isSelected = selected.includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => toggle(opt.value)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                      isSelected
+                        ? "bg-amber-500/15 text-amber-400"
+                        : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                        isSelected
+                          ? "bg-amber-500 border-amber-500"
+                          : "border-zinc-600"
+                      }`}
+                    >
+                      {isSelected && (
+                        <Check className="w-3 h-3 text-black" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className="truncate">{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer with count */}
+        {selected.length > 0 && (
+          <div className="border-t border-zinc-800 p-2 flex items-center justify-between">
+            <span className="text-[11px] text-zinc-500">
+              {selected.length} selecionado{selected.length > 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={() => {
+                onChange([]);
+                setOpen(false);
+              }}
+              className="text-[11px] text-amber-400 hover:text-amber-300 font-medium"
+            >
+              Limpar
+            </button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Main Dashboard Component ─────────────────────────────
 export default function SuperAdminDashboard() {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [clientStatusFilter, setClientStatusFilter] = useState<string[]>([]);
   const [landingStatusFilter, setLandingStatusFilter] = useState<string[]>([]);
   const [planFilter, setPlanFilter] = useState<string[]>([]);
@@ -155,10 +305,18 @@ export default function SuperAdminDashboard() {
   const [cityFilter, setCityFilter] = useState<string[]>([]);
   const [stateFilter, setStateFilter] = useState<string[]>([]);
 
+  // Debounce search input for better UX
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   // Build filter input for the query
   const filterInput = useMemo(
     () => ({
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       clientStatus: clientStatusFilter.length > 0 ? clientStatusFilter : undefined,
       landingStatus: landingStatusFilter.length > 0 ? landingStatusFilter : undefined,
       subscriptionPlan: planFilter.length > 0 ? planFilter : undefined,
@@ -166,7 +324,7 @@ export default function SuperAdminDashboard() {
       city: cityFilter.length > 0 ? cityFilter : undefined,
       state: stateFilter.length > 0 ? stateFilter : undefined,
     }),
-    [search, clientStatusFilter, landingStatusFilter, planFilter, nicheFilter, cityFilter, stateFilter]
+    [debouncedSearch, clientStatusFilter, landingStatusFilter, planFilter, nicheFilter, cityFilter, stateFilter]
   );
 
   const { data: stats, isLoading: statsLoading } = trpc.tenants.dashboardStats.useQuery();
@@ -184,6 +342,7 @@ export default function SuperAdminDashboard() {
 
   const clearAllFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setClientStatusFilter([]);
     setLandingStatusFilter([]);
     setPlanFilter([]);
@@ -267,7 +426,7 @@ export default function SuperAdminDashboard() {
                   </p>
                 </div>
                 <div className="p-2.5 rounded-xl bg-blue-500/10">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  <Rocket className="h-5 w-5 text-blue-500" />
                 </div>
               </div>
               <div className="flex items-center gap-3 mt-3">
@@ -319,6 +478,12 @@ export default function SuperAdminDashboard() {
                     <X className="h-4 w-4" />
                   </button>
                 )}
+                {/* Live search indicator */}
+                {search && search !== debouncedSearch && (
+                  <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-3.5 w-3.5 text-amber-400 animate-spin" />
+                  </div>
+                )}
               </div>
               {hasActiveFilters && (
                 <Button
@@ -342,7 +507,7 @@ export default function SuperAdminDashboard() {
 
               <Separator orientation="vertical" className="h-6 bg-zinc-800" />
 
-              {/* Operação */}
+              {/* Operação - checkbox style */}
               <FilterDropdown
                 label="Status"
                 options={[
@@ -380,10 +545,11 @@ export default function SuperAdminDashboard() {
 
               <Separator orientation="vertical" className="h-6 bg-zinc-800" />
 
-              {/* Segmentação */}
+              {/* Segmentação - searchable combobox */}
               {filterOptions && filterOptions.niches.length > 0 && (
-                <FilterDropdown
+                <SearchableFilterDropdown
                   label="Nicho"
+                  placeholder="Buscar nicho..."
                   options={filterOptions.niches.map((n) => ({ value: n, label: n }))}
                   selected={nicheFilter}
                   onChange={setNicheFilter}
@@ -391,9 +557,10 @@ export default function SuperAdminDashboard() {
               )}
 
               {filterOptions && filterOptions.states.length > 0 && (
-                <FilterDropdown
+                <SearchableFilterDropdown
                   label="Estado"
                   icon={MapPin}
+                  placeholder="Digitar estado..."
                   options={filterOptions.states.map((s) => ({ value: s, label: s }))}
                   selected={stateFilter}
                   onChange={setStateFilter}
@@ -401,9 +568,10 @@ export default function SuperAdminDashboard() {
               )}
 
               {filterOptions && filterOptions.cities.length > 0 && (
-                <FilterDropdown
+                <SearchableFilterDropdown
                   label="Cidade"
                   icon={MapPin}
+                  placeholder="Digitar cidade..."
                   options={filterOptions.cities.map((c) => ({ value: c, label: c }))}
                   selected={cityFilter}
                   onChange={setCityFilter}
