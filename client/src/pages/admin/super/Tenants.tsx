@@ -379,15 +379,21 @@ export default function TenantsPage() {
                     <span className="text-zinc-500">/</span>
                     <Input
                       value={formData.slug}
-                      onChange={(e) =>
-                        setFormData({ ...formData, slug: e.target.value })
-                      }
+                      onChange={(e) => {
+                        // Sanitize: only allow lowercase letters, numbers and hyphens
+                        const sanitized = e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9-]/g, "-")
+                          .replace(/-+/g, "-")
+                          .replace(/^-/, "");
+                        setFormData({ ...formData, slug: sanitized });
+                      }}
                       placeholder="casa-blanca"
                       className="bg-zinc-800 border-zinc-700"
                     />
                   </div>
                   <p className="text-xs text-zinc-500">
-                    URL de acesso: /{formData.slug || "slug"}
+                    URL de acesso: /{formData.slug || "slug"} (apenas letras minúsculas, números e hífens)
                   </p>
                 </div>
 

@@ -17,6 +17,10 @@ import AdminRedirect from "./pages/AdminRedirect";
 // Super Admin Pages
 import SuperAdminDashboard from "./pages/admin/super/Dashboard";
 import TenantsPage from "./pages/admin/super/Tenants";
+import UsersPage from "./pages/admin/super/Users";
+import DesignPage from "./pages/admin/super/Design";
+import IntegrationsPage from "./pages/admin/super/Integrations";
+import SettingsPage from "./pages/admin/super/Settings";
 
 // Client Admin Pages
 import ClientDashboard from "./pages/admin/dashboard/Dashboard";
@@ -39,10 +43,10 @@ function Router() {
       {/* Super Admin Routes */}
       <Route path="/admin/super" component={SuperAdminDashboard} />
       <Route path="/admin/super/tenants" component={TenantsPage} />
-      <Route path="/admin/super/users" component={SuperAdminDashboard} />
-      <Route path="/admin/super/design" component={SuperAdminDashboard} />
-      <Route path="/admin/super/integrations" component={SuperAdminDashboard} />
-      <Route path="/admin/super/settings" component={SuperAdminDashboard} />
+      <Route path="/admin/super/users" component={UsersPage} />
+      <Route path="/admin/super/design" component={DesignPage} />
+      <Route path="/admin/super/integrations" component={IntegrationsPage} />
+      <Route path="/admin/super/settings" component={SettingsPage} />
       
       {/* Client Admin Routes */}
       <Route path="/admin/dashboard" component={ClientDashboard} />

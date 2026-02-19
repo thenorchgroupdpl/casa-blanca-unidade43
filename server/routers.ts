@@ -11,6 +11,7 @@ import { tenantsRouter } from "./routers/tenants";
 import { categoriesRouter, productsRouter } from "./routers/catalog";
 import { storeRouter, publicStoreRouter } from "./routers/store";
 import { emailAuthRouter } from "./routers/auth";
+import { usersRouter } from "./routers/users";
 
 export const appRouter = router({
   // System routes
@@ -46,6 +47,9 @@ export const appRouter = router({
   
   // Tenant management (Super Admin only)
   tenants: tenantsRouter,
+
+  // User management (Super Admin only)
+  users: usersRouter,
 
   // ============================================
   // CLIENT ADMIN ROUTES

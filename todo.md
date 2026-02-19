@@ -68,3 +68,11 @@
 
 ## Fase 11: Correções de Bugs
 - [x] Corrigir link do WhatsApp bugado na landing page (função normalizeWhatsAppNumber)
+- [x] Corrigir rotas do sidebar do Super Admin (todas levavam para a mesma página)
+- [x] Criar página de Usuários (/admin/super/users) com tabela, busca, edição de role e exclusão
+- [x] Criar página de Design System (/admin/super/design) com editor de cores, fontes e preview
+- [x] Criar página de Integrações (/admin/super/integrations) com Google Places API config
+- [x] Criar página de Configurações (/admin/super/settings) com informações gerais
+- [x] Corrigir bug de validação do slug (sanitizar input para aceitar apenas letras minúsculas, números e hífens)
+- [x] Criar backend de users (router com list, updateRole, delete)
+- [x] Testes unitários para router de users (7 testes passando)
