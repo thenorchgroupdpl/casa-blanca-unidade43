@@ -1,57 +1,39 @@
 /**
  * Global Toast Component - Casa Blanca
- * Design: Warm Luxury - Elegant notification box
- * Uses Zustand store for state management with createPortal
+ * Design: Warm Luxury - Elegant notification
+ * Uses Zustand store for state management
+ * Renders directly in React tree (no portal needed since it's in App.tsx)
  */
 
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef } from 'react';
 import { Check, X } from 'lucide-react';
 import { useToast } from '@/store/useStore';
 
 export default function GlobalToast() {
   const { isVisible, title, description, hideToast } = useToast();
-  const [mounted, setMounted] = useState(false);
-  const [show, setShow] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // Debug log
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
+    console.log('[GlobalToast] isVisible changed:', isVisible, 'title:', title);
+  }, [isVisible, title]);
 
-  // Handle animation state
-  useEffect(() => {
-    if (isVisible) {
-      // Small delay to trigger CSS transition
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setShow(true);
-        });
-      });
-    } else {
-      setShow(false);
-    }
-  }, [isVisible]);
-
-  // Don't render on server or before mount
-  if (!mounted) return null;
-
-  // Don't render if not visible
-  if (!isVisible) return null;
-
-  const toastContent = (
+  return (
     <div
+      ref={containerRef}
+      role="alert"
+      aria-live="assertive"
       style={{
         position: 'fixed',
-        top: '20px',
+        top: isVisible ? '20px' : '-120px',
         left: '50%',
-        transform: `translateX(-50%) translateY(${show ? '0' : '-100px'})`,
-        opacity: show ? 1 : 0,
+        transform: 'translateX(-50%)',
+        opacity: isVisible ? 1 : 0,
         zIndex: 999999,
         width: '90%',
         maxWidth: '400px',
-        pointerEvents: 'auto',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        pointerEvents: isVisible ? 'auto' : 'none',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
       <div 
@@ -93,7 +75,7 @@ export default function GlobalToast() {
             margin: 0,
             lineHeight: 1.4,
           }}>
-            {title}
+            {title || 'Notificação'}
           </p>
           <p style={{ 
             color: '#a0a0a0', 
@@ -104,7 +86,7 @@ export default function GlobalToast() {
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
           }}>
-            {description}
+            {description || ''}
           </p>
         </div>
 
@@ -124,13 +106,6 @@ export default function GlobalToast() {
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            transition: 'background 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
           }}
         >
           <X style={{ width: '18px', height: '18px', color: '#666666' }} />
@@ -138,7 +113,4 @@ export default function GlobalToast() {
       </div>
     </div>
   );
-
-  // Use createPortal to render at document.body level
-  return createPortal(toastContent, document.body);
 }

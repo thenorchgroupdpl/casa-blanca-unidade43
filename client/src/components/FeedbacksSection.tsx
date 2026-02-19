@@ -21,11 +21,19 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
     <div className="flex-shrink-0 w-[320px] sm:w-[360px] p-6 bg-card rounded-2xl border border-border/50">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <img
-          src={feedback.author_photo}
-          alt={feedback.author_name}
-          className="w-12 h-12 rounded-full object-cover"
-        />
+        {feedback.author_photo ? (
+          <img
+            src={feedback.author_photo}
+            alt={feedback.author_name}
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-primary font-semibold text-lg">
+              {feedback.author_name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h4 className="font-medium text-foreground truncate">

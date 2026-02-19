@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
-import { useCart, useUI } from '@/store/useStore';
+import { useCart, useUI, useToast } from '@/store/useStore';
 import type { Product } from '@/types';
 
 interface ProductCardProps {
@@ -22,6 +22,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
   const [showAddedFeedback, setShowAddedFeedback] = useState(false);
   const { addItem } = useCart();
   const { openProductSheet } = useUI();
+  const { showToast } = useToast();
 
   const hasMultipleImages = product.images.length > 1;
 
@@ -51,7 +52,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
     console.log('Adding to cart:', product.name);
     addItem(product, 1);
     setShowAddedFeedback(true);
-    console.log('showAddedFeedback set to true');
+    showToast('Produto adicionado!', `${product.name} adicionado à sacola.`);
   };
 
   const handleCardClick = () => {
@@ -105,11 +106,17 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
 
         {/* Image */}
         <div className="relative aspect-square overflow-hidden">
-          <img
-            src={product.images[currentImageIndex]}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {product.images[currentImageIndex] ? (
+            <img
+              src={product.images[currentImageIndex]}
+              alt={product.name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <span className="text-3xl text-muted-foreground">🍽️</span>
+            </div>
+          )}
           
           {/* Quick Add Button */}
           <button
@@ -154,11 +161,17 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
 
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden">
-        <img
-          src={product.images[currentImageIndex]}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        {product.images[currentImageIndex] ? (
+          <img
+            src={product.images[currentImageIndex]}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <span className="text-3xl text-muted-foreground">🍽️</span>
+          </div>
+        )}
 
         {/* Image Navigation */}
         {hasMultipleImages && (

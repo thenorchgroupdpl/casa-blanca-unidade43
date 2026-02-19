@@ -82,11 +82,17 @@ export default function LocationSection() {
               onClick={handleOpenMaps}
               className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden group"
             >
-              <img
-                src={location.map_preview}
-                alt="Localização Casa Blanca"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+              {location.map_preview && location.map_preview !== '/images/map-preview.jpg' ? (
+                <img
+                  src={location.map_preview}
+                  alt="Localização Casa Blanca"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-card to-card/80 flex items-center justify-center">
+                  <MapPin className="w-16 h-16 text-primary/20" />
+                </div>
+              )}
               
               {/* Overlay */}
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -119,13 +125,23 @@ export default function LocationSection() {
                 </div>
                 <div>
                   <h3 className="font-medium text-white mb-2">Endereço</h3>
-                  <p className="text-white/70">
-                    {contact.address.street}, {contact.address.number}
-                  </p>
-                  <p className="text-white/70">
-                    {contact.address.neighborhood} - {contact.address.city}/{contact.address.state}
-                  </p>
-                  <p className="text-white/70">CEP: {contact.address.zip}</p>
+                  {contact.address.street ? (
+                    <>
+                      <p className="text-white/70">
+                        {contact.address.street}{contact.address.number ? `, ${contact.address.number}` : ''}
+                      </p>
+                      {(contact.address.neighborhood || contact.address.city) && (
+                        <p className="text-white/70">
+                          {[contact.address.neighborhood, contact.address.city && contact.address.state ? `${contact.address.city}/${contact.address.state}` : contact.address.city].filter(Boolean).join(' - ')}
+                        </p>
+                      )}
+                      {contact.address.zip && (
+                        <p className="text-white/70">CEP: {contact.address.zip}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-white/50 italic">Endereço não informado</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -200,17 +200,13 @@ export const useToast = create<ToastState>((set, get) => ({
   title: '',
   description: '',
   showToast: (title, description) => {
-    console.log('[Toast] showToast called:', { title, description });
     set({ isVisible: true, title, description });
-    console.log('[Toast] State after set:', get());
-    // Auto-hide after 3 seconds
+    // Auto-hide after 4 seconds
     setTimeout(() => {
-      console.log('[Toast] Auto-hiding toast');
       set({ isVisible: false });
-    }, 3000);
+    }, 4000);
   },
   hideToast: () => {
-    console.log('[Toast] hideToast called');
     set({ isVisible: false });
   },
 }));

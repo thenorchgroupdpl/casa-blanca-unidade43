@@ -27,7 +27,7 @@ import ProductBottomSheet from '@/components/ProductBottomSheet';
 import CartDrawer from '@/components/CartDrawer';
 import WhatsAppModal from '@/components/WhatsAppModal';
 import ScheduleModal from '@/components/ScheduleModal';
-import ToastNotification from '@/components/ToastNotification';
+
 
 // Loading Component
 function LoadingScreen() {
@@ -203,9 +203,7 @@ export default function StoreLanding() {
       <CartDrawer />
       <WhatsAppModal />
       <ScheduleModal />
-      
-      {/* Toast Notification */}
-      <ToastNotification />
+
     </div>
   );
 }
@@ -227,7 +225,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         name: p.name,
         description: p.description || '',
         price: Number(p.price),
-        images: p.imageUrl ? [p.imageUrl] : ['/images/placeholder.jpg'],
+        images: p.imageUrl ? [p.imageUrl] : [],
         available: p.isAvailable,
       })),
   }));
@@ -315,7 +313,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       hero: {
         headline: settings?.heroTitle || `Bem-vindo ao ${tenant.name}`,
         subheadline: settings?.heroSubtitle || 'Experiência gastronômica única',
-        media_url: '/images/hero-bg.jpg',
+        media_url: '',
         media_type: 'image',
         cta_text: 'Fazer Pedido',
       },
@@ -327,7 +325,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         pre_headline: 'Nossa História',
         headline: settings?.aboutTitle || 'Sobre Nós',
         text: settings?.aboutText || '',
-        owner_photo: settings?.ownerPhoto || '/images/owner.jpg',
+        owner_photo: settings?.ownerPhoto || '',
         owner_name: settings?.ownerName || '',
         owner_title: 'Proprietário',
       },
@@ -335,7 +333,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         pre_headline: 'Onde Estamos',
         headline: 'Localização',
         subheadline: 'Venha nos visitar',
-        map_preview: '/images/map-preview.jpg',
+        map_preview: '',
       },
       footer: {
         cta_headline: 'Pronto para pedir?',

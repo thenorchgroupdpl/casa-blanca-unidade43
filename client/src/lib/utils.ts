@@ -42,7 +42,13 @@ export function normalizeWhatsAppNumber(phone: string): string {
 
 // Format phone number for display
 export function formatPhone(phone: string): string {
-  const cleaned = phone.replace(/\D/g, '');
+  let cleaned = phone.replace(/\D/g, '');
+  
+  // Normalize: remove extra zero from DDD when number starts with 550XX
+  // e.g., 55034991201913 -> 5534991201913
+  if (cleaned.startsWith('550') && cleaned.length >= 13) {
+    cleaned = '55' + cleaned.slice(3);
+  }
   
   // Handle number with country code (55)
   if (cleaned.startsWith('55') && cleaned.length >= 12) {
@@ -165,7 +171,17 @@ export function getStatusText(businessHours: BusinessHours): { text: string; isO
 
 // Format relative date for reviews
 export function formatRelativeDate(dateString: string): string {
+  // If already a relative date string (e.g., '2 semanas atrás'), return as-is
+  if (dateString.includes('atrás') || dateString === 'Hoje' || dateString === 'Ontem') {
+    return dateString;
+  }
+  
   const date = new Date(dateString);
+  // If invalid date, return the original string
+  if (isNaN(date.getTime())) {
+    return dateString;
+  }
+  
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

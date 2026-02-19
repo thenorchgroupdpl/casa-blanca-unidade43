@@ -1,0 +1,15 @@
+Toast Analysis:
+1. There are TWO toast components: GlobalToast (in App.tsx via createPortal) and ToastNotification (in StoreLanding.tsx inline)
+2. Both use the same useToast Zustand store
+3. The showToast IS being called correctly (logs confirm)
+4. The ToastNotification in StoreLanding.tsx renders with isVisible:true when called
+5. The problem: ToastNotification uses Tailwind animate-in classes which may not be available
+6. Also: GlobalToast uses createPortal to document.body - this should work
+7. The toast shows for 3 seconds then auto-hides - by the time I scroll up it's gone
+
+Solution: 
+- Remove duplicate toast components (keep only GlobalToast in App.tsx)
+- Remove ToastNotification from StoreLanding.tsx
+- Remove console.log debug statements
+- Increase toast duration to 4 seconds
+- Test by clicking and immediately looking (not scrolling)

@@ -93,11 +93,17 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                     >
                       {/* Product Image */}
                       <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={item.product.images[0]}
-                          alt={item.product.name}
-                          className="w-full h-full object-cover"
-                        />
+                        {item.product.images[0] ? (
+                          <img
+                            src={item.product.images[0]}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                            <ShoppingBag className="w-6 h-6 text-white/30" />
+                          </div>
+                        )}
                       </div>
 
                       {/* Product Info */}

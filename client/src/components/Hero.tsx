@@ -27,11 +27,15 @@ export default function Hero() {
     >
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <img
-          src={hero.media_url}
-          alt="Casa Blanca Restaurant"
-          className="w-full h-full object-cover"
-        />
+        {hero.media_url && !hero.media_url.startsWith('/images/') ? (
+          <img
+            src={hero.media_url}
+            alt="Casa Blanca Restaurant"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]" />
+        )}
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-transparent" />

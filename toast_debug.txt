@@ -1,0 +1,8 @@
+Toast Debug Results:
+- Sonner Toaster does NOT exist in DOM on the StoreLanding page
+- The Toaster component is in App.tsx but the StoreLanding route (/:slug) may not be wrapped by it
+- Need to check if the StoreLanding page is rendered INSIDE the App component tree that includes Toaster
+
+Root cause: The Sonner Toaster component is not being rendered on the StoreLanding page.
+The StoreLanding page IS part of the App.tsx routes, so the Toaster should be there.
+Need to investigate why it's not mounting.

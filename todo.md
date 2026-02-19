@@ -53,9 +53,9 @@
 - [x] Ajustes de responsividade
 
 ## Fase 9: Melhorias de UX
-- [ ] Toast de "Produto adicionado" em box estilizado com cor personalizável
-- [ ] Substituir menu hambúrguer por ícone de carrinho no header mobile
-- [ ] Criar popup do carrinho ao clicar no ícone
+- [x] Toast de "Produto adicionado" em box estilizado com cor personalizável
+- [x] Substituir menu hambúrguer por ícone de carrinho no header mobile
+- [x] Criar popup do carrinho ao clicar no ícone
 
 ## Fase 10: Sistema de Login Próprio
 - [x] Criar rotas de autenticação com email/senha no backend
@@ -107,3 +107,41 @@
 - [x] Adicionar indicador visual de status de integrações (WhatsApp, Google Places, Place ID)
 - [x] Escrever testes unitários para novas procedures (43 testes passando)
 - [x] Testar fluxo completo no navegador
+
+## Fase 15: Auditoria Completa do Sistema
+- [x] Testar login Super Admin (admin@casablanca.com)
+- [x] Testar login Lojista (lojista@casablanca.com)
+- [x] Testar redirecionamento /admin
+- [ ] Testar login com credenciais inválidas
+- [x] Testar todas as páginas do Super Admin (Dashboard, Clientes, Usuários, Design, Integrações, Config)
+- [ ] Testar criação de novo cliente
+- [ ] Testar edição de cliente existente (painel de gerenciamento)
+- [ ] Testar Acesso Direto (Login As)
+- [x] Testar todas as páginas do Lojista (Dashboard, Catálogo, Vitrine, Dados da Loja)
+- [x] Testar CRUD de categorias
+- [x] Testar CRUD de produtos
+- [x] Testar configuração de vitrine
+- [x] Testar edição de dados da loja
+- [x] Testar Landing Page do consumidor
+- [x] Testar navegação da landing page (menu, scroll)
+- [x] Testar carrinho (adicionar, remover, quantidade)
+- [x] Testar envio de pedido via WhatsApp
+- [x] Testar botão Mandar Mensagem (WhatsApp)
+- [ ] Testar responsividade mobile
+- [x] Registrar e corrigir todos os bugs encontrados
+
+## Fase 16: Correções de Bugs - Auditoria
+- [x] Corrigir sistema de toast (GlobalToast) - remover Sonner, usar apenas Zustand store
+- [x] Adicionar showToast ao ProductCard quando adicionar direto pelo botão do card
+- [x] Corrigir FeedbacksSection para não renderizar img com src vazia (author_photo)
+- [x] Corrigir AboutSection para não renderizar img com src vazia (owner_photo)
+- [x] Corrigir LocationSection para não renderizar img com src vazia (map_preview)
+- [x] Corrigir WhatsAppModal para não renderizar img com src vazia (owner_photo)
+- [x] Corrigir Hero para não renderizar img com src vazia (media_url)
+- [x] Corrigir CartDrawer para não renderizar img com src vazia (produto sem imagem)
+- [x] Corrigir CartPopup para não renderizar img com src vazia (produto sem imagem)
+- [x] Corrigir ProductCard para lidar com imagens vazias em ambas as variantes
+- [x] Corrigir ProductBottomSheet para lidar com imagens vazias
+- [x] Corrigir AboutSection para esconder seção quando não há conteúdo (sem texto e sem foto)
+- [x] Corrigir StoreLanding transformTenantDataToSiteData para não usar paths de imagens inexistentes como fallback
+- [x] Remover Sonner Toaster do App.tsx

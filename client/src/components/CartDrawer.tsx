@@ -120,11 +120,17 @@ export default function CartDrawer() {
                         className="flex gap-4 p-4 bg-muted/30 rounded-2xl"
                       >
                         {/* Image */}
-                        <img
-                          src={item.product.images[0]}
-                          alt={item.product.name}
-                          className="w-20 h-20 rounded-xl object-cover"
-                        />
+                        {item.product.images[0] ? (
+                          <img
+                            src={item.product.images[0]}
+                            alt={item.product.name}
+                            className="w-20 h-20 rounded-xl object-cover"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center">
+                            <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+                          </div>
+                        )}
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">

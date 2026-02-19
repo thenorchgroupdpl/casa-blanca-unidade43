@@ -6,14 +6,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, ShoppingBag, Check } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
-import { useUI, useCart } from '@/store/useStore';
-import { toast } from 'sonner';
+import { useUI, useCart, useToast } from '@/store/useStore';
 
 export default function ProductBottomSheet() {
   const { selectedProduct, isBottomSheetOpen, closeProductSheet } = useUI();
   const { addItem } = useCart();
+  const { showToast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -40,46 +40,11 @@ export default function ProductBottomSheet() {
     
     addItem(selectedProduct, quantity);
     
-    // Use Sonner toast with custom styling
-    toast.custom((t) => (
-      <div 
-        className="flex items-center gap-3 px-5 py-4 rounded-2xl w-full max-w-[400px] mx-auto"
-        style={{
-          background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-          border: '1px solid rgba(212, 175, 55, 0.4)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.2)',
-        }}
-      >
-        {/* Success Icon */}
-        <div 
-          className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(212, 175, 55, 0.2)' }}
-        >
-          <Check className="w-5 h-5 text-[#D4AF37]" />
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <p className="text-white font-semibold text-base m-0 leading-tight">
-            Produto adicionado!
-          </p>
-          <p className="text-gray-400 text-sm mt-1 truncate">
-            {quantity}x {selectedProduct.name} adicionado à sacola.
-          </p>
-        </div>
-
-        {/* Close Button */}
-        <button
-          onClick={() => toast.dismiss(t)}
-          className="p-1.5 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
-        >
-          <X className="w-4 h-4 text-gray-500" />
-        </button>
-      </div>
-    ), {
-      duration: 3000,
-      position: 'top-center',
-    });
+    // Show success toast notification
+    showToast(
+      'Produto adicionado!',
+      `${quantity}x ${selectedProduct.name} adicionado à sacola.`
+    );
     
     closeProductSheet();
   };
@@ -129,11 +94,17 @@ export default function ProductBottomSheet() {
             <div className="overflow-y-auto max-h-[calc(90vh-60px)]">
               {/* Product Image */}
               <div className="relative aspect-square max-h-[300px] bg-muted">
-                <img
-                  src={selectedProduct.images?.[currentImageIndex] || '/images/placeholder.jpg'}
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
+                {selectedProduct.images?.[currentImageIndex] ? (
+                  <img
+                    src={selectedProduct.images[currentImageIndex]}
+                    alt={selectedProduct.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <ShoppingBag className="w-16 h-16 text-muted-foreground" />
+                  </div>
+                )}
                 
                 {/* Image Navigation Dots */}
                 {selectedProduct.images && selectedProduct.images.length > 1 && (

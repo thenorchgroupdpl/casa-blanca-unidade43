@@ -15,7 +15,11 @@ export default function AboutSection() {
   const { about } = data.sections_content;
 
   // Split text into paragraphs
-  const paragraphs = about.text.split('\n\n');
+  const paragraphs = about.text ? about.text.split('\n\n').filter(p => p.trim()) : [];
+
+  // Hide section if there's no meaningful content (need at least text or a real photo)
+  const hasContent = paragraphs.length > 0 || (about.owner_photo && about.owner_photo.length > 0);
+  if (!hasContent) return null;
 
   return (
     <section id="sobre" className="py-20 bg-background">
@@ -52,19 +56,27 @@ export default function AboutSection() {
             transition={{ duration: 0.7, delay: 0.2 }}
           >
             <div className="relative rounded-2xl overflow-hidden aspect-[4/5]">
-              <img
-                src={about.owner_photo}
-                alt={about.owner_name}
-                className="w-full h-full object-cover"
-              />
+              {about.owner_photo ? (
+                <img
+                  src={about.owner_photo}
+                  alt={about.owner_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                  <span className="font-display text-6xl text-primary/30">CB</span>
+                </div>
+              )}
               {/* Gradient overlay at bottom */}
               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
               
               {/* Owner info overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <p className="font-display text-xl text-white">{about.owner_name}</p>
-                <p className="text-white/70 text-sm mt-1">{about.owner_title}</p>
-              </div>
+              {(about.owner_name || about.owner_title) && (
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  {about.owner_name && <p className="font-display text-xl text-white">{about.owner_name}</p>}
+                  {about.owner_title && <p className="text-white/70 text-sm mt-1">{about.owner_title}</p>}
+                </div>
+              )}
             </div>
 
             {/* Decorative element */}
