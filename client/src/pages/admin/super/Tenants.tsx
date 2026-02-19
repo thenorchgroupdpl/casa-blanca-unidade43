@@ -955,7 +955,13 @@ export default function TenantsPage() {
         <Dialog open={manageTenantId !== null} onOpenChange={(open) => { if (!open) setManageTenantId(null); }}>
           <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-3xl max-h-[90vh] overflow-y-auto">
             {isLoadingManaged ? (
-              <div className="text-center py-12 text-zinc-500">Carregando dados do cliente...</div>
+              <>
+                <DialogHeader>
+                  <DialogTitle>Gerenciar Cliente</DialogTitle>
+                  <DialogDescription className="text-zinc-400">Carregando dados...</DialogDescription>
+                </DialogHeader>
+                <div className="text-center py-12 text-zinc-500">Carregando dados do cliente...</div>
+              </>
             ) : managedTenant ? (
               <>
                 <DialogHeader>
@@ -1317,7 +1323,15 @@ export default function TenantsPage() {
                   </Button>
                 </DialogFooter>
               </>
-            ) : null}
+            ) : (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Gerenciar Cliente</DialogTitle>
+                  <DialogDescription className="text-zinc-400">Cliente não encontrado</DialogDescription>
+                </DialogHeader>
+                <div className="text-center py-12 text-zinc-500">Dados do cliente não disponíveis.</div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 

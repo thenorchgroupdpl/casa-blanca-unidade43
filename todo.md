@@ -145,3 +145,4 @@
 - [x] Corrigir AboutSection para esconder seção quando não há conteúdo (sem texto e sem foto)
 - [x] Corrigir StoreLanding transformTenantDataToSiteData para não usar paths de imagens inexistentes como fallback
 - [x] Remover Sonner Toaster do App.tsx
+- [x] Corrigir erro de acessibilidade: DialogContent sem DialogTitle na página /admin/super/tenants
