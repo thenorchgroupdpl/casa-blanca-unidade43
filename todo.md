@@ -93,3 +93,17 @@
 - [x] Transformar filtro de Estado em combobox com busca digitável
 - [x] Transformar filtro de Cidade em combobox com busca digitável
 - [x] Melhorar barra de pesquisa principal com busca em tempo real (debounce 300ms)
+
+## Fase 14: Redesign Página de Clientes do Super Admin
+- [x] Atualizar schema: adicionar campos razaoSocial, emailDono, telefoneDono, domainCustom ao tenants
+- [x] Criar procedure de impersonação (login as) para Super Admin acessar dashboard do lojista
+- [x] Criar procedure de atualização de dados contratuais do tenant
+- [x] Redesenhar listagem de clientes com cards ricos (plano, CNPJ, status visual)
+- [x] Implementar ações rápidas: Login As (acesso direto) e Editor de Design System
+- [x] Implementar busca inteligente por nome e slug/URL
+- [x] Implementar filtros por Plano/Status e por Nicho
+- [x] Criar painel de gerenciamento detalhado (modal com 3 abas)
+- [x] Adicionar configurações de domínio (subdomínio e domínio próprio) no painel
+- [x] Adicionar indicador visual de status de integrações (WhatsApp, Google Places, Place ID)
+- [x] Escrever testes unitários para novas procedures (43 testes passando)
+- [x] Testar fluxo completo no navegador

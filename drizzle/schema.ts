@@ -41,6 +41,12 @@ export const tenants = mysqlTable("tenants", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(), // URL-friendly identifier
   cnpj: varchar("cnpj", { length: 20 }), // CNPJ da empresa
+  razaoSocial: varchar("razaoSocial", { length: 255 }), // Razão Social
+  emailDono: varchar("emailDono", { length: 320 }), // E-mail do dono
+  telefoneDono: varchar("telefoneDono", { length: 20 }), // Telefone de contato
+  
+  // Domain Configuration
+  domainCustom: varchar("domainCustom", { length: 255 }), // Domínio próprio (ex: www.restaurante.com.br)
   
   // Business Classification
   subscriptionPlan: mysqlEnum("subscriptionPlan", ["starter", "professional", "enterprise"]).default("starter").notNull(),

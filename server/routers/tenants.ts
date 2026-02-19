@@ -16,6 +16,10 @@ const tenantInputSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   slug: z.string().min(1, "Slug é obrigatório").regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
   cnpj: z.string().optional(),
+  razaoSocial: z.string().optional(),
+  emailDono: z.string().optional(),
+  telefoneDono: z.string().optional(),
+  domainCustom: z.string().optional(),
   subscriptionPlan: z.enum(["starter", "professional", "enterprise"]).optional(),
   clientStatus: z.enum(["active", "disabled", "implementing"]).optional(),
   landingStatus: z.enum(["published", "draft", "error"]).optional(),
@@ -176,6 +180,46 @@ export const tenantsRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       return db.getFullTenantData(input.id);
+    }),
+
+  // Update contractual data (razaoSocial, emailDono, telefoneDono, cnpj, domainCustom)
+  updateContractual: superAdminProcedure
+    .input(z.object({
+      id: z.number(),
+      cnpj: z.string().optional(),
+      razaoSocial: z.string().optional(),
+      emailDono: z.string().optional(),
+      telefoneDono: z.string().optional(),
+      domainCustom: z.string().optional(),
+      slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
+      niche: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      clientStatus: z.enum(["active", "disabled", "implementing"]).optional(),
+      subscriptionPlan: z.enum(["starter", "professional", "enterprise"]).optional(),
+      landingStatus: z.enum(["published", "draft", "error"]).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const { id, ...data } = input;
+      // If updating slug, check uniqueness
+      if (data.slug) {
+        const existing = await db.getTenantBySlug(data.slug);
+        if (existing && existing.id !== id) {
+          throw new Error("Slug j\u00e1 est\u00e1 em uso");
+        }
+      }
+      await db.updateTenant(id, data);
+      return { success: true };
+    }),
+
+  // Get tenant with store settings for management panel
+  getTenantWithSettings: superAdminProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const tenant = await db.getTenantById(input.id);
+      if (!tenant) throw new Error("Tenant n\u00e3o encontrado");
+      const settings = await db.getStoreSettings(input.id);
+      return { ...tenant, storeSettings: settings ?? null };
     }),
 
   // Assume tenant (Super Admin temporarily becomes that tenant's admin)
