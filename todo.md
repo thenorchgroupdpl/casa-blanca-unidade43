@@ -238,3 +238,10 @@
 - [x] P4a: Corrigir vínculo da URL do logotipo no preview/header
 - [x] P4b: Criar input global "Nome da Empresa" como variável dinâmica (usa project_name do tenant)
 - [x] P4c: Implementar fallback: imagem de logo > texto do Nome da Empresa
+
+## Fase 25: Adicionar Campo de Nome da Empresa no Design System
+- [x] Adicionar campo companyName ao tipo LandingDesign["home"]
+- [x] Adicionar input de texto no HomeSection do Design.tsx (visível quando logoType === "text")
+- [x] Atualizar postMessage handler no StoreLanding para mapear companyName
+- [x] Atualizar transformTenantDataToSiteData para usar companyName do landingDesign
+- [x] Atualizar Header para usar companyName do landingDesign com fallback para project_name

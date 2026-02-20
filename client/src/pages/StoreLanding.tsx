@@ -164,6 +164,7 @@ export default function StoreLanding() {
           // Update logo
           if (design.home.logoUrl !== undefined) updatedData.logo_url = design.home.logoUrl;
           if (design.home.logoType !== undefined) updatedData.logo_type = design.home.logoType;
+          if (design.home.companyName !== undefined) updatedData.project_name = design.home.companyName;
         }
         
         if (design?.products) {
@@ -419,7 +420,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
   ];
 
   return {
-    project_name: tenant.name,
+    project_name: ld?.home?.companyName || tenant.name,
     logo_url: ld?.home?.logoUrl || '',
     logo_type: ld?.home?.logoType || 'text',
     theme: {

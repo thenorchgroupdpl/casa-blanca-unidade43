@@ -62,6 +62,7 @@ type LandingDesign = {
   home?: {
     logoUrl?: string;
     logoType?: "image" | "text";
+    companyName?: string;
     bgMediaUrl?: string;
     bgMediaType?: "image" | "video";
     bgOverlayOpacity?: number;
@@ -1104,6 +1105,18 @@ function HomeSection({
           onUpload={onImageUpload}
           uploading={uploading}
         />
+      )}
+
+      {data.logoType === "text" && (
+        <div className="space-y-1.5">
+          <Label className="text-[11px] text-zinc-400">Nome da Empresa</Label>
+          <Input
+            value={data.companyName || ""}
+            onChange={(e) => onChange("companyName", e.target.value)}
+            placeholder="Casa Blanca"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
       )}
 
       {/* Background Media */}
