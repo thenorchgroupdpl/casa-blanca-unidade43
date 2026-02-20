@@ -215,3 +215,7 @@
 - [x] Atualizar postMessage para enviar as 3 novas cores
 - [x] Atualizar testes unitários
 - [x] Testar visualmente a independência de cada cor
+
+## Fase 22: UX - Notificação de Carrinho
+- [x] Remover notificação inline "Produto adicionado!" do card do produto
+- [x] Manter apenas o toast global no topo da tela
