@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { CreatableCombobox } from "@/components/ui/creatable-combobox";
 import { trpc } from "@/lib/trpc";
 import {
   Building2,
@@ -744,11 +745,13 @@ export default function TenantsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Nicho</Label>
-                    <Input
+                    <CreatableCombobox
                       value={formData.niche}
-                      onChange={(e) => setFormData({ ...formData, niche: e.target.value })}
-                      placeholder="Restaurante, Barbearia..."
-                      className="bg-zinc-800 border-zinc-700"
+                      onChange={(val) => setFormData({ ...formData, niche: val })}
+                      options={filterOptions?.niches || []}
+                      placeholder="Selecione o nicho..."
+                      searchPlaceholder="Buscar nicho..."
+                      createLabel="Criar nicho"
                     />
                   </div>
                   <div className="space-y-2">
@@ -767,21 +770,24 @@ export default function TenantsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Cidade</Label>
-                    <Input
+                    <CreatableCombobox
                       value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      placeholder="Patos de Minas"
-                      className="bg-zinc-800 border-zinc-700"
+                      onChange={(val) => setFormData({ ...formData, city: val })}
+                      options={filterOptions?.cities || []}
+                      placeholder="Selecione a cidade..."
+                      searchPlaceholder="Buscar cidade..."
+                      createLabel="Criar cidade"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Estado (UF)</Label>
-                    <Input
+                    <CreatableCombobox
                       value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value.toUpperCase().slice(0, 2) })}
-                      placeholder="MG"
-                      maxLength={2}
-                      className="bg-zinc-800 border-zinc-700"
+                      onChange={(val) => setFormData({ ...formData, state: val.toUpperCase().slice(0, 2) })}
+                      options={filterOptions?.states || []}
+                      placeholder="Selecione o estado..."
+                      searchPlaceholder="Buscar estado..."
+                      createLabel="Criar estado"
                     />
                   </div>
                 </div>
