@@ -284,3 +284,15 @@
 - [x] Atualizar transformTenantDataToSiteData para carregar cores por seção do banco
 - [x] Atualizar componentes (Hero, AboutSection, VitrineSection, FeedbacksSection, LocationSection) para usar CSS variables locais
 - [x] Garantir fallback: se cor da seção não definida, usar cor global
+
+## Fase 31: Controles Granulares da Seção Home/Hero
+- [x] 1.1 HEADER: Seletor de cor de fundo com alpha + upload de logo com slider de tamanho
+- [x] 1.2 BOX LOCALIZAÇÃO: Seletores de cor (fundo, texto, ícone) + input de texto para cidade
+- [x] 1.3 BOX HORÁRIOS: Seletores de cor (fundo, texto, ícone) + input de texto para horário
+- [x] 1.4 HEADLINE: Google Fonts dropdown + slider tamanho + dropdown peso + cor + textarea
+- [x] 1.5 SUBHEADLINE: Mesma estrutura do headline (fonte, tamanho, peso, cor, textarea)
+- [x] 1.6 BOTÃO CTA: Cor fundo + cor texto + toggle gradiente + input label + dropdown ação
+- [x] 1.7 FUNDO: Upload imagem (webp) + slider opacidade + cor overlay com alpha + cor fallback
+- [x] Atualizar postMessage e StoreLanding para mapear todos os novos campos
+- [x] Atualizar Hero.tsx e Header.tsx para consumir os novos campos
+- [x] Garantir que propriedades são exclusivas da seção Home (não afetam outras seções)

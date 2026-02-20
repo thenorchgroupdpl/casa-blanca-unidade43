@@ -2,6 +2,7 @@
  * Header Component - Casa Blanca
  * Design: Warm Luxury - Glassmorphism sticky header
  * Features: Dynamic logo (image or text), WhatsApp CTA button, Cart icon on mobile
+ * Supports granular style overrides from Design System (header_bg_color, logo_size)
  */
 
 import { useState, useEffect } from 'react';
@@ -43,10 +44,21 @@ export default function Header() {
   const logoType = data?.logo_type || 'text';
   const companyName = data?.project_name || 'Casa Blanca';
 
+  // Granular style overrides from hero
+  const hero = data?.sections_content?.hero;
+  const headerBgColor = hero?.header_bg_color;
+  const logoSize = hero?.logo_size || 40; // default 40px
+
   // Split company name for highlight effect (first word normal, rest highlighted)
   const nameParts = companyName.split(' ');
   const firstName = nameParts[0] || '';
   const restName = nameParts.slice(1).join(' ');
+
+  // Header background style
+  const headerStyle: React.CSSProperties = {};
+  if (isScrolled && headerBgColor) {
+    headerStyle.backgroundColor = headerBgColor;
+  }
 
   return (
     <>
@@ -54,9 +66,10 @@ export default function Header() {
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
           isScrolled
-            ? 'glass border-b border-lp-border py-3'
+            ? !headerBgColor ? 'glass border-b border-lp-border py-3' : 'border-b border-lp-border py-3 backdrop-blur-md'
             : 'bg-transparent py-4'
         )}
+        style={headerStyle}
       >
         <div className="container flex items-center justify-between">
           {/* Logo */}
@@ -71,7 +84,8 @@ export default function Header() {
               <img
                 src={logoUrl}
                 alt={companyName}
-                className="h-8 md:h-10 w-auto object-contain"
+                className="w-auto object-contain"
+                style={{ height: `${logoSize}px` }}
               />
             ) : (
               <span className="font-display text-2xl md:text-3xl text-lp-text">

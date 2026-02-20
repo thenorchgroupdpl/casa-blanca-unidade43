@@ -151,21 +151,49 @@ export default function StoreLanding() {
         const updatedData = { ...currentData };
         
         if (design?.home) {
+          const h = design.home;
           updatedData.sections_content = {
             ...updatedData.sections_content,
             hero: {
               ...updatedData.sections_content.hero,
-              headline: design.home.headline || updatedData.sections_content.hero.headline,
-              subheadline: design.home.subheadline || updatedData.sections_content.hero.subheadline,
-              cta_text: design.home.ctaText || updatedData.sections_content.hero.cta_text,
-              media_url: design.home.bgMediaUrl || updatedData.sections_content.hero.media_url,
-              media_type: design.home.bgMediaType || updatedData.sections_content.hero.media_type,
+              headline: h.headline || updatedData.sections_content.hero.headline,
+              subheadline: h.subheadline || updatedData.sections_content.hero.subheadline,
+              cta_text: h.ctaText || updatedData.sections_content.hero.cta_text,
+              media_url: h.bgMediaUrl || updatedData.sections_content.hero.media_url,
+              media_type: h.bgMediaType || updatedData.sections_content.hero.media_type,
+              // Granular style overrides
+              header_bg_color: h.headerBgColor,
+              logo_size: h.logoSize,
+              location_box_bg: h.locationBoxBg,
+              location_box_text: h.locationBoxText,
+              location_box_icon: h.locationBoxIcon,
+              location_label: h.locationLabel,
+              schedule_box_bg: h.scheduleBoxBg,
+              schedule_box_text: h.scheduleBoxText,
+              schedule_box_icon: h.scheduleBoxIcon,
+              schedule_label: h.scheduleLabel,
+              headline_font: h.headlineFont,
+              headline_font_size: h.headlineFontSize,
+              headline_font_weight: h.headlineFontWeight,
+              headline_color: h.headlineColor,
+              subheadline_font: h.subheadlineFont,
+              subheadline_font_size: h.subheadlineFontSize,
+              subheadline_font_weight: h.subheadlineFontWeight,
+              subheadline_color: h.subheadlineColor,
+              cta_bg_color: h.ctaBgColor,
+              cta_text_color: h.ctaTextColor,
+              cta_gradient: h.ctaGradient,
+              cta_gradient_end: h.ctaGradientEnd,
+              cta_action: h.ctaAction,
+              bg_overlay_opacity: h.bgOverlayOpacity,
+              bg_overlay_color: h.bgOverlayColor,
+              bg_fallback_color: h.bgFallbackColor,
             },
           };
           // Update logo
-          if (design.home.logoUrl !== undefined) updatedData.logo_url = design.home.logoUrl;
-          if (design.home.logoType !== undefined) updatedData.logo_type = design.home.logoType;
-          if (design.home.companyName !== undefined) updatedData.project_name = design.home.companyName;
+          if (h.logoUrl !== undefined) updatedData.logo_url = h.logoUrl;
+          if (h.logoType !== undefined) updatedData.logo_type = h.logoType;
+          if (h.companyName !== undefined) updatedData.project_name = h.companyName;
         }
         
         if (design?.products) {
@@ -485,6 +513,33 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         media_url: ld?.home?.bgMediaUrl || '',
         media_type: ld?.home?.bgMediaType || 'image',
         cta_text: ld?.home?.ctaText || 'Fazer Pedido',
+        // Granular style overrides
+        header_bg_color: ld?.home?.headerBgColor,
+        logo_size: ld?.home?.logoSize,
+        location_box_bg: ld?.home?.locationBoxBg,
+        location_box_text: ld?.home?.locationBoxText,
+        location_box_icon: ld?.home?.locationBoxIcon,
+        location_label: ld?.home?.locationLabel,
+        schedule_box_bg: ld?.home?.scheduleBoxBg,
+        schedule_box_text: ld?.home?.scheduleBoxText,
+        schedule_box_icon: ld?.home?.scheduleBoxIcon,
+        schedule_label: ld?.home?.scheduleLabel,
+        headline_font: ld?.home?.headlineFont,
+        headline_font_size: ld?.home?.headlineFontSize,
+        headline_font_weight: ld?.home?.headlineFontWeight,
+        headline_color: ld?.home?.headlineColor,
+        subheadline_font: ld?.home?.subheadlineFont,
+        subheadline_font_size: ld?.home?.subheadlineFontSize,
+        subheadline_font_weight: ld?.home?.subheadlineFontWeight,
+        subheadline_color: ld?.home?.subheadlineColor,
+        cta_bg_color: ld?.home?.ctaBgColor,
+        cta_text_color: ld?.home?.ctaTextColor,
+        cta_gradient: ld?.home?.ctaGradient,
+        cta_gradient_end: ld?.home?.ctaGradientEnd,
+        cta_action: ld?.home?.ctaAction,
+        bg_overlay_opacity: ld?.home?.bgOverlayOpacity,
+        bg_overlay_color: ld?.home?.bgOverlayColor,
+        bg_fallback_color: ld?.home?.bgFallbackColor,
       },
       intro: {
         headline: ld?.products?.headline || 'Nossos Destaques',

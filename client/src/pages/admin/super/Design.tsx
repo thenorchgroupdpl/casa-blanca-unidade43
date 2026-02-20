@@ -73,17 +73,50 @@ type SectionColors = {
 
 type LandingDesign = {
   home?: {
+    // Logo
     logoUrl?: string;
     logoType?: "image" | "text";
     companyName?: string;
+    logoSize?: number; // width in px (40-200)
+    // Header
+    headerBgColor?: string; // with alpha support (rgba)
+    // Location Box
+    locationBoxBg?: string;
+    locationBoxText?: string;
+    locationBoxIcon?: string;
+    locationLabel?: string; // editable city label
+    // Schedule Box
+    scheduleBoxBg?: string;
+    scheduleBoxText?: string;
+    scheduleBoxIcon?: string;
+    scheduleLabel?: string; // editable schedule text
+    badgeOpenColor?: string;
+    badgeClosedColor?: string;
+    // Headline
+    headline?: string;
+    headlineFont?: string;
+    headlineFontSize?: number; // in px
+    headlineFontWeight?: string; // 300,400,700,900
+    headlineColor?: string;
+    // Subheadline
+    subheadline?: string;
+    subheadlineFont?: string;
+    subheadlineFontSize?: number;
+    subheadlineFontWeight?: string;
+    subheadlineColor?: string;
+    // CTA Button
+    ctaText?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    ctaGradient?: boolean;
+    ctaGradientEnd?: string; // second gradient color
+    ctaAction?: string; // URL or anchor like #cardapio
+    // Background
     bgMediaUrl?: string;
     bgMediaType?: "image" | "video";
     bgOverlayOpacity?: number;
-    headline?: string;
-    subheadline?: string;
-    ctaText?: string;
-    badgeOpenColor?: string;
-    badgeClosedColor?: string;
+    bgOverlayColor?: string; // overlay color with alpha
+    bgFallbackColor?: string; // solid color fallback
   };
   products?: {
     headline?: string;
@@ -162,6 +195,16 @@ const DISPLAY_FONT_OPTIONS = [
   "Source Serif 4", "Fraunces", "Bodoni Moda", "Instrument Serif",
 ];
 
+const FONT_WEIGHT_OPTIONS = [
+  { value: "300", label: "Light" },
+  { value: "400", label: "Regular" },
+  { value: "600", label: "Semi-Bold" },
+  { value: "700", label: "Bold" },
+  { value: "900", label: "Black" },
+];
+
+const ALL_FONTS = [...FONT_OPTIONS, ...DISPLAY_FONT_OPTIONS];
+
 const SECTION_TABS: { id: SectionTab; label: string; icon: typeof Home }[] = [
   { id: "home", label: "HOME", icon: Home },
   { id: "products", label: "PRODUTOS", icon: ShoppingBag },
@@ -173,8 +216,30 @@ const SECTION_TABS: { id: SectionTab; label: string; icon: typeof Home }[] = [
 const defaultDesign: LandingDesign = {
   home: {
     logoType: "text",
+    logoSize: 80,
+    headerBgColor: "rgba(0,0,0,0.3)",
+    locationBoxBg: "rgba(255,255,255,0.1)",
+    locationBoxText: "#a1a1aa",
+    locationBoxIcon: "#d4a853",
+    scheduleBoxBg: "rgba(34,197,94,0.15)",
+    scheduleBoxText: "#22c55e",
+    scheduleBoxIcon: "#22c55e",
+    headlineFont: "",
+    headlineFontSize: 64,
+    headlineFontWeight: "700",
+    headlineColor: "#ffffff",
+    subheadlineFont: "",
+    subheadlineFontSize: 20,
+    subheadlineFontWeight: "400",
+    subheadlineColor: "#a1a1aa",
+    ctaBgColor: "#d4a853",
+    ctaTextColor: "#1a1a1a",
+    ctaGradient: false,
+    ctaAction: "#cardapio",
     bgMediaType: "image",
     bgOverlayOpacity: 50,
+    bgOverlayColor: "#000000",
+    bgFallbackColor: "#1a1a1a",
     headline: "Gastronomia de Alta Performance",
     subheadline: "Experiência única",
     ctaText: "Fazer Pedido",
@@ -1168,6 +1233,46 @@ function HomeSection({
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
+  // Reusable color picker row
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  // Reusable font selector
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
+        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+          <SelectValue placeholder="Herdar Global" />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          <SelectItem value="inherit">Herdar Global</SelectItem>
+          {ALL_FONTS.map((f) => (
+            <SelectItem key={f} value={f}>
+              <span style={{ fontFamily: f }}>{f}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -1175,176 +1280,217 @@ function HomeSection({
         Seção Home
       </h3>
 
-      {/* Logo */}
-      <div className="space-y-1.5">
-        <Label className="text-[11px] text-zinc-400">Tipo de Logotipo</Label>
-        <div className="flex gap-1.5">
-          <button
-            onClick={() => onChange("logoType", "text")}
-            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
-              data.logoType === "text"
-                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
-                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-            }`}
-          >
-            <Type className="h-3 w-3 inline mr-1" />
-            Texto
-          </button>
-          <button
-            onClick={() => onChange("logoType", "image")}
-            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
-              data.logoType === "image"
-                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
-                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-            }`}
-          >
-            <ImageIcon className="h-3 w-3 inline mr-1" />
-            Imagem
-          </button>
+      {/* ===== 1.1 HEADER ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.1 Header (Barra da Logo)</Label>
+
+        <ColorRow label="Cor de Fundo" value={data.headerBgColor} defaultVal="rgba(0,0,0,0.3)" field="headerBgColor" />
+
+        {/* Logo Type */}
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-zinc-500">Tipo de Logotipo</Label>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onChange("logoType", "text")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                data.logoType === "text"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <Type className="h-3 w-3 inline mr-1" />
+              Texto
+            </button>
+            <button
+              onClick={() => onChange("logoType", "image")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                data.logoType === "image"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <ImageIcon className="h-3 w-3 inline mr-1" />
+              Imagem
+            </button>
+          </div>
         </div>
+
+        {data.logoType === "image" && (
+          <>
+            <ImageUploadField
+              label="Logotipo (Imagem)"
+              value={data.logoUrl}
+              onChange={(url) => onChange("logoUrl", url)}
+              onUpload={onImageUpload}
+              uploading={uploading}
+            />
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] text-zinc-500">Tamanho do Logo</Label>
+                <span className="text-[10px] text-zinc-500 font-mono">{data.logoSize ?? 80}px</span>
+              </div>
+              <Slider
+                value={[data.logoSize ?? 80]}
+                onValueChange={([v]) => onChange("logoSize", v)}
+                min={30}
+                max={200}
+                step={5}
+                className="w-full"
+              />
+            </div>
+          </>
+        )}
+
+        {data.logoType === "text" && (
+          <div className="space-y-1.5">
+            <Label className="text-[10px] text-zinc-500">Nome da Empresa</Label>
+            <Input
+              value={data.companyName || ""}
+              onChange={(e) => onChange("companyName", e.target.value)}
+              placeholder="Casa Blanca"
+              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            />
+          </div>
+        )}
       </div>
 
-      {data.logoType === "image" && (
-        <ImageUploadField
-          label="Logotipo (Imagem)"
-          value={data.logoUrl}
-          onChange={(url) => onChange("logoUrl", url)}
-          onUpload={onImageUpload}
-          uploading={uploading}
-        />
-      )}
-
-      {data.logoType === "text" && (
-        <div className="space-y-1.5">
-          <Label className="text-[11px] text-zinc-400">Nome da Empresa</Label>
+      {/* ===== 1.2 BOX LOCALIZAÇÃO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.2 Box de Localização</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Fundo" value={data.locationBoxBg} defaultVal="rgba(255,255,255,0.1)" field="locationBoxBg" />
+          <ColorRow label="Texto" value={data.locationBoxText} defaultVal="#a1a1aa" field="locationBoxText" />
+          <ColorRow label="Ícone" value={data.locationBoxIcon} defaultVal="#d4a853" field="locationBoxIcon" />
+        </div>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Label da Cidade</Label>
           <Input
-            value={data.companyName || ""}
-            onChange={(e) => onChange("companyName", e.target.value)}
-            placeholder="Casa Blanca"
+            value={data.locationLabel || ""}
+            onChange={(e) => onChange("locationLabel", e.target.value)}
+            placeholder="Ex: Patos de Minas"
             className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
-      )}
-
-      {/* Background Media */}
-      <div className="space-y-1.5">
-        <Label className="text-[11px] text-zinc-400">Tipo de Fundo</Label>
-        <div className="flex gap-1.5">
-          <button
-            onClick={() => onChange("bgMediaType", "image")}
-            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
-              data.bgMediaType === "image"
-                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
-                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-            }`}
-          >
-            <ImageIcon className="h-3 w-3 inline mr-1" />
-            Imagem
-          </button>
-          <button
-            onClick={() => onChange("bgMediaType", "video")}
-            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
-              data.bgMediaType === "video"
-                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
-                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-            }`}
-          >
-            <Video className="h-3 w-3 inline mr-1" />
-            Vídeo
-          </button>
-        </div>
       </div>
 
-      <ImageUploadField
-        label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
-        value={data.bgMediaUrl}
-        onChange={(url) => onChange("bgMediaUrl", url)}
-        onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
-        uploading={uploading}
-        accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
-      />
-
-      {/* Overlay Opacity */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label className="text-[11px] text-zinc-400">Opacidade do Escurecimento</Label>
-          <span className="text-[11px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 50}%</span>
+      {/* ===== 1.3 BOX HORÁRIOS ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.3 Box de Atendimento</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Fundo" value={data.scheduleBoxBg} defaultVal="rgba(34,197,94,0.15)" field="scheduleBoxBg" />
+          <ColorRow label="Texto" value={data.scheduleBoxText} defaultVal="#22c55e" field="scheduleBoxText" />
+          <ColorRow label="Ícone" value={data.scheduleBoxIcon} defaultVal="#22c55e" field="scheduleBoxIcon" />
         </div>
-        <Slider
-          value={[data.bgOverlayOpacity ?? 50]}
-          onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
-          min={0}
-          max={100}
-          step={5}
-          className="w-full"
-        />
-      </div>
-
-      <Separator className="bg-zinc-800" />
-
-      {/* Badge de Horários */}
-      <div className="space-y-2">
-        <Label className="text-[11px] text-zinc-500 uppercase tracking-wider">Botão de Horários</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label className="text-[10px] text-zinc-500">Cor Aberto</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={data.badgeOpenColor || "#22c55e"}
-                onChange={(e) => onChange("badgeOpenColor", e.target.value)}
-                className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
-              />
-              <Input
-                value={data.badgeOpenColor || "#22c55e"}
-                onChange={(e) => onChange("badgeOpenColor", e.target.value)}
-                className="h-7 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1"
-              />
-            </div>
-          </div>
-          <div>
-            <Label className="text-[10px] text-zinc-500">Cor Fechado</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={data.badgeClosedColor || "#ef4444"}
-                onChange={(e) => onChange("badgeClosedColor", e.target.value)}
-                className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
-              />
-              <Input
-                value={data.badgeClosedColor || "#ef4444"}
-                onChange={(e) => onChange("badgeClosedColor", e.target.value)}
-                className="h-7 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <Separator className="bg-zinc-800" />
-
-      {/* Text Fields */}
-      <div className="space-y-2">
         <div>
-          <Label className="text-[11px] text-zinc-400">Headline (H1)</Label>
+          <Label className="text-[10px] text-zinc-500">Texto do Horário</Label>
           <Input
+            value={data.scheduleLabel || ""}
+            onChange={(e) => onChange("scheduleLabel", e.target.value)}
+            placeholder="Ex: Abre às 18h"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor Aberto" value={data.badgeOpenColor} defaultVal="#22c55e" field="badgeOpenColor" />
+          <ColorRow label="Cor Fechado" value={data.badgeClosedColor} defaultVal="#ef4444" field="badgeClosedColor" />
+        </div>
+      </div>
+
+      {/* ===== 1.4 HEADLINE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.4 Headline (Título Principal)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Textarea
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Gastronomia de Alta Performance"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="bg-zinc-800 border-zinc-700 text-xs min-h-[60px] resize-y"
           />
         </div>
+        <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.headlineFontSize ?? 64}px</span>
+            </div>
+            <Slider
+              value={[data.headlineFontSize ?? 64]}
+              onValueChange={([v]) => onChange("headlineFontSize", v)}
+              min={24}
+              max={120}
+              step={2}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Título" value={data.headlineColor} defaultVal="#ffffff" field="headlineColor" />
+      </div>
+
+      {/* ===== 1.5 SUBHEADLINE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.5 Subheadline (Subtítulo)</Label>
         <div>
-          <Label className="text-[11px] text-zinc-400">Subheadline (H2)</Label>
-          <Input
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Textarea
             value={data.subheadline || ""}
             onChange={(e) => onChange("subheadline", e.target.value)}
             placeholder="Experiência única em sua cidade"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="bg-zinc-800 border-zinc-700 text-xs min-h-[50px] resize-y"
           />
         </div>
+        <FontSelect label="Fonte" value={data.subheadlineFont} field="subheadlineFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.subheadlineFontSize ?? 20}px</span>
+            </div>
+            <Slider
+              value={[data.subheadlineFontSize ?? 20]}
+              onValueChange={([v]) => onChange("subheadlineFontSize", v)}
+              min={12}
+              max={48}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.subheadlineFontWeight || "400"} onValueChange={(v) => onChange("subheadlineFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Subtítulo" value={data.subheadlineColor} defaultVal="#a1a1aa" field="subheadlineColor" />
+      </div>
+
+      {/* ===== 1.6 BOTÃO CTA ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.6 Botão CTA</Label>
         <div>
-          <Label className="text-[11px] text-zinc-400">Texto do Botão</Label>
+          <Label className="text-[10px] text-zinc-500">Texto do Botão</Label>
           <Input
             value={data.ctaText || ""}
             onChange={(e) => onChange("ctaText", e.target.value)}
@@ -1352,6 +1498,111 @@ function HomeSection({
             className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="#d4a853" field="ctaBgColor" />
+          <ColorRow label="Cor do Texto" value={data.ctaTextColor} defaultVal="#1a1a1a" field="ctaTextColor" />
+        </div>
+        {/* Gradient toggle */}
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={data.ctaGradient || false}
+            onCheckedChange={(v) => onChange("ctaGradient", v)}
+          />
+          <Label className="text-[10px] text-zinc-400">Gradiente</Label>
+        </div>
+        {data.ctaGradient && (
+          <ColorRow label="Cor Final do Gradiente" value={data.ctaGradientEnd} defaultVal="#f0c674" field="ctaGradientEnd" />
+        )}
+        <div>
+          <Label className="text-[10px] text-zinc-500">Ação do Botão</Label>
+          <Select value={data.ctaAction || "#cardapio"} onValueChange={(v) => onChange("ctaAction", v)}>
+            <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="#cardapio">Abrir Cardápio</SelectItem>
+              <SelectItem value="#contato">Ir para Contato</SelectItem>
+              <SelectItem value="#sobre">Ir para Sobre</SelectItem>
+              <SelectItem value="whatsapp">Abrir WhatsApp</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Preview do botão */}
+        <div className="flex justify-center pt-1">
+          <div
+            className="px-6 py-2 rounded-full text-sm font-semibold"
+            style={{
+              background: data.ctaGradient
+                ? `linear-gradient(135deg, ${data.ctaBgColor || '#d4a853'}, ${data.ctaGradientEnd || '#f0c674'})`
+                : data.ctaBgColor || '#d4a853',
+              color: data.ctaTextColor || '#1a1a1a',
+            }}
+          >
+            {data.ctaText || 'Fazer Pedido'}
+          </div>
+        </div>
+      </div>
+
+      {/* ===== 1.7 FUNDO DA SEÇÃO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.7 Fundo da Seção</Label>
+
+        {/* Media Type */}
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-zinc-500">Tipo de Mídia</Label>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onChange("bgMediaType", "image")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                data.bgMediaType === "image"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <ImageIcon className="h-3 w-3 inline mr-1" />
+              Imagem
+            </button>
+            <button
+              onClick={() => onChange("bgMediaType", "video")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                data.bgMediaType === "video"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <Video className="h-3 w-3 inline mr-1" />
+              Vídeo
+            </button>
+          </div>
+        </div>
+
+        <ImageUploadField
+          label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
+          value={data.bgMediaUrl}
+          onChange={(url) => onChange("bgMediaUrl", url)}
+          onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+          uploading={uploading}
+          accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+        />
+
+        {/* Overlay */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
+            <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 50}%</span>
+          </div>
+          <Slider
+            value={[data.bgOverlayOpacity ?? 50]}
+            onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
+            min={0}
+            max={100}
+            step={5}
+            className="w-full"
+          />
+        </div>
+
+        <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
+        <ColorRow label="Cor de Fallback (sem imagem)" value={data.bgFallbackColor} defaultVal="#1a1a1a" field="bgFallbackColor" />
       </div>
     </div>
   );

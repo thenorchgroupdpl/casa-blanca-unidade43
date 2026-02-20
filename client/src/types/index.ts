@@ -48,6 +48,33 @@ export interface HeroContent {
   media_url: string;
   media_type: 'image' | 'video';
   cta_text: string;
+  // Granular style overrides from Design System
+  header_bg_color?: string;
+  logo_size?: number;
+  location_box_bg?: string;
+  location_box_text?: string;
+  location_box_icon?: string;
+  location_label?: string;
+  schedule_box_bg?: string;
+  schedule_box_text?: string;
+  schedule_box_icon?: string;
+  schedule_label?: string;
+  headline_font?: string;
+  headline_font_size?: number;
+  headline_font_weight?: string;
+  headline_color?: string;
+  subheadline_font?: string;
+  subheadline_font_size?: number;
+  subheadline_font_weight?: string;
+  subheadline_color?: string;
+  cta_bg_color?: string;
+  cta_text_color?: string;
+  cta_gradient?: boolean;
+  cta_gradient_end?: string;
+  cta_action?: string;
+  bg_overlay_opacity?: number;
+  bg_overlay_color?: string;
+  bg_fallback_color?: string;
 }
 
 export interface IntroContent {
