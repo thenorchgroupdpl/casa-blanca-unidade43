@@ -203,7 +203,7 @@ function SuperAdminLayoutContent({
   }, [isResizing, setSidebarWidth]);
 
   return (
-    <div className="flex h-screen bg-zinc-950">
+    <div className="flex h-screen w-full bg-zinc-950">
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"

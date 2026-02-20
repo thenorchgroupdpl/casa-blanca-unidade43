@@ -179,3 +179,9 @@
 - [x] Testar todas as funções do Design System e corrigir bugs encontrados
 - [x] Corrigir scroll do painel esquerdo (editor) no Design System - conteúdo cortado
 - [x] Corrigir painel direito (preview) para preencher toda a altura da página
+
+## Fase 19: Correções Críticas de Layout - Design System Builder
+- [x] Container principal não ocupa toda a largura da tela (espaço em branco à direita ~40%)
+- [x] Preview do celular deve ficar centralizado no espaço direito disponível
+- [x] Scroll cortado no painel de edição esquerdo (não consegue rolar para ver todos os campos)
+- [x] Painel de edição precisa scroll independente com altura dinâmica

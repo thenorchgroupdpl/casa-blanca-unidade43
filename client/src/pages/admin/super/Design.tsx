@@ -26,7 +26,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
 import {
@@ -539,9 +538,9 @@ export default function DesignPage() {
             <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
           </div>
         ) : (
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Left Panel - Editor */}
-            <div className="w-[380px] shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden">
+            <div className="w-[380px] shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden min-h-0">
               {/* Section Tabs */}
               <div className="flex border-b border-zinc-800 shrink-0 overflow-x-auto">
                 {SECTION_TABS.map((tab) => (
@@ -561,7 +560,7 @@ export default function DesignPage() {
               </div>
 
               {/* Editor Content */}
-              <ScrollArea className="flex-1">
+              <div className="flex-1 overflow-y-auto min-h-0">
                 <div className="p-3 space-y-5">
                   {/* Global Styles */}
                   <GlobalStylesPanel
@@ -616,7 +615,7 @@ export default function DesignPage() {
                     />
                   )}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Right Panel - Preview */}
