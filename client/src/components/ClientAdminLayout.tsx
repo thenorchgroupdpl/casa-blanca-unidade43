@@ -317,7 +317,7 @@ function ClientAdminLayoutContent({
                       {user?.name || "-"}
                     </p>
                     <p className="text-xs text-zinc-500 truncate mt-1.5">
-                      Lojista
+                      {roleData?.tenantName || "Lojista"}
                     </p>
                   </div>
                 </button>

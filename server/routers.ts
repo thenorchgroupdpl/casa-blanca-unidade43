@@ -28,10 +28,16 @@ export const appRouter = router({
       } as const;
     }),
     // Get current user's role and tenant info
-    getRole: protectedProcedure.query(({ ctx }) => {
+    getRole: protectedProcedure.query(async ({ ctx }) => {
+      let tenantName: string | null = null;
+      if (ctx.user.tenantId) {
+        const tenant = await db.getTenantById(ctx.user.tenantId);
+        tenantName = tenant?.name || null;
+      }
       return {
         role: ctx.user.role,
         tenantId: ctx.user.tenantId,
+        tenantName,
         name: ctx.user.name,
         email: ctx.user.email,
       };

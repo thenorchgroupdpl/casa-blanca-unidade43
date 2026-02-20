@@ -150,3 +150,4 @@
 - [x] Transformar campo Nicho em combobox com busca e opção de criar novo valor
 - [x] Transformar campo Cidade em combobox com busca e opção de criar novo valor
 - [x] Transformar campo Estado em combobox com busca e opção de criar novo valor
+- [x] Corrigir nome exibido no perfil do lojista para mostrar nome da empresa ao invés de "ADMINISTRADOR"
