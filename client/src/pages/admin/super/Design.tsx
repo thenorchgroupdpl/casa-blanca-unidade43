@@ -409,7 +409,7 @@ export default function DesignPage() {
 
   return (
     <SuperAdminLayout>
-      <div className="flex flex-col h-[calc(100vh-2rem)]">
+      <div className="flex flex-col h-full -m-4">
         {/* Top Bar */}
         <div className="flex items-center justify-between py-2 border-b border-zinc-800 shrink-0">
           <div className="flex items-center gap-3">

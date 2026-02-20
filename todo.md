@@ -177,3 +177,5 @@
 - [x] Implementar zoom (aumentar/diminuir) no ImageEditor
 - [x] Popup automático do editor após upload da imagem
 - [x] Testar todas as funções do Design System e corrigir bugs encontrados
+- [x] Corrigir scroll do painel esquerdo (editor) no Design System - conteúdo cortado
+- [x] Corrigir painel direito (preview) para preencher toda a altura da página
