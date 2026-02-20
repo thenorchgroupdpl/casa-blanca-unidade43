@@ -5,7 +5,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { MessageCircle, Heart } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSiteData, useUI } from '@/store/useStore';
 
@@ -79,11 +79,7 @@ export default function Footer() {
               {footer.copyright || `© ${currentYear} ${companyName}. Todos os direitos reservados.`}
             </p>
 
-            {/* Developer Credit */}
-            <p className="text-sm text-lp-text-subtle flex items-center gap-1">
-              {footer.developer.replace('❤️', '')}
-              <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-            </p>
+
           </div>
         </div>
       </div>
