@@ -182,7 +182,7 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-display) !important;
     font-weight: 400;
   }
   
@@ -249,11 +249,11 @@
   
   /* Typography utilities */
   .font-display {
-    font-family: var(--font-display);
+    font-family: var(--font-display) !important;
   }
   
   .font-sans {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans) !important;
   }
   
   /* Gold glow effect */

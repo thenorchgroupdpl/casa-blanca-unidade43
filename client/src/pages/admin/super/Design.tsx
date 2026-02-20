@@ -374,9 +374,9 @@ export default function DesignPage() {
     if (!iframeRef.current?.contentWindow) return;
     const sectionIdMap: Record<SectionTab, string> = {
       home: "hero",
-      products: "cardapio",
+      products: "vitrine",
       about: "sobre",
-      reviews: "avaliacoes",
+      reviews: "feedbacks",
       info: "contato",
     };
     try {

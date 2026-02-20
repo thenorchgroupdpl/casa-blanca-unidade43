@@ -252,3 +252,10 @@
 - [x] Aplicar border-radius no preview do canvas
 - [x] Aplicar border-radius na imagem final exportada (blob)
 - [x] Testar com diferentes valores de arredondamento
+
+## Fase 27: Correções - Arredondamento Logo, Navegação Produtos, Fonte Headline
+- [x] P1: Corrigir exportação do editor de imagem para PNG (transparência) ao invés de JPEG (pontos pretos)
+- [x] P1: Adicionar preview real-time do arredondamento no editor de imagem
+- [x] P1: Garantir que logo fica circular (50%) sem artefatos visuais
+- [x] P2: Corrigir navegação do menu "Produtos/Cardápio" para scroll até a seção de produtos
+- [x] P3: Corrigir fonte do headline (nome da empresa no Hero) para herdar --font-display
