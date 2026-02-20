@@ -1,0 +1,14 @@
+{
+  "query": "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'store_settings' AND COLUMN_NAME = 'landingDesign';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'store_settings' AND COLUMN_NAME = 'landingDesign';",
+  "rows": [
+    {
+      "COLUMN_NAME": "landingDesign",
+      "DATA_TYPE": "json"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\tDATA_TYPE\nlandingDesign\tjson\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}

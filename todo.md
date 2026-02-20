@@ -151,3 +151,18 @@
 - [x] Transformar campo Cidade em combobox com busca e opção de criar novo valor
 - [x] Transformar campo Estado em combobox com busca e opção de criar novo valor
 - [x] Corrigir nome exibido no perfil do lojista para mostrar nome da empresa ao invés de "ADMINISTRADOR"
+
+## Fase 17: Refatoração Design System - Construtor de Landing Pages
+- [x] Barra de busca inteligente para seleção de loja no topo
+- [x] Layout split-screen: painel de edição à esquerda, preview real-time à direita
+- [x] Navegação por abas: HOME, PRODUTOS, SOBRE NÓS, AVALIAÇÕES, INFORMAÇÕES
+- [x] Scroll automático do preview ao clicar nas abas
+- [x] Configurações globais de estilo (cores, tipografia, alinhamento)
+- [x] Aba HOME: upload logotipo, imagem/vídeo de fundo, slider opacidade, headline, subheadline, botão
+- [x] Aba PRODUTOS: headline, subheadline, configuração de categorias (max 3), categoria de ofertas
+- [x] Aba SOBRE NÓS: headline, storytelling, upload imagem, nome, cor do texto
+- [x] Aba AVALIAÇÕES: headline, chave API Google, toggle para ocultar seção
+- [x] Aba INFORMAÇÕES: headlines (H1-H4), subheadlines, botão final, mapa, endereço, telefone, horário, redes sociais
+- [x] Atualizar schema do banco para novos campos de design por seção
+- [x] Endpoints tRPC para buscar e salvar configurações de design
+- [x] Preview real-time refletindo alterações instantaneamente

@@ -132,6 +132,52 @@ export const storeSettings = mysqlTable("store_settings", {
   ownerName: varchar("ownerName", { length: 255 }),
   ownerPhoto: varchar("ownerPhoto", { length: 500 }),
   
+  // Landing Page Design Configuration (managed by Super Admin via Design Builder)
+  landingDesign: json("landingDesign").$type<{
+    home?: {
+      logoUrl?: string;
+      logoType?: 'image' | 'text';
+      bgMediaUrl?: string;
+      bgMediaType?: 'image' | 'video';
+      bgOverlayOpacity?: number; // 0-100
+      headline?: string;
+      subheadline?: string;
+      ctaText?: string;
+    };
+    products?: {
+      headline?: string;
+      subheadline?: string;
+      maxCategories?: number; // 1-3
+      offersCategoryId?: number | null;
+    };
+    about?: {
+      headline?: string;
+      storytelling?: string;
+      imageUrl?: string;
+      ownerName?: string;
+      textColor?: string;
+    };
+    reviews?: {
+      headline?: string;
+      isVisible?: boolean;
+    };
+    info?: {
+      headline1?: string;
+      subheadline1?: string;
+      headline2?: string;
+      subheadline2?: string;
+      ctaText?: string;
+      showMap?: boolean;
+      showAddress?: boolean;
+      showPhone?: boolean;
+      showHours?: boolean;
+      showSocial?: boolean;
+    };
+    global?: {
+      alignment?: 'left' | 'center' | 'right';
+    };
+  }>(),
+  
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

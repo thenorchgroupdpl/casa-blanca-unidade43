@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, superAdminProcedure } from "../_core/trpc";
 import * as db from "../db";
+import { storagePut } from "../storage";
 
 // Schema for theme colors
 const themeColorsSchema = z.object({
@@ -209,6 +210,64 @@ export const tenantsRouter = router({
         }
       }
       await db.updateTenant(id, data);
+      return { success: true };
+    }),
+
+  // Upload image for landing page design
+  uploadDesignImage: superAdminProcedure
+    .input(z.object({
+      tenantId: z.number(),
+      imageData: z.string(), // base64 encoded
+      fileName: z.string(),
+      contentType: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      const buffer = Buffer.from(input.imageData, 'base64');
+      const suffix = Math.random().toString(36).substring(2, 10);
+      const ext = input.fileName.split('.').pop() || 'png';
+      const key = `tenants/${input.tenantId}/design/${Date.now()}-${suffix}.${ext}`;
+      const { url } = await storagePut(key, buffer, input.contentType);
+      return { url };
+    }),
+
+  // Get landing design for a tenant
+  getLandingDesign: superAdminProcedure
+    .input(z.object({ tenantId: z.number() }))
+    .query(async ({ input }) => {
+      const tenant = await db.getTenantById(input.tenantId);
+      if (!tenant) throw new Error("Loja não encontrada");
+      const settings = await db.getStoreSettings(input.tenantId);
+      const cats = await db.getCategoriesByTenant(input.tenantId);
+      return {
+        tenant,
+        settings,
+        categories: cats,
+        landingDesign: settings?.landingDesign ?? null,
+      };
+    }),
+
+  // Update landing design for a tenant
+  updateLandingDesign: superAdminProcedure
+    .input(z.object({
+      tenantId: z.number(),
+      landingDesign: z.any(),
+      themeColors: themeColorsSchema,
+      fontFamily: z.string().optional(),
+      fontDisplay: z.string().optional(),
+      borderRadius: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      // Update design on tenant table
+      await db.updateTenant(input.tenantId, {
+        themeColors: input.themeColors,
+        fontFamily: input.fontFamily,
+        fontDisplay: input.fontDisplay,
+        borderRadius: input.borderRadius,
+      });
+      // Update landing design on store settings
+      await db.upsertStoreSettings(input.tenantId, {
+        landingDesign: input.landingDesign,
+      });
       return { success: true };
     }),
 
