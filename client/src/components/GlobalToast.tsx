@@ -43,9 +43,9 @@ export default function GlobalToast() {
           gap: '12px',
           padding: '16px 20px',
           borderRadius: '16px',
-          background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-          border: '1px solid rgba(212, 175, 55, 0.4)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.2)',
+          background: 'linear-gradient(135deg, var(--lp-surface) 0%, var(--lp-surface-hover) 100%)',
+          border: '1px solid var(--lp-accent-border)',
+          boxShadow: '0 20px 60px var(--lp-overlay), 0 0 20px var(--lp-accent-soft)',
           cursor: 'pointer',
         }}
         onClick={hideToast}
@@ -60,16 +60,16 @@ export default function GlobalToast() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(212, 175, 55, 0.2)',
+            backgroundColor: 'var(--lp-accent-soft)',
           }}
         >
-          <Check style={{ width: '22px', height: '22px', color: '#D4AF37' }} />
+          <Check style={{ width: '22px', height: '22px', color: 'var(--lp-accent)' }} />
         </div>
 
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ 
-            color: '#ffffff', 
+            color: 'var(--lp-text)', 
             fontWeight: 600, 
             fontSize: '16px',
             margin: 0,
@@ -78,7 +78,7 @@ export default function GlobalToast() {
             {title || 'Notificação'}
           </p>
           <p style={{ 
-            color: '#a0a0a0', 
+            color: 'var(--lp-text-muted)', 
             fontSize: '14px',
             margin: '4px 0 0 0',
             lineHeight: 1.3,
@@ -108,7 +108,7 @@ export default function GlobalToast() {
             flexShrink: 0,
           }}
         >
-          <X style={{ width: '18px', height: '18px', color: '#666666' }} />
+          <X style={{ width: '18px', height: '18px', color: 'var(--lp-text-subtle)' }} />
         </button>
       </div>
     </div>

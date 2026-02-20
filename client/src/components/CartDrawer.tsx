@@ -60,7 +60,7 @@ export default function CartDrawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-lp-overlay backdrop-blur-sm"
           />
 
           {/* Drawer */}
@@ -69,17 +69,17 @@ export default function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-card shadow-2xl"
+            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-lp-surface shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border/50">
+            <div className="flex items-center justify-between p-6 border-b border-lp-border">
               <div className="flex items-center gap-3">
-                <ShoppingBag className="w-6 h-6 text-primary" />
-                <h2 className="font-display text-xl text-foreground">Sua Sacola</h2>
+                <ShoppingBag className="w-6 h-6 text-lp-accent" />
+                <h2 className="font-display text-xl text-lp-text">Sua Sacola</h2>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="p-2 text-lp-text-muted hover:text-lp-text transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -90,18 +90,18 @@ export default function CartDrawer() {
               {items.length === 0 ? (
                 /* Empty State */
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="p-6 rounded-full bg-muted/30 mb-6">
-                    <ShoppingBag className="w-12 h-12 text-muted-foreground" />
+                  <div className="p-6 rounded-full bg-lp-surface-soft mb-6">
+                    <ShoppingBag className="w-12 h-12 text-lp-text-muted" />
                   </div>
-                  <h3 className="font-display text-xl text-foreground mb-2">
+                  <h3 className="font-display text-xl text-lp-text mb-2">
                     Sacola vazia
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-lp-text-muted">
                     Adicione produtos para começar seu pedido
                   </p>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="mt-6 px-6 py-2 rounded-full bg-primary text-primary-foreground font-medium"
+                    className="mt-6 px-6 py-2 rounded-full bg-lp-accent text-lp-accent-fg font-medium"
                   >
                     Explorar cardápio
                   </button>
@@ -117,7 +117,7 @@ export default function CartDrawer() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: -100 }}
-                        className="flex gap-4 p-4 bg-muted/30 rounded-2xl"
+                        className="flex gap-4 p-4 bg-lp-surface-soft rounded-2xl"
                       >
                         {/* Image */}
                         {item.product.images[0] ? (
@@ -127,17 +127,17 @@ export default function CartDrawer() {
                             className="w-20 h-20 rounded-xl object-cover"
                           />
                         ) : (
-                          <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center">
-                            <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+                          <div className="w-20 h-20 rounded-xl bg-lp-surface flex items-center justify-center">
+                            <ShoppingBag className="w-8 h-8 text-lp-text-muted" />
                           </div>
                         )}
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-foreground truncate">
+                          <h4 className="font-medium text-lp-text truncate">
                             {item.product.name}
                           </h4>
-                          <p className="text-primary font-semibold mt-1">
+                          <p className="text-lp-accent font-semibold mt-1">
                             {formatPrice(item.product.price * item.quantity)}
                           </p>
 
@@ -147,18 +147,18 @@ export default function CartDrawer() {
                               onClick={() =>
                                 updateQuantity(item.product.id, item.quantity - 1)
                               }
-                              className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-muted/80 transition-colors"
+                              className="w-8 h-8 rounded-full bg-lp-surface flex items-center justify-center text-lp-text hover:bg-lp-surface-hover transition-colors"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
-                            <span className="font-medium text-foreground w-6 text-center">
+                            <span className="font-medium text-lp-text w-6 text-center">
                               {item.quantity}
                             </span>
                             <button
                               onClick={() =>
                                 updateQuantity(item.product.id, item.quantity + 1)
                               }
-                              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+                              className="w-8 h-8 rounded-full bg-lp-accent text-lp-accent-fg flex items-center justify-center hover:bg-lp-accent-hover transition-colors"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -168,7 +168,7 @@ export default function CartDrawer() {
                         {/* Remove Button */}
                         <button
                           onClick={() => removeItem(item.product.id)}
-                          className="p-2 text-muted-foreground hover:text-destructive transition-colors self-start"
+                          className="p-2 text-lp-text-muted hover:text-destructive transition-colors self-start"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -177,7 +177,7 @@ export default function CartDrawer() {
 
                     {/* Observation Field */}
                     <div className="pt-4">
-                      <label className="block text-sm font-medium text-foreground mb-2">
+                      <label className="block text-sm font-medium text-lp-text mb-2">
                         Observações (opcional)
                       </label>
                       <textarea
@@ -187,9 +187,9 @@ export default function CartDrawer() {
                         rows={3}
                         className={cn(
                           'w-full px-4 py-3 rounded-xl resize-none',
-                          'bg-muted/50 border border-border/50',
-                          'text-foreground placeholder:text-muted-foreground',
-                          'focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20',
+                          'bg-lp-surface-soft border border-lp-border',
+                          'text-lp-text placeholder:text-lp-text-muted',
+                          'focus:outline-none focus:border-lp-accent-border focus:ring-1 focus:ring-lp-accent-soft',
                           'transition-all'
                         )}
                       />
@@ -197,11 +197,11 @@ export default function CartDrawer() {
                   </div>
 
                   {/* Footer */}
-                  <div className="p-6 border-t border-border/50 space-y-4">
+                  <div className="p-6 border-t border-lp-border space-y-4">
                     {/* Total */}
                     <div className="flex items-center justify-between">
-                      <span className="text-lg text-foreground">Total</span>
-                      <span className="text-2xl font-bold text-primary">
+                      <span className="text-lg text-lp-text">Total</span>
+                      <span className="text-2xl font-bold text-lp-accent">
                         {formatPrice(totalPrice)}
                       </span>
                     </div>
@@ -226,7 +226,7 @@ export default function CartDrawer() {
                         clearCart();
                         setObservation('');
                       }}
-                      className="w-full py-2 text-sm text-muted-foreground hover:text-destructive transition-colors"
+                      className="w-full py-2 text-sm text-lp-text-muted hover:text-destructive transition-colors"
                     >
                       Limpar sacola
                     </button>

@@ -43,6 +43,28 @@
   --color-cream: oklch(0.97 0.01 90);
   --color-warm-black: oklch(0.15 0.01 60);
   --color-warm-gray: oklch(0.20 0.01 60);
+  
+  /* Landing Page Design Tokens */
+  --color-lp-accent: var(--lp-accent);
+  --color-lp-accent-hover: var(--lp-accent-hover);
+  --color-lp-accent-soft: var(--lp-accent-soft);
+  --color-lp-accent-subtle: var(--lp-accent-subtle);
+  --color-lp-accent-muted: var(--lp-accent-muted);
+  --color-lp-accent-border: var(--lp-accent-border);
+  --color-lp-accent-fg: var(--lp-accent-fg);
+  --color-lp-bg: var(--lp-bg);
+  --color-lp-bg-lighter: var(--lp-bg-lighter);
+  --color-lp-overlay: var(--lp-overlay);
+  --color-lp-overlay-heavy: var(--lp-overlay-heavy);
+  --color-lp-surface: var(--lp-surface);
+  --color-lp-surface-hover: var(--lp-surface-hover);
+  --color-lp-surface-soft: var(--lp-surface-soft);
+  --color-lp-text: var(--lp-text);
+  --color-lp-text-muted: var(--lp-text-muted);
+  --color-lp-text-subtle: var(--lp-text-subtle);
+  --color-lp-text-faint: var(--lp-text-faint);
+  --color-lp-border: var(--lp-border);
+  --color-lp-border-strong: var(--lp-border-strong);
 }
 
 :root {
@@ -83,6 +105,28 @@
   
   /* WhatsApp green */
   --whatsapp: oklch(0.65 0.18 145);
+  
+  /* Landing Page Design Tokens - defaults */
+  --lp-accent: #D4AF37;
+  --lp-accent-hover: #BF9E32;
+  --lp-accent-soft: rgba(212, 175, 55, 0.2);
+  --lp-accent-subtle: rgba(212, 175, 55, 0.1);
+  --lp-accent-muted: rgba(212, 175, 55, 0.3);
+  --lp-accent-border: rgba(212, 175, 55, 0.3);
+  --lp-accent-fg: #1a1a1a;
+  --lp-bg: #121212;
+  --lp-bg-lighter: #1e1e1e;
+  --lp-overlay: rgba(18, 18, 18, 0.8);
+  --lp-overlay-heavy: rgba(18, 18, 18, 0.95);
+  --lp-surface: #1a1a1a;
+  --lp-surface-hover: #242424;
+  --lp-surface-soft: rgba(26, 26, 26, 0.5);
+  --lp-text: #FFFFFF;
+  --lp-text-muted: rgba(255, 255, 255, 0.6);
+  --lp-text-subtle: rgba(255, 255, 255, 0.4);
+  --lp-text-faint: rgba(255, 255, 255, 0.1);
+  --lp-border: rgba(255, 255, 255, 0.1);
+  --lp-border-strong: rgba(255, 255, 255, 0.2);
 }
 
 /* Light theme variant (for product cards) */

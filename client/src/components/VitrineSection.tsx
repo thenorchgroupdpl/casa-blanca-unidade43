@@ -46,7 +46,7 @@ function CategoryCarousel({ category, index }: CategoryCarouselProps) {
     >
       {/* Category Header */}
       <div className="container flex items-center justify-between mb-6">
-        <h3 className="font-display text-2xl md:text-3xl text-white">
+        <h3 className="font-display text-2xl md:text-3xl text-lp-text">
           {category.category_name}
         </h3>
         
@@ -55,13 +55,13 @@ function CategoryCarousel({ category, index }: CategoryCarouselProps) {
           <div className="hidden md:flex items-center gap-2 mr-4">
             <button
               onClick={() => scroll('left')}
-              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+              className="p-2 rounded-full bg-lp-text-faint hover:bg-lp-border text-lp-text-muted hover:text-lp-text transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => scroll('right')}
-              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+              className="p-2 rounded-full bg-lp-text-faint hover:bg-lp-border text-lp-text-muted hover:text-lp-text transition-colors"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -72,8 +72,8 @@ function CategoryCarousel({ category, index }: CategoryCarouselProps) {
             onClick={handleViewAll}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-full',
-              'text-sm font-medium text-primary',
-              'border border-primary/30 hover:border-primary hover:bg-primary/10',
+              'text-sm font-medium text-lp-accent',
+              'border border-lp-accent-border hover:border-lp-accent hover:bg-lp-accent-subtle',
               'transition-all duration-200'
             )}
           >
@@ -115,7 +115,7 @@ export default function VitrineSection() {
   if (highlightedCategories.length === 0) return null;
 
   return (
-    <section id="vitrine" className="py-16 bg-background">
+    <section id="vitrine" className="py-16 bg-lp-bg">
       {highlightedCategories.map((category, index) => (
         <CategoryCarousel key={category.id} category={category} index={index} />
       ))}
@@ -132,8 +132,8 @@ export default function VitrineSection() {
           onClick={openOrderOverlay}
           className={cn(
             'inline-flex items-center gap-3 px-8 py-4 rounded-full',
-            'bg-white/5 border border-white/10 text-white',
-            'hover:bg-white/10 hover:border-primary/30 transition-all duration-300',
+            'bg-lp-text-faint border border-lp-border text-lp-text',
+            'hover:bg-lp-border hover:border-lp-accent-border transition-all duration-300',
             'font-medium'
           )}
         >

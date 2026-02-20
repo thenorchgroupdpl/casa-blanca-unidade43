@@ -18,7 +18,7 @@ interface FeedbackCardProps {
 
 function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
   return (
-    <div className="flex-shrink-0 w-[320px] sm:w-[360px] p-6 bg-card rounded-2xl border border-border/50">
+    <div className="flex-shrink-0 w-[320px] sm:w-[360px] p-6 bg-lp-surface rounded-2xl border border-lp-border">
       {/* Header */}
       <div className="flex items-start gap-4">
         {feedback.author_photo ? (
@@ -28,19 +28,19 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
             className="w-12 h-12 rounded-full object-cover"
           />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary font-semibold text-lg">
+          <div className="w-12 h-12 rounded-full bg-lp-accent-soft flex items-center justify-center flex-shrink-0">
+            <span className="text-lp-accent font-semibold text-lg">
               {feedback.author_name.charAt(0).toUpperCase()}
             </span>
           </div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-medium text-foreground truncate">
+            <h4 className="font-medium text-lp-text truncate">
               {feedback.author_name}
             </h4>
             {feedback.verified && (
-              <BadgeCheck className="w-4 h-4 text-primary flex-shrink-0" />
+              <BadgeCheck className="w-4 h-4 text-lp-accent flex-shrink-0" />
             )}
           </div>
           <div className="flex items-center gap-2 mt-1">
@@ -52,13 +52,13 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
                   className={cn(
                     'w-4 h-4',
                     star <= feedback.rating
-                      ? 'fill-primary text-primary'
-                      : 'fill-muted text-muted'
+                      ? 'fill-lp-accent text-lp-accent'
+                      : 'fill-lp-surface-soft text-lp-text-subtle'
                   )}
                 />
               ))}
             </div>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-lp-text-muted">
               {formatRelativeDate(feedback.date)}
             </span>
           </div>
@@ -66,7 +66,7 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
       </div>
 
       {/* Review Text */}
-      <p className="mt-4 text-sm text-foreground/80 line-clamp-4">
+      <p className="mt-4 text-sm text-lp-text-muted line-clamp-4">
         {feedback.text}
       </p>
 
@@ -85,8 +85,8 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
                 className="w-full h-full object-cover"
               />
               {idx === 2 && feedback.photos.length > 3 && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
+                <div className="absolute inset-0 bg-lp-overlay flex items-center justify-center">
+                  <span className="text-lp-text text-sm font-medium">
                     +{feedback.photos.length - 3}
                   </span>
                 </div>
@@ -112,13 +112,13 @@ function Lightbox({ photos, currentIndex, onClose, onNavigate }: LightboxProps) 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-lp-overlay/95 flex items-center justify-center"
       onClick={onClose}
     >
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors"
+        className="absolute top-4 right-4 p-2 text-lp-text-muted hover:text-lp-text transition-colors"
       >
         <X className="w-8 h-8" />
       </button>
@@ -131,7 +131,7 @@ function Lightbox({ photos, currentIndex, onClose, onNavigate }: LightboxProps) 
               e.stopPropagation();
               onNavigate('prev');
             }}
-            className="absolute left-4 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            className="absolute left-4 p-3 rounded-full bg-lp-border text-lp-text hover:bg-lp-border-strong transition-colors"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -140,7 +140,7 @@ function Lightbox({ photos, currentIndex, onClose, onNavigate }: LightboxProps) 
               e.stopPropagation();
               onNavigate('next');
             }}
-            className="absolute right-4 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            className="absolute right-4 p-3 rounded-full bg-lp-border text-lp-text hover:bg-lp-border-strong transition-colors"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
@@ -160,7 +160,7 @@ function Lightbox({ photos, currentIndex, onClose, onNavigate }: LightboxProps) 
       />
 
       {/* Counter */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-white/10 text-white text-sm">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-lp-border text-lp-text text-sm">
         {currentIndex + 1} / {photos.length}
       </div>
     </motion.div>
@@ -202,7 +202,7 @@ export default function FeedbacksSection() {
   ).toFixed(1);
 
   return (
-    <section id="feedbacks" className="py-20 bg-secondary/30">
+    <section id="feedbacks" className="py-20 bg-lp-surface-soft">
       <div className="container mb-8">
         {/* Header */}
         <motion.div
@@ -213,26 +213,26 @@ export default function FeedbacksSection() {
           transition={{ duration: 0.6 }}
         >
           <div>
-            <p className="text-primary text-sm font-medium tracking-wider uppercase mb-3">
+            <p className="text-lp-accent text-sm font-medium tracking-wider uppercase mb-3">
               Avaliações
             </p>
-            <h2 className="font-display text-3xl md:text-4xl text-white">
+            <h2 className="font-display text-3xl md:text-4xl text-lp-text">
               O que dizem nossos clientes
             </h2>
           </div>
 
           {/* Rating Summary */}
-          <div className="flex items-center gap-3 px-5 py-3 bg-card rounded-xl border border-border/50">
+          <div className="flex items-center gap-3 px-5 py-3 bg-lp-surface rounded-xl border border-lp-border">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className="w-5 h-5 fill-primary text-primary"
+                  className="w-5 h-5 fill-lp-accent text-lp-accent"
                 />
               ))}
             </div>
-            <span className="text-2xl font-bold text-white">{avgRating}</span>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-2xl font-bold text-lp-text">{avgRating}</span>
+            <span className="text-sm text-lp-text-muted">
               ({feedbacks.length} avaliações)
             </span>
           </div>
@@ -268,7 +268,7 @@ export default function FeedbacksSection() {
         viewport={{ once: true }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-lp-text-faint border border-lp-border">
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
@@ -287,7 +287,7 @@ export default function FeedbacksSection() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          <span className="text-sm text-white/60">Avaliações do Google</span>
+          <span className="text-sm text-lp-text-muted">Avaliações do Google</span>
         </div>
       </motion.div>
 

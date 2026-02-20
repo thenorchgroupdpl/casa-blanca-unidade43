@@ -30,7 +30,7 @@ export default function WhatsAppModal() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeWhatsAppModal}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-lp-overlay backdrop-blur-sm"
           />
 
           {/* Modal */}
@@ -41,11 +41,11 @@ export default function WhatsAppModal() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 mx-auto max-w-sm"
           >
-            <div className="relative bg-card rounded-3xl p-8 border border-border/50 shadow-2xl">
+            <div className="relative bg-lp-surface rounded-3xl p-8 border border-lp-border shadow-2xl">
               {/* Close Button */}
               <button
                 onClick={closeWhatsAppModal}
-                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute top-4 right-4 p-2 text-lp-text-muted hover:text-lp-text transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -53,7 +53,7 @@ export default function WhatsAppModal() {
               {/* Content */}
               <div className="text-center">
                 {/* Avatar */}
-                <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border-2 border-primary/30">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border-2 border-lp-accent-border">
                   {data.sections_content.about.owner_photo ? (
                     <img
                       src={data.sections_content.about.owner_photo}
@@ -61,24 +61,24 @@ export default function WhatsAppModal() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-                      <MessageCircle className="w-8 h-8 text-primary" />
+                    <div className="w-full h-full bg-lp-accent-soft flex items-center justify-center">
+                      <MessageCircle className="w-8 h-8 text-lp-accent" />
                     </div>
                   )}
                 </div>
 
                 {/* Title */}
-                <h3 className="font-display text-xl text-foreground mb-2">
+                <h3 className="font-display text-xl text-lp-text mb-2">
                   Deseja seguir para o WhatsApp?
                 </h3>
-                <p className="text-muted-foreground text-sm mb-6">
+                <p className="text-lp-text-muted text-sm mb-6">
                   Você será redirecionado para o WhatsApp da Casa Blanca
                 </p>
 
                 {/* Phone Number */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lp-surface-soft mb-6">
                   <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                  <span className="text-foreground font-medium">
+                  <span className="text-lp-text font-medium">
                     {formatPhone(data.contact.whatsapp)}
                   </span>
                 </div>
@@ -87,7 +87,7 @@ export default function WhatsAppModal() {
                 <motion.button
                   onClick={handleOpenWhatsApp}
                   className={cn(
-                    'w-full py-4 rounded-2xl font-semibold text-white',
+                    'w-full py-4 rounded-2xl font-semibold text-lp-text',
                     'bg-[#25D366] hover:bg-[#20BD5A] transition-colors',
                     'flex items-center justify-center gap-3'
                   )}
@@ -110,7 +110,7 @@ export default function WhatsAppModal() {
                 {/* Cancel */}
                 <button
                   onClick={closeWhatsAppModal}
-                  className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="mt-4 text-sm text-lp-text-muted hover:text-lp-text transition-colors"
                 >
                   Cancelar
                 </button>

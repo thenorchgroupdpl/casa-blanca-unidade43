@@ -66,7 +66,7 @@ export default function ProductBottomSheet() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeProductSheet}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-lp-overlay backdrop-blur-sm"
           />
 
           {/* Bottom Sheet */}
@@ -75,25 +75,25 @@ export default function ProductBottomSheet() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-card rounded-t-3xl overflow-hidden"
+            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-lp-surface rounded-t-3xl overflow-hidden"
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1.5 rounded-full bg-muted" />
+              <div className="w-12 h-1.5 rounded-full bg-lp-surface" />
             </div>
 
             {/* Close Button */}
             <button
               onClick={closeProductSheet}
-              className="absolute right-4 top-4 p-2 rounded-full bg-muted/50 hover:bg-muted transition-colors z-10"
+              className="absolute right-4 top-4 p-2 rounded-full bg-lp-surface-soft hover:bg-lp-surface transition-colors z-10"
             >
-              <X className="w-5 h-5 text-muted-foreground" />
+              <X className="w-5 h-5 text-lp-text-muted" />
             </button>
 
             {/* Content */}
             <div className="overflow-y-auto max-h-[calc(90vh-60px)]">
               {/* Product Image */}
-              <div className="relative aspect-square max-h-[300px] bg-muted">
+              <div className="relative aspect-square max-h-[300px] bg-lp-surface">
                 {selectedProduct.images?.[currentImageIndex] ? (
                   <img
                     src={selectedProduct.images[currentImageIndex]}
@@ -101,8 +101,8 @@ export default function ProductBottomSheet() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted">
-                    <ShoppingBag className="w-16 h-16 text-muted-foreground" />
+                  <div className="w-full h-full flex items-center justify-center bg-lp-surface">
+                    <ShoppingBag className="w-16 h-16 text-lp-text-muted" />
                   </div>
                 )}
                 
@@ -116,8 +116,8 @@ export default function ProductBottomSheet() {
                         className={cn(
                           'w-2 h-2 rounded-full transition-all',
                           index === currentImageIndex
-                            ? 'bg-primary w-6'
-                            : 'bg-white/50 hover:bg-white/70'
+                            ? 'bg-lp-accent w-6'
+                            : 'bg-lp-border hover:bg-lp-border-strong'
                         )}
                       />
                     ))}
@@ -129,24 +129,24 @@ export default function ProductBottomSheet() {
               <div className="p-6 space-y-4">
                 {/* Name & Price */}
                 <div>
-                  <h2 className="font-display text-2xl text-foreground mb-2">
+                  <h2 className="font-display text-2xl text-lp-text mb-2">
                     {selectedProduct.name}
                   </h2>
-                  <p className="text-primary text-xl font-semibold">
+                  <p className="text-lp-accent text-xl font-semibold">
                     {formatPrice(selectedProduct.price)}
                   </p>
                 </div>
 
                 {/* Description */}
                 {selectedProduct.description && (
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-lp-text-muted leading-relaxed">
                     {selectedProduct.description}
                   </p>
                 )}
 
                 {/* Quantity Selector */}
-                <div className="flex items-center justify-between py-4 border-t border-border">
-                  <span className="text-foreground font-medium">Quantidade</span>
+                <div className="flex items-center justify-between py-4 border-t border-lp-border">
+                  <span className="text-lp-text font-medium">Quantidade</span>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={decrementQuantity}
@@ -154,18 +154,18 @@ export default function ProductBottomSheet() {
                       className={cn(
                         'w-10 h-10 rounded-full flex items-center justify-center transition-colors',
                         quantity <= 1
-                          ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                          : 'bg-muted hover:bg-muted/80 text-foreground'
+                          ? 'bg-lp-surface text-lp-text-muted cursor-not-allowed'
+                          : 'bg-lp-surface hover:bg-lp-surface-hover text-lp-text'
                       )}
                     >
                       <Minus className="w-5 h-5" />
                     </button>
-                    <span className="text-foreground text-xl font-semibold w-8 text-center">
+                    <span className="text-lp-text text-xl font-semibold w-8 text-center">
                       {quantity}
                     </span>
                     <button
                       onClick={incrementQuantity}
-                      className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+                      className="w-10 h-10 rounded-full bg-lp-accent text-lp-accent-fg flex items-center justify-center hover:bg-lp-accent-hover transition-colors"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
@@ -175,7 +175,7 @@ export default function ProductBottomSheet() {
                 {/* Add to Cart Button */}
                 <button
                   onClick={handleAddToCart}
-                  className="w-full py-4 rounded-full bg-primary text-primary-foreground font-semibold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors"
+                  className="w-full py-4 rounded-full bg-lp-accent text-lp-accent-fg font-semibold text-lg flex items-center justify-center gap-3 hover:bg-lp-accent-hover transition-colors"
                 >
                   <ShoppingBag className="w-5 h-5" />
                   Adicionar ({quantity}) - {formatPrice(totalPrice)}

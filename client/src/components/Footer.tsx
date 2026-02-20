@@ -19,7 +19,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-secondary/50 border-t border-border/50">
+    <footer className="bg-lp-surface-soft border-t border-lp-border">
       {/* CTA Section */}
       <motion.div
         className="container py-16 text-center"
@@ -28,10 +28,10 @@ export default function Footer() {
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className="font-display text-2xl md:text-3xl lg:text-4xl text-white mb-4">
+        <h2 className="font-display text-2xl md:text-3xl lg:text-4xl text-lp-text mb-4">
           {footer.cta_headline}
         </h2>
-        <p className="text-white/60 mb-8 max-w-md mx-auto">
+        <p className="text-lp-text-muted mb-8 max-w-md mx-auto">
           {footer.cta_subheadline}
         </p>
         
@@ -39,8 +39,8 @@ export default function Footer() {
           onClick={openWhatsAppModal}
           className={cn(
             'inline-flex items-center gap-3 px-8 py-4 rounded-full',
-            'bg-primary text-primary-foreground font-semibold text-lg',
-            'hover:bg-primary/90 transition-all duration-300',
+            'bg-lp-accent text-lp-accent-fg font-semibold text-lg',
+            'hover:bg-lp-accent-hover transition-all duration-300',
             'gold-glow hover:scale-105'
           )}
         >
@@ -50,21 +50,21 @@ export default function Footer() {
       </motion.div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-border/30">
+      <div className="border-t border-lp-border">
         <div className="container py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Logo */}
-            <div className="font-display text-xl text-white">
-              Casa <span className="text-primary">Blanca</span>
+            <div className="font-display text-xl text-lp-text">
+              Casa <span className="text-lp-accent">Blanca</span>
             </div>
 
             {/* Copyright */}
-            <p className="text-sm text-white/40">
+            <p className="text-sm text-lp-text-subtle">
               © {currentYear} Casa Blanca. Todos os direitos reservados.
             </p>
 
             {/* Developer Credit */}
-            <p className="text-sm text-white/40 flex items-center gap-1">
+            <p className="text-sm text-lp-text-subtle flex items-center gap-1">
               {footer.developer.replace('❤️', '')}
               <Heart className="w-3 h-3 text-red-500 fill-red-500" />
             </p>

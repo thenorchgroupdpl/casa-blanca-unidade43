@@ -34,11 +34,11 @@ export default function Hero() {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]" />
+          <div className="w-full h-full bg-gradient-to-br from-lp-surface to-lp-bg" />
         )}
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-lp-overlay/80 via-lp-overlay/60 to-lp-bg" />
+        <div className="absolute inset-0 bg-gradient-to-r from-lp-overlay/80 via-transparent to-transparent" />
       </div>
 
       {/* Content */}
@@ -53,10 +53,10 @@ export default function Hero() {
           {/* Location */}
           <a
             href="#contato"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:border-primary/30 transition-colors group"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-lp-border backdrop-blur-sm border border-lp-border hover:border-lp-accent-border transition-colors group"
           >
-            <MapPin className="w-4 h-4 text-primary" />
-            <span className="text-sm text-white/80 group-hover:text-white transition-colors">
+            <MapPin className="w-4 h-4 text-lp-accent" />
+            <span className="text-sm text-lp-text-muted group-hover:text-lp-text transition-colors">
               {data.contact.address.city}
             </span>
           </a>
@@ -76,7 +76,7 @@ export default function Hero() {
 
         {/* Headline */}
         <div className="max-w-3xl">
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-tight">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-lp-text leading-tight">
             {headlineLines.map((line, index) => (
               <motion.span
                 key={index}
@@ -91,7 +91,7 @@ export default function Hero() {
           </h1>
 
           <motion.p
-            className="mt-6 text-lg md:text-xl text-white/70 max-w-xl"
+            className="mt-6 text-lg md:text-xl text-lp-text-muted max-w-xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
@@ -104,8 +104,8 @@ export default function Hero() {
             onClick={openOrderOverlay}
             className={cn(
               'mt-8 inline-flex items-center gap-3 px-8 py-4 rounded-full',
-              'bg-primary text-primary-foreground font-semibold text-lg',
-              'hover:bg-primary/90 transition-all duration-300',
+              'bg-lp-accent text-lp-accent-fg font-semibold text-lg',
+              'hover:bg-lp-accent-hover transition-all duration-300',
               'gold-glow hover:scale-105'
             )}
             initial={{ opacity: 0, y: 20 }}
@@ -122,7 +122,7 @@ export default function Hero() {
       {/* Scroll Indicator */}
       <motion.a
         href="#intro"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/50 hover:text-primary transition-colors"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-lp-text-subtle hover:text-lp-accent transition-colors"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 1.2 }}

@@ -1,3 +1,4 @@
+
 /**
  * Intro Section - Casa Blanca
  * Design: Warm Luxury - Divisor section with rounded top corners
@@ -17,14 +18,14 @@ export default function IntroSection() {
   return (
     <section
       id="intro"
-      className="relative bg-background section-divider pt-16 pb-8"
+      className="relative bg-lp-bg section-divider pt-16 pb-8"
     >
       {/* Decorative top border */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-primary/30 rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-lp-accent-soft rounded-full" />
 
       <div className="container text-center">
         <motion.h2
-          className="font-display text-3xl md:text-4xl lg:text-5xl text-white"
+          className="font-display text-3xl md:text-4xl lg:text-5xl text-lp-text"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
@@ -34,7 +35,7 @@ export default function IntroSection() {
         </motion.h2>
 
         <motion.p
-          className="mt-4 text-lg text-white/60 max-w-2xl mx-auto"
+          className="mt-4 text-lg text-lp-text-muted max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}

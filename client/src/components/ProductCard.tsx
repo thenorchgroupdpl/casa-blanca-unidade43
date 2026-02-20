@@ -69,13 +69,13 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
           exit={{ opacity: 0, y: -10 }}
           className={cn(
             'absolute top-2 left-2 right-2 z-20',
-            'bg-[#1a472a] text-white px-3 py-2 rounded-lg',
+            'bg-[#1a472a] text-lp-text px-3 py-2 rounded-lg',
             'flex items-center gap-2 shadow-lg',
             'border border-green-600/30'
           )}
         >
           <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-            <Check className="w-3 h-3 text-white" />
+            <Check className="w-3 h-3 text-lp-text" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium">Produto adicionado!</p>
@@ -91,9 +91,9 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
       <motion.div
         onClick={handleCardClick}
         className={cn(
-          'group relative bg-card rounded-xl overflow-hidden cursor-pointer',
-          'border border-border/50 hover:border-primary/30 transition-all duration-300',
-          'hover:shadow-lg hover:shadow-primary/5'
+          'group relative bg-lp-surface rounded-xl overflow-hidden cursor-pointer',
+          'border border-lp-border hover:border-lp-accent-border transition-all duration-300',
+          'hover:shadow-lg hover:bg-lp-accent-subtle'
         )}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -113,8 +113,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-3xl text-muted-foreground">🍽️</span>
+            <div className="w-full h-full bg-lp-surface flex items-center justify-center">
+              <span className="text-3xl text-lp-text-muted">🍽️</span>
             </div>
           )}
           
@@ -123,7 +123,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
             onClick={handleAddToCart}
             className={cn(
               'absolute bottom-3 right-3 p-2 rounded-full',
-              'bg-primary text-primary-foreground',
+              'bg-lp-accent text-lp-accent-fg',
               'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
               'hover:scale-110 active:scale-95'
             )}
@@ -134,8 +134,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
 
         {/* Info */}
         <div className="p-4">
-          <h3 className="font-medium text-foreground line-clamp-1">{product.name}</h3>
-          <p className="text-primary font-semibold mt-1">{formatPrice(product.price)}</p>
+          <h3 className="font-medium text-lp-text line-clamp-1">{product.name}</h3>
+          <p className="text-lp-accent font-semibold mt-1">{formatPrice(product.price)}</p>
         </div>
       </motion.div>
     );
@@ -168,8 +168,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <span className="text-3xl text-muted-foreground">🍽️</span>
+          <div className="w-full h-full bg-lp-surface flex items-center justify-center">
+            <span className="text-3xl text-lp-text-muted">🍽️</span>
           </div>
         )}
 
@@ -178,13 +178,13 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
           <>
             <button
               onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-lp-overlay text-lp-text opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-lp-overlay text-lp-text opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -196,7 +196,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
                   key={idx}
                   className={cn(
                     'w-1.5 h-1.5 rounded-full transition-colors',
-                    idx === currentImageIndex ? 'bg-primary' : 'bg-white/50'
+                    idx === currentImageIndex ? 'bg-lp-accent' : 'bg-lp-text-subtle'
                   )}
                 />
               ))}
@@ -219,8 +219,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
           onClick={handleAddToCart}
           className={cn(
             'mt-3 w-full py-2.5 rounded-xl font-medium text-sm',
-            'bg-[#121212] text-white',
-            'hover:bg-[#1a1a1a] active:scale-[0.98] transition-all'
+            'bg-lp-surface text-lp-text',
+            'hover:bg-lp-surface-hover active:scale-[0.98] transition-all'
           )}
         >
           Adicionar

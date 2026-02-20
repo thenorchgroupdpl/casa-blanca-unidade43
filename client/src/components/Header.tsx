@@ -44,7 +44,7 @@ export default function Header() {
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
           isScrolled
-            ? 'glass border-b border-white/5 py-3'
+            ? 'glass border-b border-lp-border py-3'
             : 'bg-transparent py-4'
         )}
       >
@@ -57,8 +57,8 @@ export default function Header() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="font-display text-2xl md:text-3xl text-white">
-              Casa <span className="text-primary">Blanca</span>
+            <span className="font-display text-2xl md:text-3xl text-lp-text">
+              Casa <span className="text-lp-accent">Blanca</span>
             </span>
           </motion.a>
 
@@ -68,7 +68,7 @@ export default function Header() {
               <motion.a
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-white/70 hover:text-primary transition-colors"
+                className="text-sm font-medium text-lp-text-muted hover:text-lp-accent transition-colors"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -85,8 +85,8 @@ export default function Header() {
               onClick={openWhatsAppModal}
               className={cn(
                 'hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full',
-                'bg-primary text-primary-foreground font-medium text-sm',
-                'hover:bg-primary/90 transition-all duration-200',
+                'bg-lp-accent text-lp-accent-fg font-medium text-sm',
+                'bg-lp-accent-hover transition-all duration-200',
                 'gold-glow-sm hover:gold-glow'
               )}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -104,8 +104,8 @@ export default function Header() {
               onClick={() => setIsCartOpen(true)}
               className={cn(
                 'relative p-2.5 rounded-full transition-all duration-200',
-                'text-white/80 hover:text-white',
-                'hover:bg-white/10',
+                'text-lp-text-muted hover:text-lp-text',
+                'hover:bg-lp-border',
                 'lg:hidden' // Esconde no desktop grande
               )}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -129,7 +129,7 @@ export default function Header() {
                       'flex items-center justify-center',
                       'text-xs font-bold',
                       'rounded-full',
-                      'bg-primary text-primary-foreground'
+                      'bg-lp-accent text-lp-accent-fg'
                     )}
                   >
                     {totalItems > 99 ? '99+' : totalItems}

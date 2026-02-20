@@ -674,6 +674,53 @@ export default function DesignPage() {
 // GLOBAL STYLES PANEL
 // ============================================
 
+// Helper: calculate luminance from hex color for contrast detection
+function getLuminance(hex: string): number {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean, 16);
+  const r = ((bigint >> 16) & 255) / 255;
+  const g = ((bigint >> 8) & 255) / 255;
+  const b = (bigint & 255) / 255;
+  const [rs, gs, bs] = [r, g, b].map(c =>
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  );
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+// Color groups with descriptions of what each controls
+const COLOR_GROUPS = [
+  {
+    key: "primary" as const,
+    label: "Cor de Destaque",
+    description: "Botões, preços, estrelas, ícones, badges, overlines",
+    icon: "🎨",
+  },
+  {
+    key: "background" as const,
+    label: "Fundo do Site",
+    description: "Background principal, gradientes, overlays",
+    icon: "🖼️",
+  },
+  {
+    key: "accent" as const,
+    label: "Superfícies",
+    description: "Cards, modais, drawers, popups, inputs",
+    icon: "📦",
+  },
+  {
+    key: "foreground" as const,
+    label: "Texto Principal",
+    description: "Títulos, headlines, nomes, labels",
+    icon: "✏️",
+  },
+  {
+    key: "muted" as const,
+    label: "Texto Secundário",
+    description: "Subtítulos, descrições, placeholders",
+    icon: "💬",
+  },
+];
+
 function GlobalStylesPanel({
   colors,
   fontFamily,
@@ -708,31 +755,54 @@ function GlobalStylesPanel({
 
       {isOpen && (
         <div className="mt-3 space-y-4">
-          {/* Colors */}
-          <div className="space-y-2">
-            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Cores</Label>
-            {[
-              { key: "primary" as const, label: "Primária" },
-              { key: "background" as const, label: "Fundo" },
-              { key: "foreground" as const, label: "Texto" },
-              { key: "accent" as const, label: "Destaque" },
-              { key: "muted" as const, label: "Secundário" },
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={colors[key]}
-                  onChange={(e) => onColorChange(key, e.target.value)}
-                  className="w-7 h-7 rounded cursor-pointer border border-zinc-700 shrink-0"
-                />
-                <span className="text-xs text-zinc-300 flex-1">{label}</span>
-                <Input
-                  value={colors[key]}
-                  onChange={(e) => onColorChange(key, e.target.value)}
-                  className="w-20 h-6 text-[11px] bg-zinc-800 border-zinc-700 font-mono px-1.5"
-                />
+          {/* Color Groups */}
+          <div className="space-y-3">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Paleta de Cores</Label>
+            {COLOR_GROUPS.map(({ key, label, description, icon }) => (
+              <div key={key} className="rounded-lg bg-zinc-800/50 border border-zinc-700/50 p-2.5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <input
+                    type="color"
+                    value={colors[key]}
+                    onChange={(e) => onColorChange(key, e.target.value)}
+                    className="w-7 h-7 rounded cursor-pointer border border-zinc-600 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px]">{icon}</span>
+                      <span className="text-xs font-medium text-zinc-200">{label}</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 leading-tight mt-0.5 truncate">{description}</p>
+                  </div>
+                  <Input
+                    value={colors[key]}
+                    onChange={(e) => onColorChange(key, e.target.value)}
+                    className="w-[72px] h-6 text-[10px] bg-zinc-900 border-zinc-700 font-mono px-1.5"
+                  />
+                </div>
+                {/* Preview swatch showing derived colors */}
+                {key === "primary" && (
+                  <div className="flex gap-1 mt-1">
+                    <div className="h-3 flex-1 rounded-sm" style={{ background: colors.primary }} title="Accent" />
+                    <div className="h-3 flex-1 rounded-sm" style={{ background: colors.primary, opacity: 0.3 }} title="Soft" />
+                    <div className="h-3 flex-1 rounded-sm" style={{ background: colors.primary, opacity: 0.1 }} title="Subtle" />
+                  </div>
+                )}
               </div>
             ))}
+            {/* Auto-contrast indicator */}
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded bg-zinc-800/30 border border-zinc-700/30">
+              <div
+                className="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold shrink-0"
+                style={{
+                  background: colors.primary,
+                  color: getLuminance(colors.primary) > 0.4 ? '#1a1a1a' : '#ffffff',
+                }}
+              >
+                Aa
+              </div>
+              <span className="text-[10px] text-zinc-500">Contraste de botões calculado automaticamente</span>
+            </div>
           </div>
 
           {/* Typography */}

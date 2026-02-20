@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { useSiteData, useCartStore } from '@/store/useStore';
+import { applyLandingTheme, removeLandingTheme, type LandingThemeColors } from '@/lib/landingTheme';
 import type { SiteData, Category, Product, Feedback, DaySchedule } from '@/types';
 
 // Layout Components
@@ -111,11 +112,10 @@ export default function StoreLanding() {
       if (event.data.type === 'designPreviewUpdate' && currentData) {
         const { design, colors } = event.data;
         
-        // Apply theme colors to CSS variables
-        const root = document.documentElement;
-        if (colors?.primary) root.style.setProperty('--primary', colors.primary);
-        if (colors?.background) root.style.setProperty('--background', colors.background);
-        if (colors?.accent) root.style.setProperty('--accent', colors.accent);
+        // Apply complete theme via Design Tokens system
+        if (colors) {
+          applyLandingTheme(colors as LandingThemeColors);
+        }
         
         // Update site data with design overrides
         const updatedData = { ...currentData };
@@ -188,29 +188,16 @@ export default function StoreLanding() {
     { enabled: !!slug }
   );
 
-  // Apply tenant theme colors
+  // Apply tenant theme colors via Design Tokens system
   useEffect(() => {
     if (tenantData?.tenant?.themeColors) {
-      const colors = tenantData.tenant.themeColors;
-      const root = document.documentElement;
-      
-      if (colors.primary) {
-        root.style.setProperty('--primary', colors.primary);
-      }
-      if (colors.accent) {
-        root.style.setProperty('--accent', colors.accent);
-      }
-      if (colors.background) {
-        root.style.setProperty('--background', colors.background);
-      }
+      const colors = tenantData.tenant.themeColors as LandingThemeColors;
+      applyLandingTheme(colors);
     }
     
     // Cleanup on unmount
     return () => {
-      const root = document.documentElement;
-      root.style.removeProperty('--primary');
-      root.style.removeProperty('--accent');
-      root.style.removeProperty('--background');
+      removeLandingTheme();
     };
   }, [tenantData?.tenant?.themeColors]);
 

@@ -185,3 +185,21 @@
 - [x] Preview do celular deve ficar centralizado no espaço direito disponível
 - [x] Scroll cortado no painel de edição esquerdo (não consegue rolar para ver todos os campos)
 - [x] Painel de edição precisa scroll independente com altura dinâmica
+
+## Fase 20: Motor de Design Tokens - Sistema de Cores Globais
+- [x] Auditar todos os componentes da Landing Page e mapear cores hardcoded
+- [x] Projetar arquitetura de Design Tokens (grupos de cores inteligentes)
+- [x] Criar provider de tema CSS variables na Landing Page (StoreLanding)
+- [x] Refatorar Hero (botão CTA, ícone localização, overlines)
+- [x] Refatorar VitrineSection (preços, botões "Ver Todas", filtros ativos, ícone "+", fundo cards)
+- [x] Refatorar ProductBottomSheet e ProductCard (preços, botões, ícones)
+- [x] Refatorar CartDrawer/CartPopup (badge contador, botão finalizar, preços)
+- [x] Refatorar GlobalToast (ícone check de sucesso)
+- [x] Refatorar WhatsAppModal (botão flutuante, botão enviar, fundo chat)
+- [x] Refatorar AboutSection (sobretítulo "Nossa História")
+- [x] Refatorar FeedbacksSection (sobretítulo "Avaliações", estrelas)
+- [x] Refatorar LocationSection (ícones redes sociais, ícones contato, botão CTA final)
+- [x] Refatorar Footer (ícones, links)
+- [x] Atualizar painel Design System com grupos de cores inteligentes
+- [x] Implementar sincronização em tempo real via postMessage
+- [x] Testar sincronização completa em todas as seções

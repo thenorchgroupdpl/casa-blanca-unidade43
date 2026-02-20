@@ -22,11 +22,11 @@ export default function AboutSection() {
   if (!hasContent) return null;
 
   return (
-    <section id="sobre" className="py-20 bg-background">
+    <section id="sobre" className="py-20 bg-lp-bg">
       <div className="container">
         {/* Pre-headline */}
         <motion.p
-          className="text-primary text-sm font-medium tracking-wider uppercase mb-3"
+          className="text-lp-accent text-sm font-medium tracking-wider uppercase mb-3"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
@@ -37,7 +37,7 @@ export default function AboutSection() {
 
         {/* Main headline */}
         <motion.h2
-          className="font-display text-3xl md:text-4xl lg:text-5xl text-white mb-12"
+          className="font-display text-3xl md:text-4xl lg:text-5xl text-lp-text mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
@@ -63,24 +63,24 @@ export default function AboutSection() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                  <span className="font-display text-6xl text-primary/30">CB</span>
+                <div className="w-full h-full bg-gradient-to-br from-lp-accent-soft to-lp-accent-subtle flex items-center justify-center">
+                  <span className="font-display text-6xl text-lp-accent-soft">CB</span>
                 </div>
               )}
               {/* Gradient overlay at bottom */}
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-lp-overlay to-transparent" />
               
               {/* Owner info overlay */}
               {(about.owner_name || about.owner_title) && (
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  {about.owner_name && <p className="font-display text-xl text-white">{about.owner_name}</p>}
-                  {about.owner_title && <p className="text-white/70 text-sm mt-1">{about.owner_title}</p>}
+                  {about.owner_name && <p className="font-display text-xl text-lp-text">{about.owner_name}</p>}
+                  {about.owner_title && <p className="text-lp-text-muted text-sm mt-1">{about.owner_title}</p>}
                 </div>
               )}
             </div>
 
             {/* Decorative element */}
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 border-2 border-primary/30 rounded-2xl -z-10" />
+            <div className="absolute -bottom-4 -right-4 w-24 h-24 border-2 border-lp-accent-border rounded-2xl -z-10" />
           </motion.div>
 
           {/* Text Content */}
@@ -94,7 +94,7 @@ export default function AboutSection() {
             {paragraphs.map((paragraph, index) => (
               <p
                 key={index}
-                className="text-white/70 text-lg leading-relaxed"
+                className="text-lp-text-muted text-lg leading-relaxed"
               >
                 {paragraph}
               </p>
@@ -102,8 +102,8 @@ export default function AboutSection() {
 
             {/* Signature decoration */}
             <div className="pt-6 flex items-center gap-4">
-              <div className="w-12 h-px bg-primary/50" />
-              <span className="text-primary font-display text-lg italic">
+              <div className="w-12 h-px bg-lp-accent-soft" />
+              <span className="text-lp-accent font-display text-lg italic">
                 Casa Blanca
               </span>
             </div>
