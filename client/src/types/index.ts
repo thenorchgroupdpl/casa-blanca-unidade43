@@ -89,6 +89,35 @@ export interface AboutContent {
   owner_photo: string;
   owner_name: string;
   owner_title: string;
+  // Granular style overrides from Design System
+  pre_headline_font?: string;
+  pre_headline_font_size?: number;
+  pre_headline_font_weight?: string;
+  pre_headline_color?: string;
+  headline_font?: string;
+  headline_font_size?: number;
+  headline_font_weight?: string;
+  headline_color?: string;
+  image_radius?: number;
+  owner_name_font?: string;
+  owner_name_font_size?: number;
+  owner_name_font_weight?: string;
+  owner_name_color?: string;
+  owner_title_color?: string;
+  storytelling_font?: string;
+  storytelling_font_size?: number;
+  storytelling_font_weight?: string;
+  storytelling_color?: string;
+  signature_text?: string;
+  signature_color?: string;
+  show_signature?: boolean;
+  bg_media_url?: string;
+  bg_media_type?: 'image' | 'video';
+  bg_overlay_opacity?: number;
+  bg_overlay_color?: string;
+  bg_fallback_color?: string;
+  image_position?: 'left' | 'right';
+  show_decorative?: boolean;
 }
 
 export interface LocationContent {

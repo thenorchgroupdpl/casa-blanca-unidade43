@@ -125,10 +125,48 @@ type LandingDesign = {
     offersCategoryId?: number | null;
   };
   about?: {
+    // 2.1 Pre-headline (overline)
+    preHeadline?: string;
+    preHeadlineFont?: string;
+    preHeadlineFontSize?: number;
+    preHeadlineFontWeight?: string;
+    preHeadlineColor?: string;
+    // 2.2 Headline
     headline?: string;
-    storytelling?: string;
+    headlineFont?: string;
+    headlineFontSize?: number;
+    headlineFontWeight?: string;
+    headlineColor?: string;
+    // 2.3 Foto do Proprietário
     imageUrl?: string;
+    imageRadius?: number; // border-radius percentage (0-50)
     ownerName?: string;
+    ownerNameFont?: string;
+    ownerNameFontSize?: number;
+    ownerNameFontWeight?: string;
+    ownerNameColor?: string;
+    ownerTitle?: string;
+    ownerTitleColor?: string;
+    // 2.4 Storytelling (body text)
+    storytelling?: string;
+    storytellingFont?: string;
+    storytellingFontSize?: number;
+    storytellingFontWeight?: string;
+    storytellingColor?: string;
+    // 2.5 Assinatura
+    signatureText?: string;
+    signatureColor?: string;
+    showSignature?: boolean;
+    // 2.6 Fundo da Seção
+    bgMediaUrl?: string;
+    bgMediaType?: "image" | "video";
+    bgOverlayOpacity?: number;
+    bgOverlayColor?: string;
+    bgFallbackColor?: string;
+    // Layout
+    imagePosition?: "left" | "right";
+    showDecorative?: boolean;
+    // Legacy
     textColor?: string;
   };
   reviews?: {
@@ -250,8 +288,31 @@ const defaultDesign: LandingDesign = {
     maxCategories: 3,
   },
   about: {
+    preHeadline: "CONHEÇA NOSSA HISTÓRIA",
+    preHeadlineFontSize: 14,
+    preHeadlineFontWeight: "500",
+    preHeadlineColor: "",
     headline: "Sobre Nós",
+    headlineFontSize: 48,
+    headlineFontWeight: "700",
+    headlineColor: "",
+    imageRadius: 16,
+    ownerNameFontSize: 20,
+    ownerNameFontWeight: "700",
+    ownerNameColor: "#ffffff",
+    ownerTitleColor: "#a1a1aa",
     storytelling: "",
+    storytellingFontSize: 18,
+    storytellingFontWeight: "400",
+    storytellingColor: "",
+    signatureText: "",
+    signatureColor: "",
+    showSignature: true,
+    bgOverlayOpacity: 0,
+    bgOverlayColor: "#000000",
+    bgFallbackColor: "",
+    imagePosition: "left",
+    showDecorative: true,
     textColor: "#FFFFFF",
   },
   reviews: {
@@ -771,6 +832,7 @@ export default function DesignPage() {
                         data={design.about || {}}
                         onChange={(field, value) => updateDesign("about", field, value)}
                         onImageUpload={handleImageUpload}
+                        onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
                       />
                       <Separator className="bg-zinc-800" />
@@ -1711,13 +1773,55 @@ function AboutSection({
   data,
   onChange,
   onImageUpload,
+  onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["about"]>;
   onChange: (field: string, value: unknown) => void;
   onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
+  // Reusable color picker row
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  // Reusable font selector
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
+        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+          <SelectValue placeholder="Herdar Global" />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          <SelectItem value="inherit">Herdar Global</SelectItem>
+          {ALL_FONTS.map((f) => (
+            <SelectItem key={f} value={f}>
+              <span style={{ fontFamily: f }}>{f}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -1725,9 +1829,56 @@ function AboutSection({
         Seção Sobre Nós
       </h3>
 
-      <div className="space-y-2">
+      {/* ===== 2.1 PRE-HEADLINE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.1 Pre-headline (Overline)</Label>
         <div>
-          <Label className="text-[11px] text-zinc-400">Headline</Label>
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Input
+            value={data.preHeadline || ""}
+            onChange={(e) => onChange("preHeadline", e.target.value)}
+            placeholder="CONHEÇA NOSSA HISTÓRIA"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <FontSelect label="Fonte" value={data.preHeadlineFont} field="preHeadlineFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.preHeadlineFontSize ?? 14}px</span>
+            </div>
+            <Slider
+              value={[data.preHeadlineFontSize ?? 14]}
+              onValueChange={([v]) => onChange("preHeadlineFontSize", v)}
+              min={10}
+              max={24}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.preHeadlineFontWeight || "500"} onValueChange={(v) => onChange("preHeadlineFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor" value={data.preHeadlineColor} defaultVal="" field="preHeadlineColor" />
+      </div>
+
+      {/* ===== 2.2 HEADLINE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.2 Headline (Título Principal)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
           <Input
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
@@ -1735,50 +1886,293 @@ function AboutSection({
             className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
+        <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.headlineFontSize ?? 48}px</span>
+            </div>
+            <Slider
+              value={[data.headlineFontSize ?? 48]}
+              onValueChange={([v]) => onChange("headlineFontSize", v)}
+              min={24}
+              max={96}
+              step={2}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Título" value={data.headlineColor} defaultVal="" field="headlineColor" />
+      </div>
+
+      {/* ===== 2.3 FOTO DO PROPRIETÁRIO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.3 Foto do Proprietário</Label>
+
+        <ImageUploadField
+          label="Imagem"
+          value={data.imageUrl}
+          onChange={(url) => onChange("imageUrl", url)}
+          onUpload={onImageUpload}
+          uploading={uploading}
+        />
+
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-zinc-500">Arredondamento</Label>
+            <span className="text-[10px] text-zinc-500 font-mono">{data.imageRadius ?? 16}px</span>
+          </div>
+          <Slider
+            value={[data.imageRadius ?? 16]}
+            onValueChange={([v]) => onChange("imageRadius", v)}
+            min={0}
+            max={50}
+            step={1}
+            className="w-full"
+          />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+
         <div>
-          <Label className="text-[11px] text-zinc-400">Storytelling</Label>
+          <Label className="text-[10px] text-zinc-500">Nome do Proprietário</Label>
+          <Input
+            value={data.ownerName || ""}
+            onChange={(e) => onChange("ownerName", e.target.value)}
+            placeholder="Nome do proprietário"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <FontSelect label="Fonte do Nome" value={data.ownerNameFont} field="ownerNameFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.ownerNameFontSize ?? 20}px</span>
+            </div>
+            <Slider
+              value={[data.ownerNameFontSize ?? 20]}
+              onValueChange={([v]) => onChange("ownerNameFontSize", v)}
+              min={14}
+              max={36}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.ownerNameFontWeight || "700"} onValueChange={(v) => onChange("ownerNameFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Nome" value={data.ownerNameColor} defaultVal="#ffffff" field="ownerNameColor" />
+
+        <Separator className="bg-zinc-800" />
+
+        <div>
+          <Label className="text-[10px] text-zinc-500">Título / Cargo</Label>
+          <Input
+            value={data.ownerTitle || ""}
+            onChange={(e) => onChange("ownerTitle", e.target.value)}
+            placeholder="Fundador & Chef"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <ColorRow label="Cor do Título" value={data.ownerTitleColor} defaultVal="#a1a1aa" field="ownerTitleColor" />
+      </div>
+
+      {/* ===== 2.4 STORYTELLING ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.4 Storytelling (Texto)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
           <Textarea
             value={data.storytelling || ""}
             onChange={(e) => onChange("storytelling", e.target.value)}
             placeholder="Conte a história do negócio..."
-            className="bg-zinc-800 border-zinc-700 text-xs min-h-[80px]"
+            className="bg-zinc-800 border-zinc-700 text-xs min-h-[100px] resize-y"
           />
         </div>
+        <FontSelect label="Fonte" value={data.storytellingFont} field="storytellingFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.storytellingFontSize ?? 18}px</span>
+            </div>
+            <Slider
+              value={[data.storytellingFontSize ?? 18]}
+              onValueChange={([v]) => onChange("storytellingFontSize", v)}
+              min={12}
+              max={28}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.storytellingFontWeight || "400"} onValueChange={(v) => onChange("storytellingFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Texto" value={data.storytellingColor} defaultVal="" field="storytellingColor" />
       </div>
 
-      <ImageUploadField
-        label="Imagem do Sobre"
-        value={data.imageUrl}
-        onChange={(url) => onChange("imageUrl", url)}
-        onUpload={onImageUpload}
-        uploading={uploading}
-      />
-
-      <div>
-        <Label className="text-[11px] text-zinc-400">Nome (abaixo da foto)</Label>
-        <Input
-          value={data.ownerName || ""}
-          onChange={(e) => onChange("ownerName", e.target.value)}
-          placeholder="Nome do proprietário"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <Label className="text-[11px] text-zinc-400">Cor do Texto</Label>
+      {/* ===== 2.5 ASSINATURA ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.5 Assinatura</Label>
         <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={data.textColor || "#FFFFFF"}
-            onChange={(e) => onChange("textColor", e.target.value)}
-            className="w-7 h-7 rounded cursor-pointer border border-zinc-700 shrink-0"
+          <Switch
+            checked={data.showSignature ?? true}
+            onCheckedChange={(v) => onChange("showSignature", v)}
           />
-          <Input
-            value={data.textColor || "#FFFFFF"}
-            onChange={(e) => onChange("textColor", e.target.value)}
-            className="w-20 h-6 text-[11px] bg-zinc-800 border-zinc-700 font-mono px-1.5"
+          <Label className="text-[10px] text-zinc-400">Exibir assinatura</Label>
+        </div>
+        {(data.showSignature ?? true) && (
+          <>
+            <div>
+              <Label className="text-[10px] text-zinc-500">Texto (vazio = nome da empresa)</Label>
+              <Input
+                value={data.signatureText || ""}
+                onChange={(e) => onChange("signatureText", e.target.value)}
+                placeholder="Nome da empresa"
+                className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              />
+            </div>
+            <ColorRow label="Cor" value={data.signatureColor} defaultVal="" field="signatureColor" />
+          </>
+        )}
+      </div>
+
+      {/* ===== 2.6 LAYOUT ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.6 Layout</Label>
+
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-zinc-500">Posição da Imagem</Label>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onChange("imagePosition", "left")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                (data.imagePosition || "left") === "left"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <AlignLeft className="h-3 w-3 inline mr-1" />
+              Esquerda
+            </button>
+            <button
+              onClick={() => onChange("imagePosition", "right")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                data.imagePosition === "right"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <AlignRight className="h-3 w-3 inline mr-1" />
+              Direita
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={data.showDecorative ?? true}
+            onCheckedChange={(v) => onChange("showDecorative", v)}
+          />
+          <Label className="text-[10px] text-zinc-400">Elemento decorativo</Label>
+        </div>
+      </div>
+
+      {/* ===== 2.7 FUNDO DA SEÇÃO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.7 Fundo da Seção</Label>
+
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-zinc-500">Tipo de Mídia</Label>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onChange("bgMediaType", "image")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                (data.bgMediaType || "image") === "image"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <ImageIcon className="h-3 w-3 inline mr-1" />
+              Imagem
+            </button>
+            <button
+              onClick={() => onChange("bgMediaType", "video")}
+              className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                data.bgMediaType === "video"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+              }`}
+            >
+              <Video className="h-3 w-3 inline mr-1" />
+              Vídeo
+            </button>
+          </div>
+        </div>
+
+        <ImageUploadField
+          label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
+          value={data.bgMediaUrl}
+          onChange={(url) => onChange("bgMediaUrl", url)}
+          onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+          uploading={uploading}
+          accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+        />
+
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
+            <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
+          </div>
+          <Slider
+            value={[data.bgOverlayOpacity ?? 0]}
+            onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
+            min={0}
+            max={100}
+            step={5}
+            className="w-full"
           />
         </div>
+
+        <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
+        <ColorRow label="Cor de Fallback (sem imagem)" value={data.bgFallbackColor} defaultVal="" field="bgFallbackColor" />
       </div>
     </div>
   );

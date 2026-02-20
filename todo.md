@@ -296,3 +296,13 @@
 - [x] Atualizar postMessage e StoreLanding para mapear todos os novos campos
 - [x] Atualizar Hero.tsx e Header.tsx para consumir os novos campos
 - [x] Garantir que propriedades são exclusivas da seção Home (não afetam outras seções)
+
+## Fase 32: Controles Granulares da Seção Sobre Nós
+- [x] Analisar AboutSection atual no Design.tsx e AboutSection.tsx
+- [x] Expandir tipo LandingDesign.about com campos granulares (título, subtítulo, descrição, foto, fundo, CTA)
+- [x] Reescrever AboutSection no Design.tsx com sub-painéis granulares
+- [x] Atualizar AboutContent type com novos campos de estilo
+- [x] Atualizar postMessage handler no StoreLanding para mapear novos campos about
+- [x] Atualizar transformTenantDataToSiteData para carregar novos campos about do banco
+- [x] Atualizar AboutSection.tsx para consumir os novos campos de estilo
+- [x] Testar persistência e preview em tempo real
