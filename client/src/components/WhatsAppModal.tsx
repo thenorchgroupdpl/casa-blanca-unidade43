@@ -57,7 +57,7 @@ export default function WhatsAppModal() {
                   {data.sections_content.about.owner_photo ? (
                     <img
                       src={data.sections_content.about.owner_photo}
-                      alt="Atendente Casa Blanca"
+                      alt={`Atendente ${data.project_name || 'Casa Blanca'}`}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -72,7 +72,7 @@ export default function WhatsAppModal() {
                   Deseja seguir para o WhatsApp?
                 </h3>
                 <p className="text-lp-text-muted text-sm mb-6">
-                  Você será redirecionado para o WhatsApp da Casa Blanca
+                  {`Você será redirecionado para o WhatsApp da ${data.project_name || 'Casa Blanca'}`}
                 </p>
 
                 {/* Phone Number */}

@@ -230,3 +230,11 @@
 - [x] P6a: Criar input de cor separado para Estrelas de Avaliação
 - [x] P6b: Corrigir seletor de Fontes - não aplica no preview
 - [x] P6c: Adicionar separadores visuais entre itens na Sacola/Carrinho
+
+## Fase 24: Correções Críticas - Persistência, Uploads, Tipografia e Logotipo
+- [x] P1/P5: Corrigir persistência de dados - save grava no banco + load carrega do banco ao montar
+- [x] P2: Corrigir upload de imagem no Sobre Nós - exibir no preview em tempo real
+- [x] P3: Corrigir herança de tipografia - fontes devem aplicar em h1, h2, h3 e classes de título
+- [x] P4a: Corrigir vínculo da URL do logotipo no preview/header
+- [x] P4b: Criar input global "Nome da Empresa" como variável dinâmica (usa project_name do tenant)
+- [x] P4c: Implementar fallback: imagem de logo > texto do Nome da Empresa

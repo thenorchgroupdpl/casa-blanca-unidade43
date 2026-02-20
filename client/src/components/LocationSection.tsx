@@ -22,7 +22,7 @@ export default function LocationSection() {
     openMaps(
       contact.address.coordinates.lat,
       contact.address.coordinates.lng,
-      'Casa Blanca'
+      data.project_name || 'Casa Blanca'
     );
   };
 
@@ -85,7 +85,7 @@ export default function LocationSection() {
               {location.map_preview && location.map_preview !== '/images/map-preview.jpg' ? (
                 <img
                   src={location.map_preview}
-                  alt="Localização Casa Blanca"
+                  alt={`Localização ${data.project_name || 'Casa Blanca'}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (

@@ -1,0 +1,22 @@
+{
+  "query": "SELECT tenantId, landingDesign FROM store_settings LIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT tenantId, landingDesign FROM store_settings LIMIT 3;",
+  "rows": [
+    {
+      "tenantId": "1",
+      "landingDesign": "NULL"
+    },
+    {
+      "tenantId": "30001",
+      "landingDesign": "NULL"
+    },
+    {
+      "tenantId": "60001",
+      "landingDesign": "{\"about\": {\"headline\": \"Sobre Nós\", \"imageUrl\": \"https://d2xsxph8kpxj0f.cloudfront.net/310519663136954678/NZpifSW9BTrd6QobKPrRSL/tenants/60001/design/1771569818707-iw9sk30f.heic\", \"ownerName\": \"Mirian Carvalho\", \"storytelling\": \"asdaknd;ajsdnfás'nksad\", \"textColor\": \"#FFFFFF\"}, \"global\": {\"alignment\": \"left\"}, \"home\": {\"bgMediaType\": \"image\", \"bgMediaUrl\": \"https://d2xsxph8kpxj0f.cloudfront.net/310519663136954678/NZpifSW9BTrd6QobKPrRSL/tenants/60001/design/1771569611045-mzuiw8zy.HEIC\", \"bgOverlayOpacity\": 85, \"ctaText\": \"Fazer Pedido\", \"headline\": \"Sabor que Encanta\", \"logoType\": \"text\", \"subheadline\": \"Experiência única\"}, \"info\": {\"ctaText\": \"Como Chegar\", \"headline1\": \"Venha nos visitar\", \"showAddress\": true, \"showHours\": true, \"showMap\": true, \"showPhone\": true, \"showSocial\": true, \"subheadline1\": \"Estamos esperando por você\"}, \"products\": {\"headline\": \"Nosso Cardápio\", \"maxCategories\": 3, \"subheadline\": \"Escolha seus favoritos\"}, \"reviews\": {\"headline\": \"O que dizem nossos clientes\", \"isVisible\": true}}"
+    }
+  ],
+  "messages": [],
+  "stdout": "tenantId\tlandingDesign\n1\tNULL\n30001\tNULL\n60001\t{\"about\": {\"headline\": \"Sobre Nós\", \"imageUrl\": \"https://d2xsxph8kpxj0f.cloudfront.net/310519663136954678/NZpifSW9BTrd6QobKPrRSL/tenants/60001/design/1771569818707-iw9sk30f.heic\", \"ownerName\": \"Mirian Carvalho\", \"storytelling\": \"asdaknd;ajsdnfás'nksad\", \"textColor\": \"#FFFFFF\"}, \"global\": {\"alignment\": \"left\"}, \"home\": {\"bgMediaType\": \"image\", \"bgMediaUrl\": \"https://d2xsxph8kpxj0f.cloudfront.net/310519663136954678/NZpifSW9BTrd6QobKPrRSL/tenants/60001/design/1771569611045-mzuiw8zy.HEIC\", \"bgOverlayOpacity\": 85, \"ctaText\": \"Fazer Pedido\", \"headline\": \"Sabor que Encanta\", \"logoType\": \"text\", \"subheadline\": \"Experiência única\"}, \"info\": {\"ctaText\": \"Como Chegar\", \"headline1\": \"Venha nos visitar\", \"showAddress\": true, \"showHours\": true, \"showMap\": true, \"showPhone\": true, \"showSocial\": true, \"subheadline1\": \"Estamos esperando por você\"}, \"products\": {\"headline\": \"Nosso Cardápio\", \"maxCategories\": 3, \"subheadline\": \"Escolha seus favoritos\"}, \"reviews\": {\"headline\": \"O que dizem nossos clientes\", \"isVisible\": true}}\n",
+  "stderr": "",
+  "execution_time_ms": 359
+}

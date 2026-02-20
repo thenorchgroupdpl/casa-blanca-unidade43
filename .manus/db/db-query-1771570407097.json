@@ -1,0 +1,34 @@
+{
+  "query": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME;",
+  "rows": [
+    {
+      "TABLE_NAME": "__drizzle_migrations"
+    },
+    {
+      "TABLE_NAME": "categories"
+    },
+    {
+      "TABLE_NAME": "home_rows"
+    },
+    {
+      "TABLE_NAME": "products"
+    },
+    {
+      "TABLE_NAME": "reviews"
+    },
+    {
+      "TABLE_NAME": "store_settings"
+    },
+    {
+      "TABLE_NAME": "tenants"
+    },
+    {
+      "TABLE_NAME": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\n__drizzle_migrations\ncategories\nhome_rows\nproducts\nreviews\nstore_settings\ntenants\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 362
+}

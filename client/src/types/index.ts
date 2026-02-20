@@ -116,6 +116,8 @@ export interface Category {
 
 export interface SiteData {
   project_name: string;
+  logo_url?: string;
+  logo_type?: 'image' | 'text';
   theme: Theme;
   contact: Contact;
   business_hours: BusinessHours;

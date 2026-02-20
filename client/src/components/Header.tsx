@@ -1,7 +1,7 @@
 /**
  * Header Component - Casa Blanca
  * Design: Warm Luxury - Glassmorphism sticky header
- * Features: Logo, WhatsApp CTA button, Cart icon on mobile
+ * Features: Dynamic logo (image or text), WhatsApp CTA button, Cart icon on mobile
  */
 
 import { useState, useEffect } from 'react';
@@ -38,6 +38,16 @@ export default function Header() {
     { label: 'Contato', href: '#contato' },
   ];
 
+  // Dynamic logo: image or text fallback
+  const logoUrl = data?.logo_url;
+  const logoType = data?.logo_type || 'text';
+  const companyName = data?.project_name || 'Casa Blanca';
+
+  // Split company name for highlight effect (first word normal, rest highlighted)
+  const nameParts = companyName.split(' ');
+  const firstName = nameParts[0] || '';
+  const restName = nameParts.slice(1).join(' ');
+
   return (
     <>
       <header
@@ -57,9 +67,17 @@ export default function Header() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="font-display text-2xl md:text-3xl text-lp-text">
-              Casa <span className="text-lp-highlight">Blanca</span>
-            </span>
+            {logoType === 'image' && logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={companyName}
+                className="h-8 md:h-10 w-auto object-contain"
+              />
+            ) : (
+              <span className="font-display text-2xl md:text-3xl text-lp-text">
+                {firstName}{restName ? ' ' : ''}<span className="text-lp-highlight">{restName}</span>
+              </span>
+            )}
           </motion.a>
 
           {/* Desktop Navigation */}

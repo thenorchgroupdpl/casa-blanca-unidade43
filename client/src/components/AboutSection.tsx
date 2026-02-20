@@ -104,7 +104,7 @@ export default function AboutSection() {
             <div className="pt-6 flex items-center gap-4">
               <div className="w-12 h-px bg-lp-highlight-soft" />
               <span className="text-lp-highlight font-display text-lg italic">
-                Casa Blanca
+                {data.project_name || 'Casa Blanca'}
               </span>
             </div>
           </motion.div>

@@ -161,6 +161,9 @@ export default function StoreLanding() {
               media_type: design.home.bgMediaType || updatedData.sections_content.hero.media_type,
             },
           };
+          // Update logo
+          if (design.home.logoUrl !== undefined) updatedData.logo_url = design.home.logoUrl;
+          if (design.home.logoType !== undefined) updatedData.logo_type = design.home.logoType;
         }
         
         if (design?.products) {
@@ -182,7 +185,7 @@ export default function StoreLanding() {
               headline: design.about.headline || updatedData.sections_content.about.headline,
               text: design.about.storytelling || updatedData.sections_content.about.text,
               owner_name: design.about.ownerName || updatedData.sections_content.about.owner_name,
-              owner_photo: design.about.ownerPhoto || updatedData.sections_content.about.owner_photo,
+              owner_photo: design.about.imageUrl || design.about.ownerPhoto || updatedData.sections_content.about.owner_photo,
             },
           };
         }
@@ -217,24 +220,53 @@ export default function StoreLanding() {
     { enabled: !!slug }
   );
 
-  // Apply tenant theme colors via Design Tokens system
+  // Apply tenant theme colors + fonts via Design Tokens system
   useEffect(() => {
     if (tenantData?.tenant?.themeColors) {
       const colors = tenantData.tenant.themeColors as LandingThemeColors;
-      const design = (tenantData.tenant as any).landingDesign;
+      const ld = (tenantData.settings as any)?.landingDesign;
       const extras = {
-        badgeOpen: design?.home?.badgeOpenColor,
-        badgeClosed: design?.home?.badgeClosedColor,
-        starColor: design?.feedbacks?.starColor,
+        badgeOpen: ld?.home?.badgeOpenColor,
+        badgeClosed: ld?.home?.badgeClosedColor,
+        starColor: ld?.reviews?.starColor || ld?.feedbacks?.starColor,
       };
       applyLandingTheme(colors, extras);
+    }
+
+    // Apply saved fonts
+    const ff = tenantData?.tenant?.fontFamily;
+    const fd = tenantData?.tenant?.fontDisplay;
+    if (ff || fd) {
+      const fontsToLoad = [ff, fd].filter(Boolean).map(f => f!.replace(/ /g, '+'));
+      if (fontsToLoad.length > 0) {
+        const linkId = 'dynamic-google-fonts';
+        let link = document.getElementById(linkId) as HTMLLinkElement | null;
+        const href = `https://fonts.googleapis.com/css2?${fontsToLoad.map(f => `family=${f}:wght@300;400;500;600;700`).join('&')}&display=swap`;
+        if (!link) {
+          link = document.createElement('link');
+          link.id = linkId;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+        link.href = href;
+      }
+      if (ff) {
+        document.documentElement.style.setProperty('--font-sans', `'${ff}', system-ui, sans-serif`);
+      }
+      if (fd) {
+        document.documentElement.style.setProperty('--font-display', `'${fd}', Georgia, serif`);
+      }
     }
     
     // Cleanup on unmount
     return () => {
       removeLandingTheme();
+      document.documentElement.style.removeProperty('--font-sans');
+      document.documentElement.style.removeProperty('--font-display');
+      const link = document.getElementById('dynamic-google-fonts');
+      if (link) link.remove();
     };
-  }, [tenantData?.tenant?.themeColors]);
+  }, [tenantData?.tenant?.themeColors, tenantData?.tenant?.fontFamily, tenantData?.tenant?.fontDisplay]);
 
   // Update site data store when tenant data loads
   useEffect(() => {
@@ -318,6 +350,7 @@ export default function StoreLanding() {
 // Transform API tenant data to the format expected by existing components
 function transformTenantDataToSiteData(tenantData: any): SiteData {
   const { tenant, settings, categories, products, homeRows } = tenantData;
+  const ld = settings?.landingDesign as any;
   
   // Transform categories to match SiteData format
   const transformedCatalog: Category[] = categories.map((cat: any) => ({
@@ -387,6 +420,8 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
 
   return {
     project_name: tenant.name,
+    logo_url: ld?.home?.logoUrl || '',
+    logo_type: ld?.home?.logoType || 'text',
     theme: {
       mode: 'dark',
       primary_color: tenant.themeColors?.primary || '#D4AF37',
@@ -416,35 +451,36 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       timezone: 'America/Sao_Paulo',
       schedule: transformedSchedule,
     },
+    // Merge landingDesign overrides with defaults
     sections_content: {
       hero: {
-        headline: settings?.heroTitle || `Bem-vindo ao ${tenant.name}`,
-        subheadline: settings?.heroSubtitle || 'Experiência gastronômica única',
-        media_url: '',
-        media_type: 'image',
-        cta_text: 'Fazer Pedido',
+        headline: ld?.home?.headline || settings?.heroTitle || `Bem-vindo ao ${tenant.name}`,
+        subheadline: ld?.home?.subheadline || settings?.heroSubtitle || 'Experiência gastronômica única',
+        media_url: ld?.home?.bgMediaUrl || '',
+        media_type: ld?.home?.bgMediaType || 'image',
+        cta_text: ld?.home?.ctaText || 'Fazer Pedido',
       },
       intro: {
-        headline: 'Nossos Destaques',
-        subheadline: 'Conheça nossos pratos mais pedidos',
+        headline: ld?.products?.headline || 'Nossos Destaques',
+        subheadline: ld?.products?.subheadline || 'Conheça nossos pratos mais pedidos',
       },
       about: {
         pre_headline: 'Nossa História',
-        headline: settings?.aboutTitle || 'Sobre Nós',
-        text: settings?.aboutText || '',
-        owner_photo: settings?.ownerPhoto || '',
-        owner_name: settings?.ownerName || '',
+        headline: ld?.about?.headline || settings?.aboutTitle || 'Sobre Nós',
+        text: ld?.about?.storytelling || settings?.aboutText || '',
+        owner_photo: ld?.about?.imageUrl || settings?.ownerPhoto || '',
+        owner_name: ld?.about?.ownerName || settings?.ownerName || '',
         owner_title: 'Proprietário',
       },
       location: {
         pre_headline: 'Onde Estamos',
-        headline: 'Localização',
-        subheadline: 'Venha nos visitar',
+        headline: ld?.info?.headline1 || 'Localização',
+        subheadline: ld?.info?.subheadline1 || 'Venha nos visitar',
         map_preview: '',
       },
       footer: {
-        cta_headline: 'Pronto para pedir?',
-        cta_subheadline: 'Faça seu pedido agora mesmo!',
+        cta_headline: ld?.info?.headline2 || 'Pronto para pedir?',
+        cta_subheadline: ld?.info?.subheadline2 || 'Faça seu pedido agora mesmo!',
         copyright: `© ${new Date().getFullYear()} ${tenant.name}. Todos os direitos reservados.`,
         developer: 'Casa Blanca Platform',
       },

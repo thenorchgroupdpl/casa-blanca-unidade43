@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, name, themeColors, fontFamily, fontDisplay, borderRadius FROM tenants LIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, name, themeColors, fontFamily, fontDisplay, borderRadius FROM tenants LIMIT 3;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Restaurante Teste",
+      "themeColors": "{\"accent\": \"#1a1a1a\", \"background\": \"#121212\", \"foreground\": \"#FFFFFF\", \"muted\": \"#a1a1aa\", \"primary\": \"#D4AF37\"}",
+      "fontFamily": "DM Sans",
+      "fontDisplay": "DM Serif Display",
+      "borderRadius": "0.75rem"
+    },
+    {
+      "id": "30001",
+      "name": "Aldeia",
+      "themeColors": "{\"accent\": \"#2c1376\", \"background\": \"#ffffff\", \"foreground\": \"#4f7a28\", \"muted\": \"#ffffff\", \"primary\": \"#fffb00\"}",
+      "fontFamily": "DM Sans",
+      "fontDisplay": "DM Serif Display",
+      "borderRadius": "0.75rem"
+    },
+    {
+      "id": "60001",
+      "name": "Tia do guarda",
+      "themeColors": "{\"accent\": \"#263e0f\", \"background\": \"#38571a\", \"foreground\": \"#ffffff\", \"muted\": \"#00fdff\", \"primary\": \"#ff2600\"}",
+      "fontFamily": "DM Sans",
+      "fontDisplay": "Source Serif 4",
+      "borderRadius": "0.75rem"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tthemeColors\tfontFamily\tfontDisplay\tborderRadius\n1\tRestaurante Teste\t{\"accent\": \"#1a1a1a\", \"background\": \"#121212\", \"foreground\": \"#FFFFFF\", \"muted\": \"#a1a1aa\", \"primary\": \"#D4AF37\"}\tDM Sans\tDM Serif Display\t0.75rem\n30001\tAldeia\t{\"accent\": \"#2c1376\", \"background\": \"#ffffff\", \"foreground\": \"#4f7a28\", \"muted\": \"#ffffff\", \"primary\": \"#fffb00\"}\tDM Sans\tDM Serif Display\t0.75rem\n60001\tTia do guarda\t{\"accent\": \"#263e0f\", \"background\": \"#38571a\", \"foreground\": \"#ffffff\", \"muted\": \"#00fdff\", \"primary\": \"#ff2600\"}\tDM Sans\tSource Serif 4\t0.75rem\n",
+  "stderr": "",
+  "execution_time_ms": 372
+}

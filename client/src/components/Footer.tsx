@@ -1,7 +1,7 @@
 /**
  * Footer Component - Casa Blanca
  * Design: Warm Luxury - CTA section with legal info
- * Features: Final WhatsApp CTA, copyright, developer credits
+ * Features: Final WhatsApp CTA, copyright, developer credits, dynamic company name
  */
 
 import { motion } from 'framer-motion';
@@ -17,6 +17,12 @@ export default function Footer() {
 
   const { footer } = data.sections_content;
   const currentYear = new Date().getFullYear();
+  const companyName = data.project_name || 'Casa Blanca';
+
+  // Split company name for highlight effect
+  const nameParts = companyName.split(' ');
+  const firstName = nameParts[0] || '';
+  const restName = nameParts.slice(1).join(' ');
 
   return (
     <footer className="bg-lp-surface-soft border-t border-lp-border">
@@ -55,12 +61,22 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Logo */}
             <div className="font-display text-xl text-lp-text">
-              Casa <span className="text-lp-highlight">Blanca</span>
+              {data.logo_type === 'image' && data.logo_url ? (
+                <img
+                  src={data.logo_url}
+                  alt={companyName}
+                  className="h-6 w-auto object-contain"
+                />
+              ) : (
+                <>
+                  {firstName}{restName ? ' ' : ''}<span className="text-lp-highlight">{restName}</span>
+                </>
+              )}
             </div>
 
             {/* Copyright */}
             <p className="text-sm text-lp-text-subtle">
-              © {currentYear} Casa Blanca. Todos os direitos reservados.
+              {footer.copyright || `© ${currentYear} ${companyName}. Todos os direitos reservados.`}
             </p>
 
             {/* Developer Credit */}

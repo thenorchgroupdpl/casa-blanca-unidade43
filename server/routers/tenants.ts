@@ -10,6 +10,9 @@ const themeColorsSchema = z.object({
   foreground: z.string(),
   accent: z.string(),
   muted: z.string(),
+  buttonPrimary: z.string().optional(),
+  highlight: z.string().optional(),
+  success: z.string().optional(),
 }).optional();
 
 // Schema for creating/updating tenant

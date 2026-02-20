@@ -30,7 +30,7 @@ export default function Hero() {
         {hero.media_url && !hero.media_url.startsWith('/images/') ? (
           <img
             src={hero.media_url}
-            alt="Casa Blanca Restaurant"
+            alt={data.project_name || 'Restaurant'}
             className="w-full h-full object-cover"
           />
         ) : (
