@@ -24,6 +24,8 @@ export const users = mysqlTable("users", {
   role: mysqlEnum("role", ["user", "admin", "super_admin", "client_admin"]).default("user").notNull(),
   // Tenant association (null for super_admin, required for client_admin)
   tenantId: int("tenantId"),
+  // Profile
+  avatarUrl: text("avatarUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),

@@ -27,6 +27,9 @@ import CatalogPage from "./pages/admin/dashboard/Catalog";
 import VitrinePage from "./pages/admin/dashboard/Vitrine";
 import StoreDataPage from "./pages/admin/dashboard/StoreData";
 
+// Shared Admin Pages
+import ProfilePage from "./pages/admin/Profile";
+
 function Router() {
   return (
     <Switch>
@@ -52,6 +55,10 @@ function Router() {
       <Route path="/admin/dashboard/catalog" component={CatalogPage} />
       <Route path="/admin/dashboard/vitrine" component={VitrinePage} />
       <Route path="/admin/dashboard/store" component={StoreDataPage} />
+      
+      {/* Shared Admin Routes */}
+      <Route path="/admin/profile" component={ProfilePage} />
+      <Route path="/admin/super/profile" component={ProfilePage} />
       
       {/* Store Landing Page (by slug) */}
       <Route path="/:slug" component={StoreLanding} />

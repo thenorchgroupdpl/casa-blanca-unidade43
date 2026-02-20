@@ -1,0 +1,31 @@
+{
+  "query": "SELECT id, name, email, role, tenantId FROM users ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, name, email, role, tenantId FROM users ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Gustavo Moreira",
+      "email": "oper.globaladm@gmail.com",
+      "role": "super_admin",
+      "tenantId": "60001"
+    },
+    {
+      "id": "96",
+      "name": "Administrador",
+      "email": "admin@casablanca.com",
+      "role": "super_admin",
+      "tenantId": "60001"
+    },
+    {
+      "id": "97",
+      "name": "Lojista Demo",
+      "email": "lojista@casablanca.com",
+      "role": "client_admin",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\ttenantId\n1\tGustavo Moreira\toper.globaladm@gmail.com\tsuper_admin\t60001\n96\tAdministrador\tadmin@casablanca.com\tsuper_admin\t60001\n97\tLojista Demo\tlojista@casablanca.com\tclient_admin\t1\n",
+  "stderr": "",
+  "execution_time_ms": 2002
+}

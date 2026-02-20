@@ -30,18 +30,51 @@ export const appRouter = router({
     // Get current user's role and tenant info
     getRole: protectedProcedure.query(async ({ ctx }) => {
       let tenantName: string | null = null;
+      let tenantSlug: string | null = null;
       if (ctx.user.tenantId) {
         const tenant = await db.getTenantById(ctx.user.tenantId);
         tenantName = tenant?.name || null;
+        tenantSlug = tenant?.slug || null;
       }
       return {
         role: ctx.user.role,
         tenantId: ctx.user.tenantId,
         tenantName,
+        tenantSlug,
         name: ctx.user.name,
         email: ctx.user.email,
+        avatarUrl: ctx.user.avatarUrl || null,
       };
     }),
+  }),
+
+  // Profile routes
+  profile: router({
+    update: protectedProcedure
+      .input(z.object({ name: z.string().min(1).max(100) }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateUserName(ctx.user.id, input.name);
+        return { success: true };
+      }),
+    uploadAvatar: protectedProcedure
+      .input(z.object({
+        imageData: z.string(),
+        fileName: z.string(),
+        contentType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import('./storage');
+        const buffer = Buffer.from(input.imageData, 'base64');
+        const fileKey = `avatars/${ctx.user.id}/${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(fileKey, buffer, input.contentType);
+        await db.updateUserAvatar(ctx.user.id, url);
+        return { url };
+      }),
+    removeAvatar: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        await db.updateUserAvatar(ctx.user.id, null);
+        return { success: true };
+      }),
   }),
 
   // Email/Password Auth routes

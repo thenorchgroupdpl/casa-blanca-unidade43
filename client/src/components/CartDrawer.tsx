@@ -109,15 +109,16 @@ export default function CartDrawer() {
               ) : (
                 <>
                   {/* Items List */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    {items.map((item) => (
-                      <motion.div
-                        key={item.product.id}
-                        layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className="flex gap-4 p-4 bg-lp-surface-soft rounded-2xl"
+                  <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                    {items.map((item, idx) => (
+                      <div key={item.product.id}>
+                        {idx > 0 && <div className="border-t border-lp-border my-1" />}
+                        <motion.div
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -100 }}
+                          className="flex gap-4 p-4 bg-lp-surface-soft rounded-2xl border border-lp-border"
                       >
                         {/* Image */}
                         {item.product.images[0] ? (
@@ -173,6 +174,7 @@ export default function CartDrawer() {
                           <Trash2 className="w-5 h-5" />
                         </button>
                       </motion.div>
+                      </div>
                     ))}
 
                     {/* Observation Field */}

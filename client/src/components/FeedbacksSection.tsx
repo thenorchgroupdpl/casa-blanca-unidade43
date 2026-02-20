@@ -52,7 +52,7 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
                   className={cn(
                     'w-4 h-4',
                     star <= feedback.rating
-                      ? 'fill-lp-highlight text-lp-highlight'
+                      ? 'fill-lp-star text-lp-star'
                       : 'fill-lp-surface-soft text-lp-text-subtle'
                   )}
                 />
@@ -227,7 +227,7 @@ export default function FeedbacksSection() {
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className="w-5 h-5 fill-lp-highlight text-lp-highlight"
+                  className="w-5 h-5 fill-lp-star text-lp-star"
                 />
               ))}
             </div>

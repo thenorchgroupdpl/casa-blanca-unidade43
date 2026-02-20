@@ -56,6 +56,8 @@
   --color-lp-highlight-muted: var(--lp-highlight-muted);
   --color-lp-highlight-border: var(--lp-highlight-border);
   --color-lp-highlight-fg: var(--lp-highlight-fg);
+  /* Star - Rating stars (independent from highlight) */
+  --color-lp-star: var(--lp-star, #facc15);
   /* Success - Toasts, badges, check icons */
   --color-lp-success: var(--lp-success);
   --color-lp-success-soft: var(--lp-success-soft);
@@ -295,17 +297,17 @@
     );
   }
   
-  /* Status badges */
+  /* Status badges - controlled by Design Tokens */
   .badge-open {
-    background: oklch(0.55 0.15 145 / 0.2);
-    color: oklch(0.75 0.15 145);
-    border: 1px solid oklch(0.55 0.15 145 / 0.3);
+    background: color-mix(in srgb, var(--lp-badge-open, #22c55e) 20%, transparent);
+    color: var(--lp-badge-open, #22c55e);
+    border: 1px solid color-mix(in srgb, var(--lp-badge-open, #22c55e) 30%, transparent);
   }
   
   .badge-closed {
-    background: oklch(0.55 0.15 25 / 0.2);
-    color: oklch(0.75 0.15 25);
-    border: 1px solid oklch(0.55 0.15 25 / 0.3);
+    background: color-mix(in srgb, var(--lp-badge-closed, #ef4444) 20%, transparent);
+    color: var(--lp-badge-closed, #ef4444);
+    border: 1px solid color-mix(in srgb, var(--lp-badge-closed, #ef4444) 30%, transparent);
   }
   
   /* WhatsApp button */

@@ -136,6 +136,24 @@ export async function updateUserTenant(userId: number, tenantId: number | null) 
     .where(eq(users.id, userId));
 }
 
+export async function updateUserAvatar(userId: number, avatarUrl: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ avatarUrl })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserName(userId: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ name })
+    .where(eq(users.id, userId));
+}
+
 // ============================================
 // TENANT FUNCTIONS (Super Admin only)
 // ============================================

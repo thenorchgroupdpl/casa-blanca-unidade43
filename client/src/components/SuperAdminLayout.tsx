@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,8 @@ import {
   LayoutDashboard,
   Palette,
   Key,
-  Shield
+  Shield,
+  User
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -158,6 +159,7 @@ function SuperAdminLayoutContent({
   setSidebarWidth,
 }: SuperAdminLayoutContentProps) {
   const { user, logout } = useAuth();
+  const { data: roleData } = trpc.auth.getRole.useQuery(undefined, { enabled: !!user });
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -262,6 +264,7 @@ function SuperAdminLayoutContent({
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-zinc-800 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
                   <Avatar className="h-9 w-9 border border-zinc-700 shrink-0">
+                    {roleData?.avatarUrl && <AvatarImage src={roleData.avatarUrl} alt="Avatar" />}
                     <AvatarFallback className="text-xs font-medium bg-amber-500/20 text-amber-500">
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -277,6 +280,14 @@ function SuperAdminLayoutContent({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-zinc-900 border-zinc-800">
+                <DropdownMenuItem
+                  onClick={() => setLocation('/admin/super/profile')}
+                  className="cursor-pointer text-zinc-300 focus:text-white focus:bg-zinc-800"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Meu Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem
                   onClick={() => setLocation('/admin/dashboard')}
                   className="cursor-pointer text-zinc-300 focus:text-white focus:bg-zinc-800"

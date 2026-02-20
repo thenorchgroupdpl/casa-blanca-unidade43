@@ -219,3 +219,14 @@
 ## Fase 22: UX - Notificação de Carrinho
 - [x] Remover notificação inline "Produto adicionado!" do card do produto
 - [x] Manter apenas o toast global no topo da tela
+
+## Fase 23: Correções Críticas (6 Problemas)
+- [x] P1: Bug no salvamento do Design System - página recarrega e reverte alterações
+- [x] P2: Botão "Ver Loja" redireciona para site institucional ao invés do slug do tenant
+- [x] P3a: Criar seção de Perfil com upload de avatar para Admin e Lojista
+- [x] P3b: Bloquear acesso de Lojista a rotas/botões de Super Admin (RBAC)
+- [x] P4: Otimizar slider de opacidade - lag e falta de fluidez no preview
+- [x] P5: Adicionar input de cor para botão de Horários na aba Home
+- [x] P6a: Criar input de cor separado para Estrelas de Avaliação
+- [x] P6b: Corrigir seletor de Fontes - não aplica no preview
+- [x] P6c: Adicionar separadores visuais entre itens na Sacola/Carrinho

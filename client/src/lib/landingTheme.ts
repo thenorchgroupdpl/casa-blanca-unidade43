@@ -87,7 +87,7 @@ function hexToRgba(hex: string, alpha: number): string {
  * Apply the complete landing page theme to the document root.
  * This sets all CSS variables that components reference.
  */
-export function applyLandingTheme(colors: LandingThemeColors, root?: HTMLElement): void {
+export function applyLandingTheme(colors: LandingThemeColors, extras?: { badgeOpen?: string; badgeClosed?: string; starColor?: string }, root?: HTMLElement): void {
   const el = root || document.documentElement;
   
   // Resolve the 3 action colors (use legacy primary as fallback)
@@ -150,6 +150,13 @@ export function applyLandingTheme(colors: LandingThemeColors, root?: HTMLElement
   el.style.setProperty('--lp-border', hexToRgba(colors.foreground, 0.1));
   el.style.setProperty('--lp-border-strong', hexToRgba(colors.foreground, 0.2));
   
+  // === Extra: Status Badges ===
+  if (extras?.badgeOpen) el.style.setProperty('--lp-badge-open', extras.badgeOpen);
+  if (extras?.badgeClosed) el.style.setProperty('--lp-badge-closed', extras.badgeClosed);
+  
+  // === Extra: Star Color ===
+  if (extras?.starColor) el.style.setProperty('--lp-star', extras.starColor);
+  
   // Also update the existing shadcn/ui CSS variables for compatibility
   el.style.setProperty('--primary', btnColor);
   el.style.setProperty('--primary-foreground', getContrastColor(btnColor));
@@ -179,6 +186,7 @@ export function removeLandingTheme(root?: HTMLElement): void {
     '--lp-surface', '--lp-surface-hover', '--lp-surface-soft',
     '--lp-text', '--lp-text-muted', '--lp-text-subtle', '--lp-text-faint',
     '--lp-border', '--lp-border-strong',
+    '--lp-badge-open', '--lp-badge-closed', '--lp-star',
     '--primary', '--primary-foreground', '--background', '--foreground',
     '--card', '--card-foreground', '--muted-foreground', '--muted', '--border', '--ring',
   ];

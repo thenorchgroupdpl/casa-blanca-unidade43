@@ -110,11 +110,40 @@ export default function StoreLanding() {
       }
       
       if (event.data.type === 'designPreviewUpdate' && currentData) {
-        const { design, colors } = event.data;
+        const { design, colors, fontFamily, fontDisplay } = event.data;
         
         // Apply complete theme via Design Tokens system
         if (colors) {
-          applyLandingTheme(colors as LandingThemeColors);
+          const extras = {
+            badgeOpen: design?.home?.badgeOpenColor,
+            badgeClosed: design?.home?.badgeClosedColor,
+            starColor: design?.reviews?.starColor || design?.feedbacks?.starColor,
+          };
+          applyLandingTheme(colors as LandingThemeColors, extras);
+        }
+        
+        // Apply fonts dynamically
+        if (fontFamily || fontDisplay) {
+          const fontsToLoad = [fontFamily, fontDisplay].filter(Boolean).map(f => f!.replace(/ /g, '+'));
+          if (fontsToLoad.length > 0) {
+            // Inject Google Fonts link if not already present
+            const linkId = 'dynamic-google-fonts';
+            let link = document.getElementById(linkId) as HTMLLinkElement | null;
+            const href = `https://fonts.googleapis.com/css2?${fontsToLoad.map(f => `family=${f}:wght@300;400;500;600;700`).join('&')}&display=swap`;
+            if (!link) {
+              link = document.createElement('link');
+              link.id = linkId;
+              link.rel = 'stylesheet';
+              document.head.appendChild(link);
+            }
+            link.href = href;
+          }
+          if (fontFamily) {
+            document.documentElement.style.setProperty('--font-sans', `'${fontFamily}', system-ui, sans-serif`);
+          }
+          if (fontDisplay) {
+            document.documentElement.style.setProperty('--font-display', `'${fontDisplay}', Georgia, serif`);
+          }
         }
         
         // Update site data with design overrides
@@ -192,7 +221,13 @@ export default function StoreLanding() {
   useEffect(() => {
     if (tenantData?.tenant?.themeColors) {
       const colors = tenantData.tenant.themeColors as LandingThemeColors;
-      applyLandingTheme(colors);
+      const design = (tenantData.tenant as any).landingDesign;
+      const extras = {
+        badgeOpen: design?.home?.badgeOpenColor,
+        badgeClosed: design?.home?.badgeClosedColor,
+        starColor: design?.feedbacks?.starColor,
+      };
+      applyLandingTheme(colors, extras);
     }
     
     // Cleanup on unmount

@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 import {
   Save,
   Store,
@@ -67,6 +68,8 @@ type LandingDesign = {
     headline?: string;
     subheadline?: string;
     ctaText?: string;
+    badgeOpenColor?: string;
+    badgeClosedColor?: string;
   };
   products?: {
     headline?: string;
@@ -84,6 +87,10 @@ type LandingDesign = {
   reviews?: {
     headline?: string;
     isVisible?: boolean;
+    starColor?: string;
+  };
+  feedbacks?: {
+    starColor?: string;
   };
   info?: {
     headline1?: string;
@@ -219,8 +226,26 @@ export default function DesignPage() {
   const saveMutation = trpc.tenants.updateLandingDesign.useMutation({
     onSuccess: () => {
       setIsDirty(false);
-      utils.tenants.getLandingDesign.invalidate({ tenantId: selectedTenantId! });
-      refreshPreview();
+      // Update the cache directly with current state instead of re-fetching
+      // This prevents the useEffect from overwriting the local state with stale data
+      utils.tenants.getLandingDesign.setData(
+        { tenantId: selectedTenantId! },
+        (old: any) => old ? {
+          ...old,
+          landingDesign: design,
+          tenant: {
+            ...old.tenant,
+            themeColors: colors,
+            fontFamily,
+            fontDisplay,
+            borderRadius,
+          },
+        } : old
+      );
+      toast.success('Design salvo com sucesso!');
+    },
+    onError: (err) => {
+      toast.error(`Erro ao salvar: ${err.message}`);
     },
   });
 
@@ -329,17 +354,19 @@ export default function DesignPage() {
             type: 'designPreviewUpdate',
             design,
             colors,
+            fontFamily,
+            fontDisplay,
           },
           '*'
         );
       } catch {
         // Cross-origin, ignore
       }
-    }, 300);
+    }, 50);
     return () => {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [design, colors]);
+  }, [design, colors, fontFamily, fontDisplay]);
 
   // Scroll preview to section
   const scrollPreviewToSection = (section: SectionTab) => {
@@ -1135,6 +1162,47 @@ function HomeSection({
 
       <Separator className="bg-zinc-800" />
 
+      {/* Badge de Horários */}
+      <div className="space-y-2">
+        <Label className="text-[11px] text-zinc-500 uppercase tracking-wider">Botão de Horários</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-[10px] text-zinc-500">Cor Aberto</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={data.badgeOpenColor || "#22c55e"}
+                onChange={(e) => onChange("badgeOpenColor", e.target.value)}
+                className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
+              />
+              <Input
+                value={data.badgeOpenColor || "#22c55e"}
+                onChange={(e) => onChange("badgeOpenColor", e.target.value)}
+                className="h-7 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Cor Fechado</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={data.badgeClosedColor || "#ef4444"}
+                onChange={(e) => onChange("badgeClosedColor", e.target.value)}
+                className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
+              />
+              <Input
+                value={data.badgeClosedColor || "#ef4444"}
+                onChange={(e) => onChange("badgeClosedColor", e.target.value)}
+                className="h-7 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Separator className="bg-zinc-800" />
+
       {/* Text Fields */}
       <div className="space-y-2">
         <div>
@@ -1386,6 +1454,27 @@ function ReviewsSection({
               placeholder="O que dizem nossos clientes"
               className="h-7 bg-zinc-800 border-zinc-700 text-xs"
             />
+          </div>
+
+          <Separator className="bg-zinc-800" />
+
+          {/* Cor das Estrelas */}
+          <div className="space-y-1">
+            <Label className="text-[11px] text-zinc-500 uppercase tracking-wider">Cor das Estrelas</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={data.starColor || "#facc15"}
+                onChange={(e) => onChange("starColor", e.target.value)}
+                className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
+              />
+              <Input
+                value={data.starColor || "#facc15"}
+                onChange={(e) => onChange("starColor", e.target.value)}
+                className="h-7 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1"
+              />
+            </div>
+            <p className="text-[10px] text-zinc-600">Cor das estrelas de avaliação (independente da cor de destaque)</p>
           </div>
 
           <Separator className="bg-zinc-800" />
