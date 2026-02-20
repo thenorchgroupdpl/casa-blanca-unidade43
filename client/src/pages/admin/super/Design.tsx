@@ -99,6 +99,8 @@ type LandingDesign = {
     headline2?: string;
     subheadline2?: string;
     ctaText?: string;
+    bgMediaUrl?: string;
+    bgMediaType?: "image" | "video";
     showMap?: boolean;
     showAddress?: boolean;
     showPhone?: boolean;
@@ -654,6 +656,9 @@ export default function DesignPage() {
                     <InfoSection
                       data={design.info || {}}
                       onChange={(field, value) => updateDesign("info", field, value)}
+                      onImageUpload={handleImageUpload}
+                      onDirectUpload={handleDirectUpload}
+                      uploading={uploadMutation.isPending}
                     />
                   )}
                 </div>
@@ -1525,9 +1530,15 @@ function ReviewsSection({
 function InfoSection({
   data,
   onChange,
+  onImageUpload,
+  onDirectUpload,
+  uploading,
 }: {
   data: NonNullable<LandingDesign["info"]>;
   onChange: (field: string, value: unknown) => void;
+  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
+  uploading: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -1583,6 +1594,46 @@ function InfoSection({
           />
         </div>
       </div>
+
+      <Separator className="bg-zinc-800" />
+
+      {/* Background Media */}
+      <div className="space-y-1.5">
+        <Label className="text-[11px] text-zinc-400">Tipo de Fundo</Label>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => onChange("bgMediaType", "image")}
+            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+              data.bgMediaType === "image" || !data.bgMediaType
+                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+            }`}
+          >
+            <ImageIcon className="h-3 w-3 inline mr-1" />
+            Imagem
+          </button>
+          <button
+            onClick={() => onChange("bgMediaType", "video")}
+            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+              data.bgMediaType === "video"
+                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+            }`}
+          >
+            <Video className="h-3 w-3 inline mr-1" />
+            Vídeo
+          </button>
+        </div>
+      </div>
+
+      <ImageUploadField
+        label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
+        value={data.bgMediaUrl}
+        onChange={(url) => onChange("bgMediaUrl", url)}
+        onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+        uploading={uploading}
+        accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+      />
 
       <Separator className="bg-zinc-800" />
 

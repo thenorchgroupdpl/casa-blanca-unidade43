@@ -259,3 +259,10 @@
 - [x] P1: Garantir que logo fica circular (50%) sem artefatos visuais
 - [x] P2: Corrigir navegação do menu "Produtos/Cardápio" para scroll até a seção de produtos
 - [x] P3: Corrigir fonte do headline (nome da empresa no Hero) para herdar --font-display
+
+## Fase 28: Upload de Imagem de Fundo na Seção Informações
+- [x] Adicionar campo bgMediaUrl ao tipo LandingDesign["info"]
+- [x] Adicionar upload de imagem no InfoSection do Design.tsx (similar ao HomeSection)
+- [x] Atualizar postMessage handler no StoreLanding para mapear info.bgMediaUrl
+- [x] Atualizar transformTenantDataToSiteData para carregar info.bgMediaUrl do banco
+- [x] Atualizar LocationSection para exibir imagem de fundo quando disponível

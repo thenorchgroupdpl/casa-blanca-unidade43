@@ -69,6 +69,8 @@ export interface LocationContent {
   headline: string;
   subheadline: string;
   map_preview: string;
+  bg_media_url?: string;
+  bg_media_type?: 'image' | 'video';
 }
 
 export interface FooterContent {

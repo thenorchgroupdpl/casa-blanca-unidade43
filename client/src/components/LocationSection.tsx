@@ -1,7 +1,7 @@
 /**
  * Location Section - Casa Blanca
  * Design: Warm Luxury - Map preview with contact info
- * Features: Deep link to native maps, social media links, address info
+ * Features: Deep link to native maps, social media links, address info, background media
  */
 
 import { motion } from 'framer-motion';
@@ -17,6 +17,8 @@ export default function LocationSection() {
 
   const { location } = data.sections_content;
   const { contact, business_hours } = data;
+
+  const hasBgMedia = !!location.bg_media_url;
 
   const handleOpenMaps = () => {
     openMaps(
@@ -48,8 +50,33 @@ export default function LocationSection() {
   ];
 
   return (
-    <section id="contato" className="py-20 bg-lp-bg">
-      <div className="container">
+    <section id="contato" className={cn("py-20 relative", hasBgMedia ? "overflow-hidden" : "bg-lp-bg")}>
+      {/* Background Media */}
+      {hasBgMedia && (
+        <>
+          {location.bg_media_type === 'video' ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src={location.bg_media_url} />
+            </video>
+          ) : (
+            <img
+              src={location.bg_media_url}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-black/60" />
+        </>
+      )}
+
+      <div className={cn("container relative", hasBgMedia && "z-10")}>
         {/* Header */}
         <motion.div
           className="text-center mb-12"
@@ -89,7 +116,10 @@ export default function LocationSection() {
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
-                <div className="w-full h-full bg-lp-surface flex items-center justify-center">
+                <div className={cn(
+                  "w-full h-full flex items-center justify-center",
+                  hasBgMedia ? "bg-black/30 backdrop-blur-sm" : "bg-lp-surface"
+                )}>
                   <MapPin className="w-16 h-16 text-lp-highlight-soft" />
                 </div>
               )}
@@ -118,7 +148,10 @@ export default function LocationSection() {
             transition={{ duration: 0.7, delay: 0.3 }}
           >
             {/* Address */}
-            <div className="p-6 bg-lp-surface rounded-2xl border border-lp-border">
+            <div className={cn(
+              "p-6 rounded-2xl border",
+              hasBgMedia ? "bg-black/30 backdrop-blur-sm border-white/10" : "bg-lp-surface border-lp-border"
+            )}>
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-xl bg-lp-highlight-soft">
                   <MapPin className="w-6 h-6 text-lp-highlight" />
@@ -147,7 +180,10 @@ export default function LocationSection() {
             </div>
 
             {/* Phone */}
-            <div className="p-6 bg-lp-surface rounded-2xl border border-lp-border">
+            <div className={cn(
+              "p-6 rounded-2xl border",
+              hasBgMedia ? "bg-black/30 backdrop-blur-sm border-white/10" : "bg-lp-surface border-lp-border"
+            )}>
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-xl bg-lp-highlight-soft">
                   <Phone className="w-6 h-6 text-lp-highlight" />
@@ -167,7 +203,12 @@ export default function LocationSection() {
             {/* Hours */}
             <button
               onClick={openScheduleModal}
-              className="w-full p-6 bg-lp-surface rounded-2xl border border-lp-border hover:border-lp-highlight-border transition-colors text-left"
+              className={cn(
+                "w-full p-6 rounded-2xl border text-left transition-colors",
+                hasBgMedia
+                  ? "bg-black/30 backdrop-blur-sm border-white/10 hover:border-lp-highlight-border"
+                  : "bg-lp-surface border-lp-border hover:border-lp-highlight-border"
+              )}
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-xl bg-lp-highlight-soft">
@@ -199,9 +240,10 @@ export default function LocationSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(
-                    'flex-1 flex items-center justify-center gap-2 p-4 rounded-xl',
-                    'bg-lp-surface border border-lp-border',
-                    'hover:border-lp-highlight-border hover:bg-lp-highlight-subtle transition-all'
+                    'flex-1 flex items-center justify-center gap-2 p-4 rounded-xl transition-all',
+                    hasBgMedia
+                      ? 'bg-black/30 backdrop-blur-sm border border-white/10 hover:border-lp-highlight-border'
+                      : 'bg-lp-surface border border-lp-border hover:border-lp-highlight-border hover:bg-lp-highlight-subtle'
                   )}
                 >
                   <social.icon className="w-5 h-5 text-lp-highlight" />

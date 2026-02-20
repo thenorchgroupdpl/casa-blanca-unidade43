@@ -198,6 +198,8 @@ export default function StoreLanding() {
               ...updatedData.sections_content.location,
               headline: design.info.headline || updatedData.sections_content.location.headline,
               subheadline: design.info.subheadline || updatedData.sections_content.location.subheadline,
+              bg_media_url: design.info.bgMediaUrl || updatedData.sections_content.location.bg_media_url,
+              bg_media_type: design.info.bgMediaType || updatedData.sections_content.location.bg_media_type,
             },
             footer: {
               ...updatedData.sections_content.footer,
@@ -478,6 +480,8 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         headline: ld?.info?.headline1 || 'Localização',
         subheadline: ld?.info?.subheadline1 || 'Venha nos visitar',
         map_preview: '',
+        bg_media_url: ld?.info?.bgMediaUrl || '',
+        bg_media_type: (ld?.info?.bgMediaType as 'image' | 'video') || 'image',
       },
       footer: {
         cta_headline: ld?.info?.headline2 || 'Pronto para pedir?',
