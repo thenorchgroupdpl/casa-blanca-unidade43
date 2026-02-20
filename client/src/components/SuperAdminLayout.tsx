@@ -321,7 +321,7 @@ function SuperAdminLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 overflow-auto">{children}</main>
       </SidebarInset>
     </div>
   );

@@ -94,8 +94,93 @@ export default function StoreLanding() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   
-  const { setData, setLoading, setError } = useSiteData();
+  const { data: currentData, setData, setLoading, setError } = useSiteData();
   const { setTenantId } = useCartStore();
+
+  // Listen for design preview messages from parent (Design System editor)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== 'object') return;
+      
+      if (event.data.type === 'scrollToSection') {
+        const el = document.getElementById(event.data.sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      
+      if (event.data.type === 'designPreviewUpdate' && currentData) {
+        const { design, colors } = event.data;
+        
+        // Apply theme colors to CSS variables
+        const root = document.documentElement;
+        if (colors?.primary) root.style.setProperty('--primary', colors.primary);
+        if (colors?.background) root.style.setProperty('--background', colors.background);
+        if (colors?.accent) root.style.setProperty('--accent', colors.accent);
+        
+        // Update site data with design overrides
+        const updatedData = { ...currentData };
+        
+        if (design?.home) {
+          updatedData.sections_content = {
+            ...updatedData.sections_content,
+            hero: {
+              ...updatedData.sections_content.hero,
+              headline: design.home.headline || updatedData.sections_content.hero.headline,
+              subheadline: design.home.subheadline || updatedData.sections_content.hero.subheadline,
+              cta_text: design.home.ctaText || updatedData.sections_content.hero.cta_text,
+              media_url: design.home.bgMediaUrl || updatedData.sections_content.hero.media_url,
+              media_type: design.home.bgMediaType || updatedData.sections_content.hero.media_type,
+            },
+          };
+        }
+        
+        if (design?.products) {
+          updatedData.sections_content = {
+            ...updatedData.sections_content,
+            intro: {
+              ...updatedData.sections_content.intro,
+              headline: design.products.headline || updatedData.sections_content.intro.headline,
+              subheadline: design.products.subheadline || updatedData.sections_content.intro.subheadline,
+            },
+          };
+        }
+        
+        if (design?.about) {
+          updatedData.sections_content = {
+            ...updatedData.sections_content,
+            about: {
+              ...updatedData.sections_content.about,
+              headline: design.about.headline || updatedData.sections_content.about.headline,
+              text: design.about.storytelling || updatedData.sections_content.about.text,
+              owner_name: design.about.ownerName || updatedData.sections_content.about.owner_name,
+              owner_photo: design.about.ownerPhoto || updatedData.sections_content.about.owner_photo,
+            },
+          };
+        }
+        
+        if (design?.info) {
+          updatedData.sections_content = {
+            ...updatedData.sections_content,
+            location: {
+              ...updatedData.sections_content.location,
+              headline: design.info.headline || updatedData.sections_content.location.headline,
+              subheadline: design.info.subheadline || updatedData.sections_content.location.subheadline,
+            },
+            footer: {
+              ...updatedData.sections_content.footer,
+              cta_headline: design.info.ctaHeadline || updatedData.sections_content.footer.cta_headline,
+              cta_subheadline: design.info.ctaSubheadline || updatedData.sections_content.footer.cta_subheadline,
+            },
+          };
+        }
+        
+        setData(updatedData);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [currentData, setData]);
   
   // Fetch tenant data by slug
   const { data: tenantData, isLoading, error } = trpc.public.getTenantBySlug.useQuery(

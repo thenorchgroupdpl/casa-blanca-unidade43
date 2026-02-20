@@ -166,3 +166,14 @@
 - [x] Atualizar schema do banco para novos campos de design por seção
 - [x] Endpoints tRPC para buscar e salvar configurações de design
 - [x] Preview real-time refletindo alterações instantaneamente
+
+## Fase 18: Layout Full-Width, Editor de Imagens e Correções Design System
+- [x] Corrigir layout full-width em todas as seções do Dashboard (remover espaço inutilizado)
+- [x] Adicionar toggle Mobile/Desktop no preview do Design System
+- [x] Corrigir preview real-time do Design System (não atualiza em tempo real)
+- [x] Corrigir upload de imagens no Design System (não aparece opção de upload)
+- [x] Criar componente ImageEditor com compressão automática ao upload
+- [x] Implementar crop 1:1 com seleção de área no ImageEditor
+- [x] Implementar zoom (aumentar/diminuir) no ImageEditor
+- [x] Popup automático do editor após upload da imagem
+- [x] Testar todas as funções do Design System e corrigir bugs encontrados

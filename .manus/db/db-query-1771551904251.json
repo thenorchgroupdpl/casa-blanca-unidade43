@@ -1,0 +1,18 @@
+{
+  "query": "SHOW COLUMNS FROM store_settings LIKE 'landingDesign';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SHOW COLUMNS FROM store_settings LIKE 'landingDesign';",
+  "rows": [
+    {
+      "Field": "landingDesign",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nlandingDesign\tjson\tYES\t\tNULL\t\n",
+  "stderr": "",
+  "execution_time_ms": 371
+}

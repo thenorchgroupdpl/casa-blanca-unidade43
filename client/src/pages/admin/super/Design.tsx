@@ -1,4 +1,5 @@
 import SuperAdminLayout from "@/components/SuperAdminLayout";
+import ImageCropEditor from "@/components/ImageCropEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +31,6 @@ import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
 import {
   Save,
-  Search,
   Store,
   Home,
   ShoppingBag,
@@ -45,12 +45,12 @@ import {
   Upload,
   Image as ImageIcon,
   Video,
-  Eye,
-  EyeOff,
   Loader2,
   Check,
   ChevronsUpDown,
   RefreshCw,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
@@ -114,39 +114,16 @@ type ThemeColors = {
 type SectionTab = "home" | "products" | "about" | "reviews" | "info";
 
 const FONT_OPTIONS = [
-  "DM Sans",
-  "Inter",
-  "Poppins",
-  "Roboto",
-  "Open Sans",
-  "Lato",
-  "Montserrat",
-  "Raleway",
-  "Nunito",
-  "Source Sans 3",
-  "Work Sans",
-  "Outfit",
-  "Plus Jakarta Sans",
-  "Manrope",
-  "Space Grotesk",
+  "DM Sans", "Inter", "Poppins", "Roboto", "Open Sans", "Lato",
+  "Montserrat", "Raleway", "Nunito", "Source Sans 3", "Work Sans",
+  "Outfit", "Plus Jakarta Sans", "Manrope", "Space Grotesk",
 ];
 
 const DISPLAY_FONT_OPTIONS = [
-  "DM Serif Display",
-  "Playfair Display",
-  "Merriweather",
-  "Lora",
-  "Cormorant Garamond",
-  "Libre Baskerville",
-  "Crimson Text",
-  "EB Garamond",
-  "Bitter",
-  "Noto Serif",
-  "Spectral",
-  "Source Serif 4",
-  "Fraunces",
-  "Bodoni Moda",
-  "Instrument Serif",
+  "DM Serif Display", "Playfair Display", "Merriweather", "Lora",
+  "Cormorant Garamond", "Libre Baskerville", "Crimson Text",
+  "EB Garamond", "Bitter", "Noto Serif", "Spectral",
+  "Source Serif 4", "Fraunces", "Bodoni Moda", "Instrument Serif",
 ];
 
 const SECTION_TABS: { id: SectionTab; label: string; icon: typeof Home }[] = [
@@ -190,9 +167,7 @@ const defaultDesign: LandingDesign = {
     showHours: true,
     showSocial: true,
   },
-  global: {
-    alignment: "left",
-  },
+  global: { alignment: "left" },
 };
 
 const defaultColors: ThemeColors = {
@@ -219,8 +194,15 @@ export default function DesignPage() {
   const [fontDisplay, setFontDisplay] = useState("DM Serif Display");
   const [borderRadius, setBorderRadius] = useState("0.75rem");
   const [isDirty, setIsDirty] = useState(false);
+  const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const utils = trpc.useUtils();
+
+  // Crop editor state
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropCallback, setCropCallback] = useState<((url: string) => void) | null>(null);
 
   // Fetch landing design when tenant is selected
   const { data: landingData, isLoading: designLoading } = trpc.tenants.getLandingDesign.useQuery(
@@ -252,7 +234,7 @@ export default function DesignPage() {
         info: { ...defaultDesign.info, ...ld?.info },
         global: { ...defaultDesign.global, ...ld?.global },
       });
-      setColors(landingData.tenant.themeColors || defaultColors);
+      setColors((landingData.tenant.themeColors as ThemeColors) || defaultColors);
       setFontFamily(landingData.tenant.fontFamily || "DM Sans");
       setFontDisplay(landingData.tenant.fontDisplay || "DM Serif Display");
       setBorderRadius(landingData.tenant.borderRadius || "0.75rem");
@@ -273,9 +255,7 @@ export default function DesignPage() {
     if (!storeSearchQuery) return tenants;
     const q = storeSearchQuery.toLowerCase();
     return tenants.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) ||
-        t.slug.toLowerCase().includes(q)
+      (t) => t.name.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q)
     );
   }, [tenants, storeSearchQuery]);
 
@@ -283,11 +263,7 @@ export default function DesignPage() {
 
   // Update design helper
   const updateDesign = useCallback(
-    <K extends keyof LandingDesign>(
-      section: K,
-      field: string,
-      value: unknown
-    ) => {
+    <K extends keyof LandingDesign>(section: K, field: string, value: unknown) => {
       setDesign((prev) => ({
         ...prev,
         [section]: {
@@ -321,13 +297,36 @@ export default function DesignPage() {
     });
   };
 
-  // Refresh preview iframe
-  const refreshPreview = () => {
+  // Refresh preview iframe (full reload)
+  const refreshPreview = useCallback(() => {
     if (iframeRef.current && selectedTenant) {
       const src = `/${selectedTenant.slug}?_preview=1&_t=${Date.now()}`;
       iframeRef.current.src = src;
     }
-  };
+  }, [selectedTenant]);
+
+  // Send design to preview via postMessage whenever design or colors change (debounced)
+  useEffect(() => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = setTimeout(() => {
+      if (!iframeRef.current?.contentWindow) return;
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          {
+            type: 'designPreviewUpdate',
+            design,
+            colors,
+          },
+          '*'
+        );
+      } catch {
+        // Cross-origin, ignore
+      }
+    }, 300);
+    return () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    };
+  }, [design, colors]);
 
   // Scroll preview to section
   const scrollPreviewToSection = (section: SectionTab) => {
@@ -355,11 +354,39 @@ export default function DesignPage() {
     scrollPreviewToSection(tab);
   };
 
-  // Image upload handler
-  const handleImageUpload = async (
-    file: File,
-    onSuccess: (url: string) => void
-  ) => {
+  // Image upload handler with crop editor
+  const handleImageUpload = async (file: File, onSuccess: (url: string) => void) => {
+    if (!selectedTenantId) return;
+    // Open crop editor
+    setCropFile(file);
+    setCropCallback(() => onSuccess);
+    setCropOpen(true);
+  };
+
+  // Handle crop completion - upload the cropped image
+  const handleCropComplete = async (croppedBase64: string, _blob: Blob) => {
+    if (!selectedTenantId || !cropCallback) return;
+    setCropOpen(false);
+
+    const base64Data = croppedBase64.split(",")[1];
+    try {
+      const result = await uploadMutation.mutateAsync({
+        tenantId: selectedTenantId,
+        imageData: base64Data,
+        fileName: cropFile?.name || "cropped-image.jpg",
+        contentType: "image/jpeg",
+      });
+      cropCallback(result.url);
+      setIsDirty(true);
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+    setCropFile(null);
+    setCropCallback(null);
+  };
+
+  // Direct upload (for video or URL paste - no crop)
+  const handleDirectUpload = async (file: File, onSuccess: (url: string) => void) => {
     if (!selectedTenantId) return;
     const reader = new FileReader();
     reader.onload = async () => {
@@ -372,6 +399,7 @@ export default function DesignPage() {
           contentType: file.type,
         });
         onSuccess(result.url);
+        setIsDirty(true);
       } catch (err) {
         console.error("Upload failed:", err);
       }
@@ -381,11 +409,11 @@ export default function DesignPage() {
 
   return (
     <SuperAdminLayout>
-      <div className="flex flex-col h-[calc(100vh-3rem)]">
+      <div className="flex flex-col h-[calc(100vh-2rem)]">
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-1 py-3 border-b border-zinc-800 shrink-0">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-white">Construtor de Landing Page</h1>
+        <div className="flex items-center justify-between py-2 border-b border-zinc-800 shrink-0">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold text-white whitespace-nowrap">Construtor de LP</h1>
 
             {/* Store Search */}
             <Popover open={storeSearchOpen} onOpenChange={setStoreSearchOpen}>
@@ -394,18 +422,18 @@ export default function DesignPage() {
                   variant="outline"
                   role="combobox"
                   aria-expanded={storeSearchOpen}
-                  className="w-[260px] justify-between border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  className="w-[220px] justify-between border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white h-8 text-sm"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Store className="h-4 w-4 shrink-0 text-amber-500" />
-                    <span className="truncate">
+                    <Store className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                    <span className="truncate text-xs">
                       {selectedTenant?.name || "Buscar Loja..."}
                     </span>
                   </div>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[260px] p-0 bg-zinc-900 border-zinc-700" align="start">
+              <PopoverContent className="w-[220px] p-0 bg-zinc-900 border-zinc-700" align="start">
                 <Command className="bg-zinc-900">
                   <CommandInput
                     placeholder="Buscar loja..."
@@ -431,13 +459,11 @@ export default function DesignPage() {
                         >
                           <Check
                             className={`mr-2 h-4 w-4 ${
-                              selectedTenantId === tenant.id
-                                ? "opacity-100 text-amber-500"
-                                : "opacity-0"
+                              selectedTenantId === tenant.id ? "opacity-100 text-amber-500" : "opacity-0"
                             }`}
                           />
                           <div className="flex flex-col">
-                            <span>{tenant.name}</span>
+                            <span className="text-sm">{tenant.name}</span>
                             <span className="text-xs text-zinc-500">/{tenant.slug}</span>
                           </div>
                         </CommandItem>
@@ -450,25 +476,51 @@ export default function DesignPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Preview Mode Toggle */}
+            <div className="flex items-center bg-zinc-800 rounded-md border border-zinc-700 p-0.5">
+              <button
+                onClick={() => setPreviewMode("mobile")}
+                className={`p-1.5 rounded transition-colors ${
+                  previewMode === "mobile"
+                    ? "bg-amber-500/20 text-amber-500"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+                title="Preview Mobile"
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setPreviewMode("desktop")}
+                className={`p-1.5 rounded transition-colors ${
+                  previewMode === "desktop"
+                    ? "bg-amber-500/20 text-amber-500"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+                title="Preview Desktop"
+              >
+                <Monitor className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
             <Button
               variant="outline"
               size="sm"
               onClick={refreshPreview}
-              className="border-zinc-700 text-zinc-300 hover:text-white"
+              className="border-zinc-700 text-zinc-300 hover:text-white h-8 text-xs"
             >
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Atualizar Preview
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+              Atualizar
             </Button>
             <Button
               onClick={handleSave}
               disabled={saveMutation.isPending || !isDirty || !selectedTenantId}
               size="sm"
-              className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+              className="bg-amber-500 hover:bg-amber-600 text-black font-semibold h-8 text-xs"
             >
               {saveMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
               ) : (
-                <Save className="h-4 w-4 mr-1" />
+                <Save className="h-3.5 w-3.5 mr-1" />
               )}
               {saveMutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
@@ -489,20 +541,20 @@ export default function DesignPage() {
         ) : (
           <div className="flex flex-1 overflow-hidden">
             {/* Left Panel - Editor */}
-            <div className="w-[420px] shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden">
+            <div className="w-[380px] shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden">
               {/* Section Tabs */}
               <div className="flex border-b border-zinc-800 shrink-0 overflow-x-auto">
                 {SECTION_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap transition-colors border-b-2 ${
+                    className={`flex items-center gap-1 px-2.5 py-2 text-[11px] font-medium whitespace-nowrap transition-colors border-b-2 ${
                       activeTab === tab.id
                         ? "border-amber-500 text-amber-500 bg-amber-500/5"
                         : "border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
                     }`}
                   >
-                    <tab.icon className="h-3.5 w-3.5" />
+                    <tab.icon className="h-3 w-3" />
                     {tab.label}
                   </button>
                 ))}
@@ -510,8 +562,8 @@ export default function DesignPage() {
 
               {/* Editor Content */}
               <ScrollArea className="flex-1">
-                <div className="p-4 space-y-6">
-                  {/* Global Styles - Always visible at top */}
+                <div className="p-3 space-y-5">
+                  {/* Global Styles */}
                   <GlobalStylesPanel
                     colors={colors}
                     fontFamily={fontFamily}
@@ -531,6 +583,7 @@ export default function DesignPage() {
                       data={design.home || {}}
                       onChange={(field, value) => updateDesign("home", field, value)}
                       onImageUpload={handleImageUpload}
+                      onDirectUpload={handleDirectUpload}
                       uploading={uploadMutation.isPending}
                     />
                   )}
@@ -568,20 +621,25 @@ export default function DesignPage() {
 
             {/* Right Panel - Preview */}
             <div className="flex-1 bg-zinc-950 flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 shrink-0">
-                <span className="text-xs text-zinc-500 font-medium">
+              <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 shrink-0">
+                <span className="text-[11px] text-zinc-500 font-medium">
                   PREVIEW — /{selectedTenant?.slug}
+                  {previewMode === "mobile" ? " (Mobile 375px)" : " (Desktop)"}
                 </span>
-                <div className="flex items-center gap-2">
-                  {isDirty && (
-                    <span className="text-xs text-amber-500 font-medium">
-                      Alterações não salvas
-                    </span>
-                  )}
-                </div>
+                {isDirty && (
+                  <span className="text-[11px] text-amber-500 font-medium animate-pulse">
+                    Alterações não salvas
+                  </span>
+                )}
               </div>
-              <div className="flex-1 p-4">
-                <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-800 bg-black">
+              <div className="flex-1 flex items-start justify-center p-3 overflow-auto">
+                <div
+                  className={`h-full rounded-lg overflow-hidden border border-zinc-800 bg-black transition-all duration-300 ${
+                    previewMode === "mobile"
+                      ? "w-[375px] shadow-2xl shadow-black/50"
+                      : "w-full"
+                  }`}
+                >
                   {selectedTenant && (
                     <iframe
                       ref={iframeRef}
@@ -596,6 +654,19 @@ export default function DesignPage() {
           </div>
         )}
       </div>
+
+      {/* Image Crop Editor Modal */}
+      <ImageCropEditor
+        open={cropOpen}
+        onClose={() => {
+          setCropOpen(false);
+          setCropFile(null);
+          setCropCallback(null);
+        }}
+        onComplete={handleCropComplete}
+        file={cropFile}
+        aspectRatio={1}
+      />
     </SuperAdminLayout>
   );
 }
@@ -639,8 +710,8 @@ function GlobalStylesPanel({
       {isOpen && (
         <div className="mt-3 space-y-4">
           {/* Colors */}
-          <div className="space-y-3">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider">Cores</Label>
+          <div className="space-y-2">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Cores</Label>
             {[
               { key: "primary" as const, label: "Primária" },
               { key: "background" as const, label: "Fundo" },
@@ -653,36 +724,34 @@ function GlobalStylesPanel({
                   type="color"
                   value={colors[key]}
                   onChange={(e) => onColorChange(key, e.target.value)}
-                  className="w-8 h-8 rounded cursor-pointer border border-zinc-700 shrink-0"
+                  className="w-7 h-7 rounded cursor-pointer border border-zinc-700 shrink-0"
                 />
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs text-zinc-300">{label}</span>
-                </div>
+                <span className="text-xs text-zinc-300 flex-1">{label}</span>
                 <Input
                   value={colors[key]}
                   onChange={(e) => onColorChange(key, e.target.value)}
-                  className="w-24 h-7 text-xs bg-zinc-800 border-zinc-700 font-mono"
+                  className="w-20 h-6 text-[11px] bg-zinc-800 border-zinc-700 font-mono px-1.5"
                 />
               </div>
             ))}
           </div>
 
           {/* Typography */}
-          <div className="space-y-3">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Type className="h-3.5 w-3.5" />
+          <div className="space-y-2">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Type className="h-3 w-3" />
               Tipografia
             </Label>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div>
-                <span className="text-xs text-zinc-500">Fonte Principal</span>
+                <span className="text-[11px] text-zinc-500">Fonte Principal</span>
                 <Select value={fontFamily} onValueChange={onFontFamilyChange}>
-                  <SelectTrigger className="h-8 bg-zinc-800 border-zinc-700 text-sm w-full">
+                  <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-zinc-700">
                     {FONT_OPTIONS.map((f) => (
-                      <SelectItem key={f} value={f} className="text-zinc-300">
+                      <SelectItem key={f} value={f} className="text-zinc-300 text-xs">
                         <span style={{ fontFamily: f }}>{f}</span>
                       </SelectItem>
                     ))}
@@ -690,14 +759,14 @@ function GlobalStylesPanel({
                 </Select>
               </div>
               <div>
-                <span className="text-xs text-zinc-500">Fonte Títulos</span>
+                <span className="text-[11px] text-zinc-500">Fonte Títulos</span>
                 <Select value={fontDisplay} onValueChange={onFontDisplayChange}>
-                  <SelectTrigger className="h-8 bg-zinc-800 border-zinc-700 text-sm w-full">
+                  <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-zinc-700">
                     {DISPLAY_FONT_OPTIONS.map((f) => (
-                      <SelectItem key={f} value={f} className="text-zinc-300">
+                      <SelectItem key={f} value={f} className="text-zinc-300 text-xs">
                         <span style={{ fontFamily: f }}>{f}</span>
                       </SelectItem>
                     ))}
@@ -708,25 +777,24 @@ function GlobalStylesPanel({
           </div>
 
           {/* Alignment */}
-          <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider">Alinhamento Padrão</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Alinhamento</Label>
             <div className="flex gap-1">
               {[
-                { value: "left", icon: AlignLeft, label: "Esquerda" },
+                { value: "left", icon: AlignLeft, label: "Esq" },
                 { value: "center", icon: AlignCenter, label: "Centro" },
-                { value: "right", icon: AlignRight, label: "Direita" },
+                { value: "right", icon: AlignRight, label: "Dir" },
               ].map(({ value, icon: Icon, label }) => (
                 <button
                   key={value}
                   onClick={() => onAlignmentChange(value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
                     alignment === value
                       ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
                       : "bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700"
                   }`}
-                  title={label}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-3 w-3" />
                   {label}
                 </button>
               ))}
@@ -760,43 +828,43 @@ function ImageUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="space-y-2">
-      <Label className="text-xs text-zinc-400">{label}</Label>
+    <div className="space-y-1.5">
+      <Label className="text-[11px] text-zinc-400">{label}</Label>
       {value && (
         <div className="relative rounded-lg overflow-hidden border border-zinc-700 bg-zinc-800">
           {accept.includes("video") && value.match(/\.(mp4|webm|mov)$/i) ? (
-            <video src={value} className="w-full h-24 object-cover" muted />
+            <video src={value} className="w-full h-20 object-cover" muted />
           ) : (
-            <img src={value} alt="" className="w-full h-24 object-cover" />
+            <img src={value} alt="" className="w-full h-20 object-cover" />
           )}
           <button
             onClick={() => onChange("")}
-            className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80 text-xs"
+            className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-black/80 text-[10px]"
           >
             ✕
           </button>
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex-1 border-zinc-700 text-zinc-300 hover:text-white text-xs"
+          className="flex-1 border-zinc-700 text-zinc-300 hover:text-white text-[11px] h-7"
         >
           {uploading ? (
-            <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
           ) : (
-            <Upload className="h-3.5 w-3.5 mr-1" />
+            <Upload className="h-3 w-3 mr-1" />
           )}
           {uploading ? "Enviando..." : "Upload"}
         </Button>
         <Input
           value={value || ""}
-          onChange={(e) => { onChange(e.target.value); }}
+          onChange={(e) => onChange(e.target.value)}
           placeholder="ou cole a URL"
-          className="flex-1 h-8 text-xs bg-zinc-800 border-zinc-700"
+          className="flex-1 h-7 text-[11px] bg-zinc-800 border-zinc-700 px-2"
         />
       </div>
       <input
@@ -822,44 +890,46 @@ function HomeSection({
   data,
   onChange,
   onImageUpload,
+  onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["home"]>;
   onChange: (field: string, value: unknown) => void;
   onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
         <Home className="h-4 w-4 text-amber-500" />
         Seção Home
       </h3>
 
       {/* Logo */}
-      <div className="space-y-2">
-        <Label className="text-xs text-zinc-400">Tipo de Logotipo</Label>
-        <div className="flex gap-2">
+      <div className="space-y-1.5">
+        <Label className="text-[11px] text-zinc-400">Tipo de Logotipo</Label>
+        <div className="flex gap-1.5">
           <button
             onClick={() => onChange("logoType", "text")}
-            className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
               data.logoType === "text"
                 ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
                 : "bg-zinc-800 text-zinc-400 border border-zinc-700"
             }`}
           >
-            <Type className="h-3.5 w-3.5 inline mr-1" />
+            <Type className="h-3 w-3 inline mr-1" />
             Texto
           </button>
           <button
             onClick={() => onChange("logoType", "image")}
-            className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
               data.logoType === "image"
                 ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
                 : "bg-zinc-800 text-zinc-400 border border-zinc-700"
             }`}
           >
-            <ImageIcon className="h-3.5 w-3.5 inline mr-1" />
+            <ImageIcon className="h-3 w-3 inline mr-1" />
             Imagem
           </button>
         </div>
@@ -876,29 +946,29 @@ function HomeSection({
       )}
 
       {/* Background Media */}
-      <div className="space-y-2">
-        <Label className="text-xs text-zinc-400">Tipo de Fundo</Label>
-        <div className="flex gap-2">
+      <div className="space-y-1.5">
+        <Label className="text-[11px] text-zinc-400">Tipo de Fundo</Label>
+        <div className="flex gap-1.5">
           <button
             onClick={() => onChange("bgMediaType", "image")}
-            className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
               data.bgMediaType === "image"
                 ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
                 : "bg-zinc-800 text-zinc-400 border border-zinc-700"
             }`}
           >
-            <ImageIcon className="h-3.5 w-3.5 inline mr-1" />
+            <ImageIcon className="h-3 w-3 inline mr-1" />
             Imagem
           </button>
           <button
             onClick={() => onChange("bgMediaType", "video")}
-            className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+            className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
               data.bgMediaType === "video"
                 ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
                 : "bg-zinc-800 text-zinc-400 border border-zinc-700"
             }`}
           >
-            <Video className="h-3.5 w-3.5 inline mr-1" />
+            <Video className="h-3 w-3 inline mr-1" />
             Vídeo
           </button>
         </div>
@@ -908,16 +978,16 @@ function HomeSection({
         label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
         value={data.bgMediaUrl}
         onChange={(url) => onChange("bgMediaUrl", url)}
-        onUpload={onImageUpload}
+        onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
         uploading={uploading}
         accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
       />
 
       {/* Overlay Opacity */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label className="text-xs text-zinc-400">Opacidade do Escurecimento</Label>
-          <span className="text-xs text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 50}%</span>
+          <Label className="text-[11px] text-zinc-400">Opacidade do Escurecimento</Label>
+          <span className="text-[11px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 50}%</span>
         </div>
         <Slider
           value={[data.bgOverlayOpacity ?? 50]}
@@ -927,40 +997,37 @@ function HomeSection({
           step={5}
           className="w-full"
         />
-        <p className="text-[10px] text-zinc-600">
-          Controla o escurecimento sobre a imagem/vídeo de fundo para garantir legibilidade do texto.
-        </p>
       </div>
 
       <Separator className="bg-zinc-800" />
 
       {/* Text Fields */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div>
-          <Label className="text-xs text-zinc-400">Headline (H1)</Label>
+          <Label className="text-[11px] text-zinc-400">Headline (H1)</Label>
           <Input
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Gastronomia de Alta Performance"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Subheadline (H2)</Label>
+          <Label className="text-[11px] text-zinc-400">Subheadline (H2)</Label>
           <Input
             value={data.subheadline || ""}
             onChange={(e) => onChange("subheadline", e.target.value)}
             placeholder="Experiência única em sua cidade"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Texto do Botão Principal</Label>
+          <Label className="text-[11px] text-zinc-400">Texto do Botão</Label>
           <Input
             value={data.ctaText || ""}
             onChange={(e) => onChange("ctaText", e.target.value)}
             placeholder="Fazer Pedido"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
       </div>
@@ -982,43 +1049,41 @@ function ProductsSection({
   onChange: (field: string, value: unknown) => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
         <ShoppingBag className="h-4 w-4 text-amber-500" />
         Seção Produtos
       </h3>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div>
-          <Label className="text-xs text-zinc-400">Headline (H1)</Label>
+          <Label className="text-[11px] text-zinc-400">Headline</Label>
           <Input
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Nosso Cardápio"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Subheadline (H2)</Label>
+          <Label className="text-[11px] text-zinc-400">Subheadline</Label>
           <Input
             value={data.subheadline || ""}
             onChange={(e) => onChange("subheadline", e.target.value)}
             placeholder="Escolha seus favoritos"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
       </div>
 
       <Separator className="bg-zinc-800" />
 
-      {/* Categories Config */}
-      <div className="space-y-3">
-        <Label className="text-xs text-zinc-400 uppercase tracking-wider">Configuração de Categorias</Label>
-
+      <div className="space-y-2">
+        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Categorias</Label>
         <div>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-zinc-500">Máximo de categorias na LP</span>
-            <span className="text-xs text-zinc-400 font-mono">{data.maxCategories ?? 3}</span>
+            <span className="text-[11px] text-zinc-500">Máximo na LP</span>
+            <span className="text-[11px] text-zinc-400 font-mono">{data.maxCategories ?? 3}</span>
           </div>
           <Slider
             value={[data.maxCategories ?? 3]}
@@ -1031,48 +1096,34 @@ function ProductsSection({
         </div>
 
         {categories.length > 0 && (
-          <div className="space-y-1.5">
-            <span className="text-xs text-zinc-500">Categorias cadastradas:</span>
+          <div className="space-y-1">
+            <span className="text-[11px] text-zinc-500">Cadastradas:</span>
             {categories.map((cat) => (
-              <div
-                key={cat.id}
-                className="flex items-center justify-between px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50"
-              >
-                <span className="text-xs text-zinc-300">{cat.name}</span>
+              <div key={cat.id} className="px-2 py-1 rounded bg-zinc-800/50 border border-zinc-700/50">
+                <span className="text-[11px] text-zinc-300">{cat.name}</span>
               </div>
             ))}
           </div>
         )}
 
         <div>
-          <Label className="text-xs text-zinc-400">Categoria de Ofertas</Label>
+          <Label className="text-[11px] text-zinc-400">Categoria de Ofertas</Label>
           <Select
             value={data.offersCategoryId?.toString() || "none"}
-            onValueChange={(v) =>
-              onChange("offersCategoryId", v === "none" ? null : parseInt(v))
-            }
+            onValueChange={(v) => onChange("offersCategoryId", v === "none" ? null : parseInt(v))}
           >
-            <SelectTrigger className="h-8 bg-zinc-800 border-zinc-700 text-sm w-full">
+            <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs w-full">
               <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-700">
-              <SelectItem value="none" className="text-zinc-300">
-                Nenhuma
-              </SelectItem>
+              <SelectItem value="none" className="text-zinc-300 text-xs">Nenhuma</SelectItem>
               {categories.map((cat) => (
-                <SelectItem
-                  key={cat.id}
-                  value={cat.id.toString()}
-                  className="text-zinc-300"
-                >
+                <SelectItem key={cat.id} value={cat.id.toString()} className="text-zinc-300 text-xs">
                   {cat.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <p className="text-[10px] text-zinc-600 mt-1">
-            A categoria selecionada será destacada como "OFERTAS" na landing page.
-          </p>
         </div>
       </div>
     </div>
@@ -1095,29 +1146,29 @@ function AboutSection({
   uploading: boolean;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
         <Users2 className="h-4 w-4 text-amber-500" />
         Seção Sobre Nós
       </h3>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div>
-          <Label className="text-xs text-zinc-400">Headline</Label>
+          <Label className="text-[11px] text-zinc-400">Headline</Label>
           <Input
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Sobre Nós"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Storytelling (Texto descritivo)</Label>
+          <Label className="text-[11px] text-zinc-400">Storytelling</Label>
           <Textarea
             value={data.storytelling || ""}
             onChange={(e) => onChange("storytelling", e.target.value)}
-            placeholder="Conte a história do seu negócio..."
-            className="bg-zinc-800 border-zinc-700 text-sm min-h-[100px]"
+            placeholder="Conte a história do negócio..."
+            className="bg-zinc-800 border-zinc-700 text-xs min-h-[80px]"
           />
         </div>
       </div>
@@ -1131,28 +1182,28 @@ function AboutSection({
       />
 
       <div>
-        <Label className="text-xs text-zinc-400">Nome (abaixo da foto)</Label>
+        <Label className="text-[11px] text-zinc-400">Nome (abaixo da foto)</Label>
         <Input
           value={data.ownerName || ""}
           onChange={(e) => onChange("ownerName", e.target.value)}
           placeholder="Nome do proprietário"
-          className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-xs text-zinc-400">Cor do Texto do Storytelling</Label>
+      <div className="space-y-1.5">
+        <Label className="text-[11px] text-zinc-400">Cor do Texto</Label>
         <div className="flex items-center gap-2">
           <input
             type="color"
             value={data.textColor || "#FFFFFF"}
             onChange={(e) => onChange("textColor", e.target.value)}
-            className="w-8 h-8 rounded cursor-pointer border border-zinc-700 shrink-0"
+            className="w-7 h-7 rounded cursor-pointer border border-zinc-700 shrink-0"
           />
           <Input
             value={data.textColor || "#FFFFFF"}
             onChange={(e) => onChange("textColor", e.target.value)}
-            className="w-24 h-7 text-xs bg-zinc-800 border-zinc-700 font-mono"
+            className="w-20 h-6 text-[11px] bg-zinc-800 border-zinc-700 font-mono px-1.5"
           />
         </div>
       </div>
@@ -1174,18 +1225,16 @@ function ReviewsSection({
   onChange: (field: string, value: unknown) => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
         <Star className="h-4 w-4 text-amber-500" />
-        Seção Avaliações do Google
+        Seção Avaliações
       </h3>
 
       <div className="flex items-center justify-between">
         <div>
-          <Label className="text-sm text-zinc-300">Exibir seção de avaliações</Label>
-          <p className="text-[10px] text-zinc-600">
-            Quando desativado, a seção será ocultada da landing page.
-          </p>
+          <Label className="text-xs text-zinc-300">Exibir seção</Label>
+          <p className="text-[10px] text-zinc-600">Ocultar da landing page</p>
         </div>
         <Switch
           checked={data.isVisible ?? true}
@@ -1194,35 +1243,35 @@ function ReviewsSection({
       </div>
 
       {data.isVisible !== false && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div>
-            <Label className="text-xs text-zinc-400">Headline</Label>
+            <Label className="text-[11px] text-zinc-400">Headline</Label>
             <Input
               value={data.headline || ""}
               onChange={(e) => onChange("headline", e.target.value)}
               placeholder="O que dizem nossos clientes"
-              className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
             />
           </div>
 
           <Separator className="bg-zinc-800" />
 
-          <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider">API do Google</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">API Google</Label>
             <p className="text-[10px] text-zinc-600">
-              Configure a chave da API e o Place ID na seção de Integrações do cliente.
+              Configure nas Integrações do cliente.
             </p>
-            <div className="px-3 py-2 rounded bg-zinc-800/50 border border-zinc-700/50 space-y-1">
+            <div className="px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-500">Google API Key</span>
-                <span className={`text-xs ${tenant.googleApiKey ? "text-green-400" : "text-zinc-600"}`}>
-                  {tenant.googleApiKey ? "Configurada ✓" : "Não configurada"}
+                <span className="text-[11px] text-zinc-500">API Key</span>
+                <span className={`text-[11px] ${tenant.googleApiKey ? "text-green-400" : "text-zinc-600"}`}>
+                  {tenant.googleApiKey ? "✓" : "✗"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-500">Google Place ID</span>
-                <span className={`text-xs ${tenant.googlePlaceId ? "text-green-400" : "text-zinc-600"}`}>
-                  {tenant.googlePlaceId ? "Configurado ✓" : "Não configurado"}
+                <span className="text-[11px] text-zinc-500">Place ID</span>
+                <span className={`text-[11px] ${tenant.googlePlaceId ? "text-green-400" : "text-zinc-600"}`}>
+                  {tenant.googlePlaceId ? "✓" : "✗"}
                 </span>
               </div>
             </div>
@@ -1245,77 +1294,73 @@ function InfoSection({
   onChange: (field: string, value: unknown) => void;
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
         <Info className="h-4 w-4 text-amber-500" />
-        Seção Informações (Rodapé)
+        Seção Informações
       </h3>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div>
-          <Label className="text-xs text-zinc-400">Headline (H1)</Label>
+          <Label className="text-[11px] text-zinc-400">Headline (H1)</Label>
           <Input
             value={data.headline1 || ""}
             onChange={(e) => onChange("headline1", e.target.value)}
             placeholder="Venha nos visitar"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Subheadline (H2)</Label>
+          <Label className="text-[11px] text-zinc-400">Subheadline</Label>
           <Input
             value={data.subheadline1 || ""}
             onChange={(e) => onChange("subheadline1", e.target.value)}
             placeholder="Estamos esperando por você"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Headline secundária (H3)</Label>
+          <Label className="text-[11px] text-zinc-400">Headline secundária</Label>
           <Input
             value={data.headline2 || ""}
             onChange={(e) => onChange("headline2", e.target.value)}
             placeholder="Horário de Funcionamento"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Subheadline final (H4)</Label>
+          <Label className="text-[11px] text-zinc-400">Subheadline final</Label>
           <Input
             value={data.subheadline2 || ""}
             onChange={(e) => onChange("subheadline2", e.target.value)}
             placeholder="Confira nossos horários"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
         <div>
-          <Label className="text-xs text-zinc-400">Texto do Botão Final</Label>
+          <Label className="text-[11px] text-zinc-400">Texto do Botão</Label>
           <Input
             value={data.ctaText || ""}
             onChange={(e) => onChange("ctaText", e.target.value)}
             placeholder="Como Chegar"
-            className="h-8 bg-zinc-800 border-zinc-700 text-sm"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
       </div>
 
       <Separator className="bg-zinc-800" />
 
-      {/* Display Toggles */}
-      <div className="space-y-3">
-        <Label className="text-xs text-zinc-400 uppercase tracking-wider">Configurações de Exibição</Label>
+      <div className="space-y-2">
+        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Exibição</Label>
         {[
-          { key: "showMap", label: "Thumbnail do Mapa", desc: "Miniatura clicável que abre no Google Maps" },
-          { key: "showAddress", label: "Endereço", desc: "Exibir endereço completo" },
-          { key: "showPhone", label: "Telefone", desc: "Exibir número de telefone" },
-          { key: "showHours", label: "Horário de Funcionamento", desc: "Exibir grade de horários" },
-          { key: "showSocial", label: "Redes Sociais", desc: "Exibir links de redes sociais" },
-        ].map(({ key, label, desc }) => (
-          <div key={key} className="flex items-center justify-between">
-            <div>
-              <span className="text-xs text-zinc-300">{label}</span>
-              <p className="text-[10px] text-zinc-600">{desc}</p>
-            </div>
+          { key: "showMap", label: "Mapa" },
+          { key: "showAddress", label: "Endereço" },
+          { key: "showPhone", label: "Telefone" },
+          { key: "showHours", label: "Horários" },
+          { key: "showSocial", label: "Redes Sociais" },
+        ].map(({ key, label }) => (
+          <div key={key} className="flex items-center justify-between py-0.5">
+            <span className="text-xs text-zinc-300">{label}</span>
             <Switch
               checked={(data as Record<string, unknown>)[key] as boolean ?? true}
               onCheckedChange={(v) => onChange(key, v)}
