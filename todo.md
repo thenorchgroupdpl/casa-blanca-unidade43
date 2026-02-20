@@ -146,3 +146,4 @@
 - [x] Corrigir StoreLanding transformTenantDataToSiteData para não usar paths de imagens inexistentes como fallback
 - [x] Remover Sonner Toaster do App.tsx
 - [x] Corrigir erro de acessibilidade: DialogContent sem DialogTitle na página /admin/super/tenants
+- [x] Remover aba Design do modal de criação de novos clientes (manter atalho apenas na lista de clientes)

@@ -702,9 +702,7 @@ export default function TenantsPage() {
                 <TabsTrigger value="integrations" className="data-[state=active]:bg-zinc-700">
                   <Key className="h-4 w-4 mr-2" />APIs
                 </TabsTrigger>
-                <TabsTrigger value="design" className="data-[state=active]:bg-zinc-700">
-                  <Palette className="h-4 w-4 mr-2" />Design
-                </TabsTrigger>
+
               </TabsList>
 
               {/* Basic Tab */}
@@ -869,69 +867,7 @@ export default function TenantsPage() {
                 </div>
               </TabsContent>
 
-              {/* Design Tab */}
-              <TabsContent value="design" className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Cor Primária</Label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={formData.themeColors.primary}
-                        onChange={(e) =>
-                          setFormData({ ...formData, themeColors: { ...formData.themeColors, primary: e.target.value } })
-                        }
-                        className="w-10 h-10 rounded cursor-pointer"
-                      />
-                      <Input
-                        value={formData.themeColors.primary}
-                        onChange={(e) =>
-                          setFormData({ ...formData, themeColors: { ...formData.themeColors, primary: e.target.value } })
-                        }
-                        className="bg-zinc-800 border-zinc-700 font-mono"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Cor de Fundo</Label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={formData.themeColors.background}
-                        onChange={(e) =>
-                          setFormData({ ...formData, themeColors: { ...formData.themeColors, background: e.target.value } })
-                        }
-                        className="w-10 h-10 rounded cursor-pointer"
-                      />
-                      <Input
-                        value={formData.themeColors.background}
-                        onChange={(e) =>
-                          setFormData({ ...formData, themeColors: { ...formData.themeColors, background: e.target.value } })
-                        }
-                        className="bg-zinc-800 border-zinc-700 font-mono"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Fonte Principal</Label>
-                  <Input
-                    value={formData.fontFamily}
-                    onChange={(e) => setFormData({ ...formData, fontFamily: e.target.value })}
-                    placeholder="DM Sans"
-                    className="bg-zinc-800 border-zinc-700"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Fonte Display (Títulos)</Label>
-                  <Input
-                    value={formData.fontDisplay}
-                    onChange={(e) => setFormData({ ...formData, fontDisplay: e.target.value })}
-                    placeholder="DM Serif Display"
-                    className="bg-zinc-800 border-zinc-700"
-                  />
-                </div>
-              </TabsContent>
+
             </Tabs>
 
             <DialogFooter className="mt-6">
