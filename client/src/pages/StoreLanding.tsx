@@ -200,6 +200,9 @@ export default function StoreLanding() {
               subheadline: design.info.subheadline || updatedData.sections_content.location.subheadline,
               bg_media_url: design.info.bgMediaUrl || updatedData.sections_content.location.bg_media_url,
               bg_media_type: design.info.bgMediaType || updatedData.sections_content.location.bg_media_type,
+              bg_overlay_opacity: design.info.bgOverlayOpacity ?? updatedData.sections_content.location.bg_overlay_opacity,
+              map_image_url: design.info.mapImageUrl || updatedData.sections_content.location.map_image_url,
+              map_overlay_opacity: design.info.mapOverlayOpacity ?? updatedData.sections_content.location.map_overlay_opacity,
             },
             footer: {
               ...updatedData.sections_content.footer,
@@ -482,6 +485,9 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         map_preview: '',
         bg_media_url: ld?.info?.bgMediaUrl || '',
         bg_media_type: (ld?.info?.bgMediaType as 'image' | 'video') || 'image',
+        bg_overlay_opacity: ld?.info?.bgOverlayOpacity ?? 60,
+        map_image_url: ld?.info?.mapImageUrl || '',
+        map_overlay_opacity: ld?.info?.mapOverlayOpacity ?? 40,
       },
       footer: {
         cta_headline: ld?.info?.headline2 || 'Pronto para pedir?',

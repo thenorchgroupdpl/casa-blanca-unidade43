@@ -1,7 +1,8 @@
 /**
  * Location Section - Casa Blanca
  * Design: Warm Luxury - Map preview with contact info
- * Features: Deep link to native maps, social media links, address info, background media
+ * Features: Deep link to native maps, social media links, address info, background media,
+ *           map box image with adjustable overlay, section background overlay opacity
  */
 
 import { motion } from 'framer-motion';
@@ -19,6 +20,9 @@ export default function LocationSection() {
   const { contact, business_hours } = data;
 
   const hasBgMedia = !!location.bg_media_url;
+  const hasMapImage = !!location.map_image_url;
+  const bgOverlayOpacity = (location.bg_overlay_opacity ?? 60) / 100;
+  const mapOverlayOpacity = (location.map_overlay_opacity ?? 40) / 100;
 
   const handleOpenMaps = () => {
     openMaps(
@@ -71,8 +75,11 @@ export default function LocationSection() {
               className="absolute inset-0 w-full h-full object-cover"
             />
           )}
-          {/* Dark overlay for readability */}
-          <div className="absolute inset-0 bg-black/60" />
+          {/* Dark overlay with adjustable opacity */}
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: `rgba(0, 0, 0, ${bgOverlayOpacity})` }}
+          />
         </>
       )}
 
@@ -97,7 +104,7 @@ export default function LocationSection() {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Map Preview */}
+          {/* Map Preview / Map Box */}
           <motion.div
             className="relative"
             initial={{ opacity: 0, x: -30 }}
@@ -109,10 +116,17 @@ export default function LocationSection() {
               onClick={handleOpenMaps}
               className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden group"
             >
-              {location.map_preview && location.map_preview !== '/images/map-preview.jpg' ? (
+              {/* Map box background: custom image > map_preview > fallback */}
+              {hasMapImage ? (
+                <img
+                  src={location.map_image_url}
+                  alt={`Localização ${data.project_name || ''}`}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : location.map_preview && location.map_preview !== '/images/map-preview.jpg' ? (
                 <img
                   src={location.map_preview}
-                  alt={`Localização ${data.project_name || 'Casa Blanca'}`}
+                  alt={`Localização ${data.project_name || ''}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
@@ -124,9 +138,18 @@ export default function LocationSection() {
                 </div>
               )}
               
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-lp-overlay group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3 text-lp-text">
+              {/* Overlay with adjustable opacity */}
+              <div
+                className="absolute inset-0 transition-colors flex items-center justify-center"
+                style={{
+                  backgroundColor: hasMapImage
+                    ? `rgba(0, 0, 0, ${mapOverlayOpacity})`
+                    : undefined,
+                }}
+              >
+                {/* Hover effect */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                <div className="relative flex flex-col items-center gap-3 text-lp-text">
                   <div className="p-4 rounded-full bg-lp-btn gold-glow">
                     <MapPin className="w-8 h-8" />
                   </div>

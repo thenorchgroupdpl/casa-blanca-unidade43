@@ -266,3 +266,11 @@
 - [x] Atualizar postMessage handler no StoreLanding para mapear info.bgMediaUrl
 - [x] Atualizar transformTenantDataToSiteData para carregar info.bgMediaUrl do banco
 - [x] Atualizar LocationSection para exibir imagem de fundo quando disponível
+
+## Fase 29: Imagem no Box do Mapa + Opacidade
+- [x] Adicionar campos mapImageUrl e mapOverlayOpacity ao tipo LandingDesign["info"]
+- [x] Adicionar upload de imagem do mapa e slider de opacidade no InfoSection do Design.tsx
+- [x] Adicionar slider de opacidade do overlay da seção Informações (bgOverlayOpacity)
+- [x] Atualizar postMessage handler no StoreLanding para mapear mapImageUrl
+- [x] Atualizar transformTenantDataToSiteData para carregar mapImageUrl do banco
+- [x] Atualizar LocationSection para exibir imagem no box do mapa com overlay ajustável

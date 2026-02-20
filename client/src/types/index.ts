@@ -71,6 +71,9 @@ export interface LocationContent {
   map_preview: string;
   bg_media_url?: string;
   bg_media_type?: 'image' | 'video';
+  bg_overlay_opacity?: number;
+  map_image_url?: string;
+  map_overlay_opacity?: number;
 }
 
 export interface FooterContent {

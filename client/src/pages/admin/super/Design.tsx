@@ -51,6 +51,7 @@ import {
   RefreshCw,
   Smartphone,
   Monitor,
+  MapPin,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
@@ -101,6 +102,9 @@ type LandingDesign = {
     ctaText?: string;
     bgMediaUrl?: string;
     bgMediaType?: "image" | "video";
+    bgOverlayOpacity?: number;
+    mapImageUrl?: string;
+    mapOverlayOpacity?: number;
     showMap?: boolean;
     showAddress?: boolean;
     showPhone?: boolean;
@@ -1634,6 +1638,57 @@ function InfoSection({
         uploading={uploading}
         accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
       />
+
+      {/* Overlay Opacity - Background */}
+      {data.bgMediaUrl && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] text-zinc-400">Opacidade do Escurecimento</Label>
+            <span className="text-[11px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 60}%</span>
+          </div>
+          <Slider
+            value={[data.bgOverlayOpacity ?? 60]}
+            onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
+            min={0}
+            max={100}
+            step={5}
+            className="w-full"
+          />
+        </div>
+      )}
+
+      <Separator className="bg-zinc-800" />
+
+      {/* Map Box Image */}
+      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+        <MapPin className="h-4 w-4 text-amber-500" />
+        Box do Mapa
+      </h3>
+
+      <ImageUploadField
+        label="Imagem do Box (ex: fachada)"
+        value={data.mapImageUrl}
+        onChange={(url) => onChange("mapImageUrl", url)}
+        onUpload={onImageUpload}
+        uploading={uploading}
+      />
+
+      {data.mapImageUrl && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] text-zinc-400">Opacidade do Overlay (Mapa)</Label>
+            <span className="text-[11px] text-zinc-500 font-mono">{data.mapOverlayOpacity ?? 40}%</span>
+          </div>
+          <Slider
+            value={[data.mapOverlayOpacity ?? 40]}
+            onValueChange={([v]) => onChange("mapOverlayOpacity", v)}
+            min={0}
+            max={100}
+            step={5}
+            className="w-full"
+          />
+        </div>
+      )}
 
       <Separator className="bg-zinc-800" />
 
