@@ -59,6 +59,18 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 // TYPES
 // ============================================
 
+type SectionColors = {
+  enabled?: boolean;      // Whether custom colors are active for this section
+  background?: string;    // Section background color
+  text?: string;          // Primary text color
+  textMuted?: string;     // Secondary/muted text color
+  highlight?: string;     // Accent/highlight color (links, icons, overlines)
+  surface?: string;       // Card/surface background
+  border?: string;        // Border color
+  buttonBg?: string;      // Button background (CTA)
+  buttonFg?: string;      // Button text color
+};
+
 type LandingDesign = {
   home?: {
     logoUrl?: string;
@@ -113,6 +125,14 @@ type LandingDesign = {
   };
   global?: {
     alignment?: "left" | "center" | "right";
+  };
+  sectionColors?: {
+    hero?: SectionColors;
+    intro?: SectionColors;
+    vitrine?: SectionColors;
+    about?: SectionColors;
+    feedbacks?: SectionColors;
+    location?: SectionColors;
   };
 };
 
@@ -184,14 +204,15 @@ const defaultDesign: LandingDesign = {
     showSocial: true,
   },
   global: { alignment: "left" },
+  sectionColors: {},
 };
 
 const defaultColors: ThemeColors = {
   primary: "#D4AF37",
-  background: "#121212",
-  foreground: "#FFFFFF",
-  accent: "#1a1a1a",
-  muted: "#a1a1aa",
+  background: "#FFFFFF",
+  foreground: "#1a1a1a",
+  accent: "#F5F5F5",
+  muted: "#71717a",
   buttonPrimary: "#D4AF37",
   highlight: "#D4AF37",
   success: "#22c55e",
@@ -262,7 +283,7 @@ export default function DesignPage() {
   // Load data when tenant changes
   useEffect(() => {
     if (landingData) {
-      const ld = landingData.landingDesign;
+      const ld = landingData.landingDesign as LandingDesign | null;
       setDesign({
         home: { ...defaultDesign.home, ...ld?.home },
         products: { ...defaultDesign.products, ...ld?.products },
@@ -270,6 +291,7 @@ export default function DesignPage() {
         reviews: { ...defaultDesign.reviews, ...ld?.reviews },
         info: { ...defaultDesign.info, ...ld?.info },
         global: { ...defaultDesign.global, ...ld?.global },
+        sectionColors: { ...ld?.sectionColors },
       });
       const savedColors = (landingData.tenant.themeColors as Partial<ThemeColors>) || {};
       setColors({
@@ -363,6 +385,7 @@ export default function DesignPage() {
             colors,
             fontFamily,
             fontDisplay,
+            sectionColors: design.sectionColors,
           },
           '*'
         );
@@ -626,44 +649,119 @@ export default function DesignPage() {
 
                   {/* Section-specific fields */}
                   {activeTab === "home" && (
-                    <HomeSection
-                      data={design.home || {}}
-                      onChange={(field, value) => updateDesign("home", field, value)}
-                      onImageUpload={handleImageUpload}
-                      onDirectUpload={handleDirectUpload}
-                      uploading={uploadMutation.isPending}
-                    />
+                    <>
+                      <HomeSection
+                        data={design.home || {}}
+                        onChange={(field, value) => updateDesign("home", field, value)}
+                        onImageUpload={handleImageUpload}
+                        onDirectUpload={handleDirectUpload}
+                        uploading={uploadMutation.isPending}
+                      />
+                      <Separator className="bg-zinc-800" />
+                      <SectionColorsPanel
+                        sectionKey="hero"
+                        label="Cores do Hero"
+                        colors={design.sectionColors?.hero || {}}
+                        globalColors={colors}
+                        onChange={(sc) => {
+                          setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, hero: sc } }));
+                          setIsDirty(true);
+                        }}
+                      />
+                    </>
                   )}
                   {activeTab === "products" && (
-                    <ProductsSection
-                      data={design.products || {}}
-                      categories={landingData?.categories || []}
-                      onChange={(field, value) => updateDesign("products", field, value)}
-                    />
+                    <>
+                      <ProductsSection
+                        data={design.products || {}}
+                        categories={landingData?.categories || []}
+                        onChange={(field, value) => updateDesign("products", field, value)}
+                      />
+                      <Separator className="bg-zinc-800" />
+                      <SectionColorsPanel
+                        sectionKey="intro"
+                        label="Cores da Introdução"
+                        colors={design.sectionColors?.intro || {}}
+                        globalColors={colors}
+                        onChange={(sc) => {
+                          setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, intro: sc } }));
+                          setIsDirty(true);
+                        }}
+                      />
+                      <SectionColorsPanel
+                        sectionKey="vitrine"
+                        label="Cores da Vitrine"
+                        colors={design.sectionColors?.vitrine || {}}
+                        globalColors={colors}
+                        onChange={(sc) => {
+                          setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, vitrine: sc } }));
+                          setIsDirty(true);
+                        }}
+                      />
+                    </>
                   )}
                   {activeTab === "about" && (
-                    <AboutSection
-                      data={design.about || {}}
-                      onChange={(field, value) => updateDesign("about", field, value)}
-                      onImageUpload={handleImageUpload}
-                      uploading={uploadMutation.isPending}
-                    />
+                    <>
+                      <AboutSection
+                        data={design.about || {}}
+                        onChange={(field, value) => updateDesign("about", field, value)}
+                        onImageUpload={handleImageUpload}
+                        uploading={uploadMutation.isPending}
+                      />
+                      <Separator className="bg-zinc-800" />
+                      <SectionColorsPanel
+                        sectionKey="about"
+                        label="Cores do Sobre"
+                        colors={design.sectionColors?.about || {}}
+                        globalColors={colors}
+                        onChange={(sc) => {
+                          setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, about: sc } }));
+                          setIsDirty(true);
+                        }}
+                      />
+                    </>
                   )}
                   {activeTab === "reviews" && (
-                    <ReviewsSection
-                      data={design.reviews || {}}
-                      tenant={selectedTenant!}
-                      onChange={(field, value) => updateDesign("reviews", field, value)}
-                    />
+                    <>
+                      <ReviewsSection
+                        data={design.reviews || {}}
+                        tenant={selectedTenant!}
+                        onChange={(field, value) => updateDesign("reviews", field, value)}
+                      />
+                      <Separator className="bg-zinc-800" />
+                      <SectionColorsPanel
+                        sectionKey="feedbacks"
+                        label="Cores das Avaliações"
+                        colors={design.sectionColors?.feedbacks || {}}
+                        globalColors={colors}
+                        onChange={(sc) => {
+                          setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, feedbacks: sc } }));
+                          setIsDirty(true);
+                        }}
+                      />
+                    </>
                   )}
                   {activeTab === "info" && (
-                    <InfoSection
-                      data={design.info || {}}
-                      onChange={(field, value) => updateDesign("info", field, value)}
-                      onImageUpload={handleImageUpload}
-                      onDirectUpload={handleDirectUpload}
-                      uploading={uploadMutation.isPending}
-                    />
+                    <>
+                      <InfoSection
+                        data={design.info || {}}
+                        onChange={(field, value) => updateDesign("info", field, value)}
+                        onImageUpload={handleImageUpload}
+                        onDirectUpload={handleDirectUpload}
+                        uploading={uploadMutation.isPending}
+                      />
+                      <Separator className="bg-zinc-800" />
+                      <SectionColorsPanel
+                        sectionKey="location"
+                        label="Cores das Informações"
+                        colors={design.sectionColors?.location || {}}
+                        globalColors={colors}
+                        onChange={(sc) => {
+                          setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, location: sc } }));
+                          setIsDirty(true);
+                        }}
+                      />
+                    </>
                   )}
                 </div>
               </div>
@@ -1710,6 +1808,188 @@ function InfoSection({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ============================================
+// SECTION COLORS PANEL
+// ============================================
+
+function SectionColorsPanel({
+  sectionKey,
+  label,
+  colors,
+  globalColors,
+  onChange,
+}: {
+  sectionKey: string;
+  label: string;
+  colors: SectionColors;
+  globalColors: ThemeColors;
+  onChange: (sc: SectionColors) => void;
+}) {
+  const isEnabled = colors.enabled ?? false;
+
+  const updateField = (field: keyof SectionColors, value: unknown) => {
+    onChange({ ...colors, [field]: value });
+  };
+
+  // Derive default values from global colors
+  const defaults = {
+    background: globalColors.background,
+    text: globalColors.foreground,
+    textMuted: globalColors.muted,
+    highlight: globalColors.highlight || globalColors.primary,
+    surface: globalColors.accent,
+    border: globalColors.background + "1a",
+    buttonBg: globalColors.buttonPrimary || globalColors.primary,
+    buttonFg: "#1a1a1a",
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+          <Palette className="h-4 w-4 text-purple-400" />
+          {label}
+        </h3>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-zinc-500">
+            {isEnabled ? "Personalizado" : "Global"}
+          </span>
+          <Switch
+            checked={isEnabled}
+            onCheckedChange={(v) => updateField("enabled", v)}
+          />
+        </div>
+      </div>
+
+      {isEnabled && (
+        <div className="space-y-2 pl-1">
+          {/* Background */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.background || defaults.background}
+              onChange={(e) => updateField("background", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Fundo</span>
+            <Input
+              value={colors.background || defaults.background}
+              onChange={(e) => updateField("background", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Text */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.text || defaults.text}
+              onChange={(e) => updateField("text", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Texto</span>
+            <Input
+              value={colors.text || defaults.text}
+              onChange={(e) => updateField("text", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Text Muted */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.textMuted || defaults.textMuted}
+              onChange={(e) => updateField("textMuted", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Texto Secundário</span>
+            <Input
+              value={colors.textMuted || defaults.textMuted}
+              onChange={(e) => updateField("textMuted", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Highlight */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.highlight || defaults.highlight}
+              onChange={(e) => updateField("highlight", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Destaque</span>
+            <Input
+              value={colors.highlight || defaults.highlight}
+              onChange={(e) => updateField("highlight", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Surface */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.surface || defaults.surface}
+              onChange={(e) => updateField("surface", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Superfície</span>
+            <Input
+              value={colors.surface || defaults.surface}
+              onChange={(e) => updateField("surface", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Button BG */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.buttonBg || defaults.buttonBg}
+              onChange={(e) => updateField("buttonBg", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Botão (Fundo)</span>
+            <Input
+              value={colors.buttonBg || defaults.buttonBg}
+              onChange={(e) => updateField("buttonBg", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Button FG */}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={colors.buttonFg || defaults.buttonFg}
+              onChange={(e) => updateField("buttonFg", e.target.value)}
+              className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
+            />
+            <span className="text-[11px] text-zinc-400 flex-1">Botão (Texto)</span>
+            <Input
+              value={colors.buttonFg || defaults.buttonFg}
+              onChange={(e) => updateField("buttonFg", e.target.value)}
+              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+            />
+          </div>
+
+          {/* Reset to global */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onChange({ enabled: true })}
+            className="w-full text-[10px] h-6 text-zinc-500 hover:text-zinc-300"
+          >
+            Resetar para cores globais
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -198,10 +198,10 @@ export function removeLandingTheme(root?: HTMLElement): void {
  */
 export const DEFAULT_THEME: LandingThemeColors = {
   primary: '#D4AF37',
-  background: '#121212',
-  foreground: '#FFFFFF',
-  accent: '#1a1a1a',
-  muted: '#a1a1aa',
+  background: '#FFFFFF',
+  foreground: '#1a1a1a',
+  accent: '#F5F5F5',
+  muted: '#71717a',
   buttonPrimary: '#D4AF37',
   highlight: '#D4AF37',
   success: '#22c55e',

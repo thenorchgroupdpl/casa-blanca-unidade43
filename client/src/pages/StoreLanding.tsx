@@ -9,6 +9,7 @@ import { trpc } from '@/lib/trpc';
 import { useSiteData, useCartStore } from '@/store/useStore';
 import { applyLandingTheme, removeLandingTheme, type LandingThemeColors } from '@/lib/landingTheme';
 import type { SiteData, Category, Product, Feedback, DaySchedule } from '@/types';
+import { getSectionStyle } from '@/lib/sectionColors';
 
 // Layout Components
 import Header from '@/components/Header';
@@ -110,7 +111,7 @@ export default function StoreLanding() {
       }
       
       if (event.data.type === 'designPreviewUpdate' && currentData) {
-        const { design, colors, fontFamily, fontDisplay } = event.data;
+        const { design, colors, fontFamily, fontDisplay, sectionColors } = event.data;
         
         // Apply complete theme via Design Tokens system
         if (colors) {
@@ -210,6 +211,11 @@ export default function StoreLanding() {
               cta_subheadline: design.info.ctaSubheadline || updatedData.sections_content.footer.cta_subheadline,
             },
           };
+        }
+        
+        // Update section colors
+        if (sectionColors || design?.sectionColors) {
+          updatedData.section_colors = sectionColors || design?.sectionColors || {};
         }
         
         setData(updatedData);
@@ -313,30 +319,44 @@ export default function StoreLanding() {
     return <NotFoundScreen />;
   }
 
+  const sectionColors = tenantData ? (useSiteData.getState().data?.section_colors || {}) : {};
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-lp-bg" style={getSectionStyle(undefined)}>
       {/* Fixed Header */}
       <Header />
 
       {/* Main Content */}
       <main>
         {/* Hero Section */}
-        <Hero />
+        <div style={getSectionStyle(sectionColors.hero)}>
+          <Hero />
+        </div>
 
         {/* Intro Divider */}
-        <IntroSection />
+        <div style={getSectionStyle(sectionColors.intro)}>
+          <IntroSection />
+        </div>
 
         {/* Product Showcase */}
-        <VitrineSection />
+        <div style={getSectionStyle(sectionColors.vitrine)}>
+          <VitrineSection />
+        </div>
 
         {/* About Section */}
-        <AboutSection />
+        <div style={getSectionStyle(sectionColors.about)}>
+          <AboutSection />
+        </div>
 
         {/* Feedbacks Section */}
-        <FeedbacksSection />
+        <div style={getSectionStyle(sectionColors.feedbacks)}>
+          <FeedbacksSection />
+        </div>
 
         {/* Location & Contact */}
-        <LocationSection />
+        <div style={getSectionStyle(sectionColors.location)}>
+          <LocationSection />
+        </div>
       </main>
 
       {/* Footer */}
@@ -429,7 +449,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     logo_url: ld?.home?.logoUrl || '',
     logo_type: ld?.home?.logoType || 'text',
     theme: {
-      mode: 'dark',
+      mode: 'light',
       primary_color: tenant.themeColors?.primary || '#D4AF37',
       secondary_color: tenant.themeColors?.accent || '#B8860B',
     },
@@ -498,6 +518,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     },
     feedbacks: transformedFeedbacks,
     catalog: transformedCatalog,
+    section_colors: ld?.sectionColors || {},
   };
 }
 

@@ -119,6 +119,18 @@ export interface Category {
   products: Product[];
 }
 
+export interface SectionColors {
+  enabled?: boolean;
+  background?: string;
+  text?: string;
+  textMuted?: string;
+  highlight?: string;
+  surface?: string;
+  border?: string;
+  buttonBg?: string;
+  buttonFg?: string;
+}
+
 export interface SiteData {
   project_name: string;
   logo_url?: string;
@@ -129,6 +141,14 @@ export interface SiteData {
   sections_content: SectionsContent;
   feedbacks: Feedback[];
   catalog: Category[];
+  section_colors?: {
+    hero?: SectionColors;
+    intro?: SectionColors;
+    vitrine?: SectionColors;
+    about?: SectionColors;
+    feedbacks?: SectionColors;
+    location?: SectionColors;
+  };
 }
 
 // Cart types

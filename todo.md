@@ -274,3 +274,13 @@
 - [x] Atualizar postMessage handler no StoreLanding para mapear mapImageUrl
 - [x] Atualizar transformTenantDataToSiteData para carregar mapImageUrl do banco
 - [x] Atualizar LocationSection para exibir imagem no box do mapa com overlay ajustável
+
+## Fase 30: Sistema de Cores por Seção + Tema Branco
+- [x] Mudar tema padrão para fundo branco (light mode)
+- [x] Atualizar CSS variables padrão para light mode
+- [x] Adicionar tipo SectionColors ao LandingDesign (bg, text, highlight, textMuted, surface, border)
+- [x] Adicionar controles de cores individuais em cada aba do Design.tsx (Home, Sobre, Produtos, Avaliações, Info)
+- [x] Atualizar postMessage handler no StoreLanding para aplicar cores por seção
+- [x] Atualizar transformTenantDataToSiteData para carregar cores por seção do banco
+- [x] Atualizar componentes (Hero, AboutSection, VitrineSection, FeedbacksSection, LocationSection) para usar CSS variables locais
+- [x] Garantir fallback: se cor da seção não definida, usar cor global

@@ -88,76 +88,76 @@
 :root {
   --radius: 0.75rem;
   
-  /* Dark theme as default - Warm Luxury */
-  --background: oklch(0.13 0.008 60);
-  --foreground: oklch(0.92 0.01 90);
-  --card: oklch(0.17 0.008 60);
-  --card-foreground: oklch(0.92 0.01 90);
-  --popover: oklch(0.17 0.008 60);
-  --popover-foreground: oklch(0.92 0.01 90);
+  /* Light theme as default */
+  --background: oklch(0.98 0.005 90);
+  --foreground: oklch(0.15 0.01 60);
+  --card: oklch(1.00 0 0);
+  --card-foreground: oklch(0.15 0.01 60);
+  --popover: oklch(1.00 0 0);
+  --popover-foreground: oklch(0.15 0.01 60);
   
   /* Gold as primary */
   --primary: oklch(0.78 0.12 85);
   --primary-foreground: oklch(0.15 0.01 60);
   
-  /* Warm gray secondary */
-  --secondary: oklch(0.22 0.008 60);
-  --secondary-foreground: oklch(0.85 0.01 90);
+  /* Light gray secondary */
+  --secondary: oklch(0.95 0.005 90);
+  --secondary-foreground: oklch(0.25 0.01 60);
   
   /* Muted tones */
-  --muted: oklch(0.25 0.008 60);
-  --muted-foreground: oklch(0.65 0.01 90);
+  --muted: oklch(0.93 0.005 90);
+  --muted-foreground: oklch(0.45 0.01 60);
   
-  /* Accent - lighter gold */
-  --accent: oklch(0.30 0.02 85);
-  --accent-foreground: oklch(0.92 0.01 90);
+  /* Accent */
+  --accent: oklch(0.95 0.01 85);
+  --accent-foreground: oklch(0.15 0.01 60);
   
   /* Destructive */
   --destructive: oklch(0.60 0.20 25);
   --destructive-foreground: oklch(0.98 0 0);
   
   /* Borders and inputs */
-  --border: oklch(0.30 0.01 60);
-  --input: oklch(0.25 0.01 60);
+  --border: oklch(0.88 0.005 90);
+  --input: oklch(0.90 0.005 90);
   --ring: oklch(0.78 0.12 85);
   
   /* WhatsApp green */
   --whatsapp: oklch(0.65 0.18 145);
   
-  /* Landing Page Design Tokens - defaults */
+  /* Landing Page Design Tokens - defaults (light) */
   --lp-btn: #D4AF37;
   --lp-btn-hover: #BF9E32;
   --lp-btn-fg: #1a1a1a;
   --lp-highlight: #D4AF37;
-  --lp-highlight-soft: rgba(212, 175, 55, 0.2);
-  --lp-highlight-subtle: rgba(212, 175, 55, 0.1);
-  --lp-highlight-muted: rgba(212, 175, 55, 0.3);
-  --lp-highlight-border: rgba(212, 175, 55, 0.3);
+  --lp-highlight-soft: rgba(212, 175, 55, 0.15);
+  --lp-highlight-subtle: rgba(212, 175, 55, 0.08);
+  --lp-highlight-muted: rgba(212, 175, 55, 0.25);
+  --lp-highlight-border: rgba(212, 175, 55, 0.25);
   --lp-highlight-fg: #1a1a1a;
   --lp-success: #22c55e;
-  --lp-success-soft: rgba(34, 197, 94, 0.2);
+  --lp-success-soft: rgba(34, 197, 94, 0.15);
   --lp-success-fg: #ffffff;
   /* Legacy accent (mapped to highlight) */
   --lp-accent: #D4AF37;
   --lp-accent-hover: #BF9E32;
-  --lp-accent-soft: rgba(212, 175, 55, 0.2);
-  --lp-accent-subtle: rgba(212, 175, 55, 0.1);
-  --lp-accent-muted: rgba(212, 175, 55, 0.3);
-  --lp-accent-border: rgba(212, 175, 55, 0.3);
+  --lp-accent-soft: rgba(212, 175, 55, 0.15);
+  --lp-accent-subtle: rgba(212, 175, 55, 0.08);
+  --lp-accent-muted: rgba(212, 175, 55, 0.25);
+  --lp-accent-border: rgba(212, 175, 55, 0.25);
   --lp-accent-fg: #1a1a1a;
-  --lp-bg: #121212;
-  --lp-bg-lighter: #1e1e1e;
-  --lp-overlay: rgba(18, 18, 18, 0.8);
-  --lp-overlay-heavy: rgba(18, 18, 18, 0.95);
-  --lp-surface: #1a1a1a;
-  --lp-surface-hover: #242424;
-  --lp-surface-soft: rgba(26, 26, 26, 0.5);
-  --lp-text: #FFFFFF;
-  --lp-text-muted: rgba(255, 255, 255, 0.6);
-  --lp-text-subtle: rgba(255, 255, 255, 0.4);
-  --lp-text-faint: rgba(255, 255, 255, 0.1);
-  --lp-border: rgba(255, 255, 255, 0.1);
-  --lp-border-strong: rgba(255, 255, 255, 0.2);
+  --lp-bg: #FFFFFF;
+  --lp-bg-lighter: #F8F8F8;
+  --lp-overlay: rgba(255, 255, 255, 0.8);
+  --lp-overlay-heavy: rgba(255, 255, 255, 0.95);
+  --lp-surface: #F5F5F5;
+  --lp-surface-hover: #EBEBEB;
+  --lp-surface-soft: rgba(245, 245, 245, 0.5);
+  --lp-text: #1a1a1a;
+  --lp-text-muted: rgba(26, 26, 26, 0.6);
+  --lp-text-subtle: rgba(26, 26, 26, 0.4);
+  --lp-text-faint: rgba(26, 26, 26, 0.08);
+  --lp-border: rgba(26, 26, 26, 0.1);
+  --lp-border-strong: rgba(26, 26, 26, 0.2);
 }
 
 /* Light theme variant (for product cards) */
@@ -198,23 +198,23 @@
     @apply cursor-pointer;
   }
   
-  /* Custom scrollbar for dark theme */
+  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   
   ::-webkit-scrollbar-track {
-    background: oklch(0.15 0.008 60);
+    background: oklch(0.95 0.005 90);
   }
   
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.30 0.01 60);
+    background: oklch(0.80 0.005 90);
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.40 0.01 60);
+    background: oklch(0.70 0.005 90);
   }
 }
 
@@ -258,42 +258,41 @@
   
   /* Gold glow effect */
   .gold-glow {
-    box-shadow: 0 0 20px oklch(0.78 0.12 85 / 0.3),
-                0 0 40px oklch(0.78 0.12 85 / 0.1);
+    box-shadow: 0 0 20px oklch(0.78 0.12 85 / 0.2),
+                0 0 40px oklch(0.78 0.12 85 / 0.08);
   }
   
   .gold-glow-sm {
-    box-shadow: 0 0 10px oklch(0.78 0.12 85 / 0.2);
+    box-shadow: 0 0 10px oklch(0.78 0.12 85 / 0.15);
   }
   
   /* Glass effect */
   .glass {
-    background: oklch(0.17 0.008 60 / 0.8);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
   
   .glass-dark {
-    background: oklch(0.10 0.008 60 / 0.9);
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
   
-  /* Gradient overlays */
+  /* Gradient overlays - use CSS variables for dynamic theming */
   .gradient-overlay {
     background: linear-gradient(
       to bottom,
-      oklch(0.13 0.008 60 / 0) 0%,
-      oklch(0.13 0.008 60 / 0.5) 50%,
-      oklch(0.13 0.008 60 / 0.95) 100%
+      var(--lp-overlay, rgba(0,0,0,0.6)) 0%,
+      var(--lp-overlay-heavy, rgba(0,0,0,0.9)) 100%
     );
   }
   
   .gradient-top {
     background: linear-gradient(
       to bottom,
-      oklch(0.13 0.008 60 / 0.8) 0%,
-      oklch(0.13 0.008 60 / 0) 100%
+      var(--lp-overlay, rgba(0,0,0,0.6)) 0%,
+      transparent 100%
     );
   }
   
@@ -330,10 +329,10 @@
     display: none;
   }
   
-  /* Product card light background */
+  /* Product card background */
   .product-card {
-    background: oklch(0.98 0.005 90);
-    color: oklch(0.20 0.01 60);
+    background: var(--lp-surface, #F5F5F5);
+    color: var(--lp-text, #1a1a1a);
   }
   
   /* Pill button style */
