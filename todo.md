@@ -245,3 +245,10 @@
 - [x] Atualizar postMessage handler no StoreLanding para mapear companyName
 - [x] Atualizar transformTenantDataToSiteData para usar companyName do landingDesign
 - [x] Atualizar Header para usar companyName do landingDesign com fallback para project_name
+
+## Fase 26: Controle de Arredondamento de Bordas no Editor de Imagem
+- [x] Adicionar estado borderRadius ao ImageCropEditor
+- [x] Adicionar slider de controle de border-radius (0% = quadrado, 50% = redondo)
+- [x] Aplicar border-radius no preview do canvas
+- [x] Aplicar border-radius na imagem final exportada (blob)
+- [x] Testar com diferentes valores de arredondamento

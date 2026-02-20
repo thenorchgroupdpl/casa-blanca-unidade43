@@ -69,7 +69,8 @@ async function compressImage(file: File): Promise<{ blob: Blob; dataUrl: string 
 function getCroppedCanvas(
   image: HTMLImageElement,
   crop: PixelCrop,
-  zoom: number
+  zoom: number,
+  borderRadius: number = 0
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   const outputSize = Math.min(crop.width, crop.height, 800);
@@ -89,6 +90,19 @@ function getCroppedCanvas(
   const sourceY = crop.y * scaleY;
   const sourceWidth = crop.width * scaleX;
   const sourceHeight = crop.height * scaleY;
+
+  // Apply border-radius clipping if needed
+  if (borderRadius > 0) {
+    const radiusPixels = (borderRadius / 100) * (outputSize / 2);
+    ctx.beginPath();
+    ctx.moveTo(radiusPixels, 0);
+    ctx.arcTo(outputSize, 0, outputSize, outputSize, radiusPixels);
+    ctx.arcTo(outputSize, outputSize, 0, outputSize, radiusPixels);
+    ctx.arcTo(0, outputSize, 0, 0, radiusPixels);
+    ctx.arcTo(0, 0, outputSize, 0, radiusPixels);
+    ctx.closePath();
+    ctx.clip();
+  }
 
   ctx.drawImage(
     image,
@@ -128,6 +142,7 @@ export default function ImageCropEditor({
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [zoom, setZoom] = useState(1);
+  const [borderRadius, setBorderRadius] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -185,7 +200,7 @@ export default function ImageCropEditor({
 
     setIsProcessing(true);
     try {
-      const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom);
+      const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom, borderRadius);
       const base64 = canvas.toDataURL("image/jpeg", QUALITY);
 
       const blob = await new Promise<Blob>((resolve, reject) => {
@@ -202,10 +217,11 @@ export default function ImageCropEditor({
     } finally {
       setIsProcessing(false);
     }
-  }, [completedCrop, zoom, onComplete]);
+  }, [completedCrop, zoom, borderRadius, onComplete]);
 
   const handleReset = () => {
     setZoom(1);
+    setBorderRadius(0);
     if (imgRef.current) {
       const { width, height } = imgRef.current;
       const cropSize = Math.min(width, height) * 0.8;
@@ -220,6 +236,7 @@ export default function ImageCropEditor({
     setCrop(undefined);
     setCompletedCrop(undefined);
     setZoom(1);
+    setBorderRadius(0);
     onClose();
   };
 
@@ -294,6 +311,21 @@ export default function ImageCropEditor({
             </button>
             <span className="text-xs text-zinc-500 font-mono w-12 text-right">
               {Math.round(zoom * 100)}%
+            </span>
+          </div>
+          {/* Border Radius Control */}
+          <div className="flex items-center gap-3 pt-2 border-t border-zinc-800">
+            <span className="text-xs text-zinc-400 w-24 shrink-0">Arredondamento</span>
+            <Slider
+              value={[borderRadius]}
+              onValueChange={([v]) => setBorderRadius(v)}
+              min={0}
+              max={50}
+              step={1}
+              className="flex-1"
+            />
+            <span className="text-xs text-zinc-500 font-mono w-12 text-right">
+              {borderRadius}%
             </span>
           </div>
           <div className="flex justify-center">
