@@ -28,8 +28,8 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
             className="w-12 h-12 rounded-full object-cover"
           />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-lp-accent-soft flex items-center justify-center flex-shrink-0">
-            <span className="text-lp-accent font-semibold text-lg">
+          <div className="w-12 h-12 rounded-full bg-lp-highlight-soft flex items-center justify-center flex-shrink-0">
+            <span className="text-lp-highlight font-semibold text-lg">
               {feedback.author_name.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -40,7 +40,7 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
               {feedback.author_name}
             </h4>
             {feedback.verified && (
-              <BadgeCheck className="w-4 h-4 text-lp-accent flex-shrink-0" />
+              <BadgeCheck className="w-4 h-4 text-lp-highlight flex-shrink-0" />
             )}
           </div>
           <div className="flex items-center gap-2 mt-1">
@@ -52,7 +52,7 @@ function FeedbackCard({ feedback, onPhotoClick }: FeedbackCardProps) {
                   className={cn(
                     'w-4 h-4',
                     star <= feedback.rating
-                      ? 'fill-lp-accent text-lp-accent'
+                      ? 'fill-lp-highlight text-lp-highlight'
                       : 'fill-lp-surface-soft text-lp-text-subtle'
                   )}
                 />
@@ -213,7 +213,7 @@ export default function FeedbacksSection() {
           transition={{ duration: 0.6 }}
         >
           <div>
-            <p className="text-lp-accent text-sm font-medium tracking-wider uppercase mb-3">
+            <p className="text-lp-highlight text-sm font-medium tracking-wider uppercase mb-3">
               Avaliações
             </p>
             <h2 className="font-display text-3xl md:text-4xl text-lp-text">
@@ -227,7 +227,7 @@ export default function FeedbacksSection() {
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className="w-5 h-5 fill-lp-accent text-lp-accent"
+                  className="w-5 h-5 fill-lp-highlight text-lp-highlight"
                 />
               ))}
             </div>

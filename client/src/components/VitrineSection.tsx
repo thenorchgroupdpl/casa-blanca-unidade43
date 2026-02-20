@@ -72,8 +72,8 @@ function CategoryCarousel({ category, index }: CategoryCarouselProps) {
             onClick={handleViewAll}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-full',
-              'text-sm font-medium text-lp-accent',
-              'border border-lp-accent-border hover:border-lp-accent hover:bg-lp-accent-subtle',
+              'text-sm font-medium text-lp-highlight',
+              'border border-lp-highlight-border hover:border-lp-highlight hover:bg-lp-highlight-subtle',
               'transition-all duration-200'
             )}
           >
@@ -133,7 +133,7 @@ export default function VitrineSection() {
           className={cn(
             'inline-flex items-center gap-3 px-8 py-4 rounded-full',
             'bg-lp-text-faint border border-lp-border text-lp-text',
-            'hover:bg-lp-border hover:border-lp-accent-border transition-all duration-300',
+            'hover:bg-lp-border hover:border-lp-highlight-border transition-all duration-300',
             'font-medium'
           )}
         >

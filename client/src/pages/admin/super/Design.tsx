@@ -103,11 +103,14 @@ type LandingDesign = {
 };
 
 type ThemeColors = {
-  primary: string;
-  background: string;
-  foreground: string;
-  accent: string;
-  muted: string;
+  primary: string;        // LEGACY: kept for backward compat
+  background: string;     // Fundo do Site
+  foreground: string;     // Texto Principal
+  accent: string;         // Superfícies (cards, modais)
+  muted: string;          // Texto Secundário
+  buttonPrimary: string;  // Botões Principais (CTA)
+  highlight: string;      // Destaques (preços, links, ícones, estrelas)
+  success: string;        // Notificações/Sucesso (toasts, badges)
 };
 
 type SectionTab = "home" | "products" | "about" | "reviews" | "info";
@@ -175,6 +178,9 @@ const defaultColors: ThemeColors = {
   foreground: "#FFFFFF",
   accent: "#1a1a1a",
   muted: "#a1a1aa",
+  buttonPrimary: "#D4AF37",
+  highlight: "#D4AF37",
+  success: "#22c55e",
 };
 
 // ============================================
@@ -233,7 +239,15 @@ export default function DesignPage() {
         info: { ...defaultDesign.info, ...ld?.info },
         global: { ...defaultDesign.global, ...ld?.global },
       });
-      setColors((landingData.tenant.themeColors as ThemeColors) || defaultColors);
+      const savedColors = (landingData.tenant.themeColors as Partial<ThemeColors>) || {};
+      setColors({
+        ...defaultColors,
+        ...savedColors,
+        // Ensure new fields have fallback to primary for backward compat
+        buttonPrimary: savedColors.buttonPrimary || savedColors.primary || defaultColors.buttonPrimary,
+        highlight: savedColors.highlight || savedColors.primary || defaultColors.highlight,
+        success: savedColors.success || defaultColors.success,
+      });
       setFontFamily(landingData.tenant.fontFamily || "DM Sans");
       setFontDisplay(landingData.tenant.fontDisplay || "DM Serif Display");
       setBorderRadius(landingData.tenant.borderRadius || "0.75rem");
@@ -687,34 +701,49 @@ function getLuminance(hex: string): number {
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 }
 
-// Color groups with descriptions of what each controls
-const COLOR_GROUPS = [
+// Color groups organized by category
+const ACTION_COLOR_GROUPS: { key: keyof ThemeColors; label: string; description: string; icon: string }[] = [
   {
-    key: "primary" as const,
-    label: "Cor de Destaque",
-    description: "Botões, preços, estrelas, ícones, badges, overlines",
-    icon: "🎨",
+    key: "buttonPrimary",
+    label: "Botões Principais",
+    description: "\"Fazer Pedido\", \"Mandar Mensagem\", \"Finalizar Compra\"",
+    icon: "🔘",
   },
   {
-    key: "background" as const,
+    key: "highlight",
+    label: "Destaques",
+    description: "Preços, links, filtros ativos, ícones, estrelas",
+    icon: "✨",
+  },
+  {
+    key: "success",
+    label: "Notificações / Sucesso",
+    description: "Toast \"Produto adicionado\", badges, ícone check",
+    icon: "✅",
+  },
+];
+
+const STRUCTURE_COLOR_GROUPS: { key: keyof ThemeColors; label: string; description: string; icon: string }[] = [
+  {
+    key: "background",
     label: "Fundo do Site",
     description: "Background principal, gradientes, overlays",
     icon: "🖼️",
   },
   {
-    key: "accent" as const,
+    key: "accent",
     label: "Superfícies",
     description: "Cards, modais, drawers, popups, inputs",
     icon: "📦",
   },
   {
-    key: "foreground" as const,
+    key: "foreground",
     label: "Texto Principal",
     description: "Títulos, headlines, nomes, labels",
     icon: "✏️",
   },
   {
-    key: "muted" as const,
+    key: "muted",
     label: "Texto Secundário",
     description: "Subtítulos, descrições, placeholders",
     icon: "💬",
@@ -755,12 +784,12 @@ function GlobalStylesPanel({
 
       {isOpen && (
         <div className="mt-3 space-y-4">
-          {/* Color Groups */}
-          <div className="space-y-3">
-            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Paleta de Cores</Label>
-            {COLOR_GROUPS.map(({ key, label, description, icon }) => (
+          {/* Action Colors */}
+          <div className="space-y-2">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Cores de Ação</Label>
+            {ACTION_COLOR_GROUPS.map(({ key, label, description, icon }) => (
               <div key={key} className="rounded-lg bg-zinc-800/50 border border-zinc-700/50 p-2.5">
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={colors[key]}
@@ -780,29 +809,65 @@ function GlobalStylesPanel({
                     className="w-[72px] h-6 text-[10px] bg-zinc-900 border-zinc-700 font-mono px-1.5"
                   />
                 </div>
-                {/* Preview swatch showing derived colors */}
-                {key === "primary" && (
-                  <div className="flex gap-1 mt-1">
-                    <div className="h-3 flex-1 rounded-sm" style={{ background: colors.primary }} title="Accent" />
-                    <div className="h-3 flex-1 rounded-sm" style={{ background: colors.primary, opacity: 0.3 }} title="Soft" />
-                    <div className="h-3 flex-1 rounded-sm" style={{ background: colors.primary, opacity: 0.1 }} title="Subtle" />
+                {/* Preview swatch for buttons */}
+                {key === "buttonPrimary" && (
+                  <div className="flex gap-1 mt-1.5">
+                    <div
+                      className="h-5 flex-1 rounded text-[9px] font-bold flex items-center justify-center"
+                      style={{
+                        background: colors.buttonPrimary,
+                        color: getLuminance(colors.buttonPrimary) > 0.4 ? '#1a1a1a' : '#ffffff',
+                      }}
+                    >
+                      Botão
+                    </div>
+                  </div>
+                )}
+                {/* Preview swatch for success */}
+                {key === "success" && (
+                  <div className="flex gap-1 mt-1.5">
+                    <div
+                      className="h-5 flex-1 rounded text-[9px] font-bold flex items-center justify-center gap-1"
+                      style={{
+                        background: colors.success,
+                        color: getLuminance(colors.success) > 0.4 ? '#1a1a1a' : '#ffffff',
+                      }}
+                    >
+                      ✓ Produto adicionado!
+                    </div>
                   </div>
                 )}
               </div>
             ))}
-            {/* Auto-contrast indicator */}
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded bg-zinc-800/30 border border-zinc-700/30">
-              <div
-                className="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold shrink-0"
-                style={{
-                  background: colors.primary,
-                  color: getLuminance(colors.primary) > 0.4 ? '#1a1a1a' : '#ffffff',
-                }}
-              >
-                Aa
+          </div>
+
+          {/* Structure Colors */}
+          <div className="space-y-2">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Cores de Estrutura</Label>
+            {STRUCTURE_COLOR_GROUPS.map(({ key, label, description, icon }) => (
+              <div key={key} className="rounded-lg bg-zinc-800/50 border border-zinc-700/50 p-2.5">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={colors[key]}
+                    onChange={(e) => onColorChange(key, e.target.value)}
+                    className="w-7 h-7 rounded cursor-pointer border border-zinc-600 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px]">{icon}</span>
+                      <span className="text-xs font-medium text-zinc-200">{label}</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-500 leading-tight mt-0.5 truncate">{description}</p>
+                  </div>
+                  <Input
+                    value={colors[key]}
+                    onChange={(e) => onColorChange(key, e.target.value)}
+                    className="w-[72px] h-6 text-[10px] bg-zinc-900 border-zinc-700 font-mono px-1.5"
+                  />
+                </div>
               </div>
-              <span className="text-[10px] text-zinc-500">Contraste de botões calculado automaticamente</span>
-            </div>
+            ))}
           </div>
 
           {/* Typography */}

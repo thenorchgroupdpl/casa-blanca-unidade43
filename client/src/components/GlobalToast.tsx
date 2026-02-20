@@ -44,8 +44,8 @@ export default function GlobalToast() {
           padding: '16px 20px',
           borderRadius: '16px',
           background: 'linear-gradient(135deg, var(--lp-surface) 0%, var(--lp-surface-hover) 100%)',
-          border: '1px solid var(--lp-accent-border)',
-          boxShadow: '0 20px 60px var(--lp-overlay), 0 0 20px var(--lp-accent-soft)',
+          border: '1px solid var(--lp-success, var(--lp-accent-border))',
+          boxShadow: '0 20px 60px var(--lp-overlay), 0 0 20px var(--lp-success-soft, var(--lp-accent-soft))',
           cursor: 'pointer',
         }}
         onClick={hideToast}
@@ -60,10 +60,10 @@ export default function GlobalToast() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'var(--lp-accent-soft)',
+            backgroundColor: 'var(--lp-success-soft)',
           }}
         >
-          <Check style={{ width: '22px', height: '22px', color: 'var(--lp-accent)' }} />
+          <Check style={{ width: '22px', height: '22px', color: 'var(--lp-success)' }} />
         </div>
 
         {/* Content */}

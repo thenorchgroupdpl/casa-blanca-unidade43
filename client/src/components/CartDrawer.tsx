@@ -74,7 +74,7 @@ export default function CartDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-lp-border">
               <div className="flex items-center gap-3">
-                <ShoppingBag className="w-6 h-6 text-lp-accent" />
+                <ShoppingBag className="w-6 h-6 text-lp-highlight" />
                 <h2 className="font-display text-xl text-lp-text">Sua Sacola</h2>
               </div>
               <button
@@ -101,7 +101,7 @@ export default function CartDrawer() {
                   </p>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="mt-6 px-6 py-2 rounded-full bg-lp-accent text-lp-accent-fg font-medium"
+                    className="mt-6 px-6 py-2 rounded-full bg-lp-btn text-lp-btn-fg font-medium"
                   >
                     Explorar cardápio
                   </button>
@@ -137,7 +137,7 @@ export default function CartDrawer() {
                           <h4 className="font-medium text-lp-text truncate">
                             {item.product.name}
                           </h4>
-                          <p className="text-lp-accent font-semibold mt-1">
+                          <p className="text-lp-highlight font-semibold mt-1">
                             {formatPrice(item.product.price * item.quantity)}
                           </p>
 
@@ -158,7 +158,7 @@ export default function CartDrawer() {
                               onClick={() =>
                                 updateQuantity(item.product.id, item.quantity + 1)
                               }
-                              className="w-8 h-8 rounded-full bg-lp-accent text-lp-accent-fg flex items-center justify-center hover:bg-lp-accent-hover transition-colors"
+                              className="w-8 h-8 rounded-full bg-lp-btn text-lp-btn-fg flex items-center justify-center hover:bg-lp-btn-hover transition-colors"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -189,7 +189,7 @@ export default function CartDrawer() {
                           'w-full px-4 py-3 rounded-xl resize-none',
                           'bg-lp-surface-soft border border-lp-border',
                           'text-lp-text placeholder:text-lp-text-muted',
-                          'focus:outline-none focus:border-lp-accent-border focus:ring-1 focus:ring-lp-accent-soft',
+                          'focus:outline-none focus:border-lp-highlight-border focus:ring-1 focus:ring-lp-highlight-soft',
                           'transition-all'
                         )}
                       />
@@ -201,7 +201,7 @@ export default function CartDrawer() {
                     {/* Total */}
                     <div className="flex items-center justify-between">
                       <span className="text-lg text-lp-text">Total</span>
-                      <span className="text-2xl font-bold text-lp-accent">
+                      <span className="text-2xl font-bold text-lp-highlight">
                         {formatPrice(totalPrice)}
                       </span>
                     </div>

@@ -116,7 +116,7 @@ export default function ProductBottomSheet() {
                         className={cn(
                           'w-2 h-2 rounded-full transition-all',
                           index === currentImageIndex
-                            ? 'bg-lp-accent w-6'
+                            ? 'bg-lp-highlight w-6'
                             : 'bg-lp-border hover:bg-lp-border-strong'
                         )}
                       />
@@ -132,7 +132,7 @@ export default function ProductBottomSheet() {
                   <h2 className="font-display text-2xl text-lp-text mb-2">
                     {selectedProduct.name}
                   </h2>
-                  <p className="text-lp-accent text-xl font-semibold">
+                  <p className="text-lp-highlight text-xl font-semibold">
                     {formatPrice(selectedProduct.price)}
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export default function ProductBottomSheet() {
                     </span>
                     <button
                       onClick={incrementQuantity}
-                      className="w-10 h-10 rounded-full bg-lp-accent text-lp-accent-fg flex items-center justify-center hover:bg-lp-accent-hover transition-colors"
+                      className="w-10 h-10 rounded-full bg-lp-btn text-lp-btn-fg flex items-center justify-center hover:bg-lp-btn-hover transition-colors"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
@@ -175,7 +175,7 @@ export default function ProductBottomSheet() {
                 {/* Add to Cart Button */}
                 <button
                   onClick={handleAddToCart}
-                  className="w-full py-4 rounded-full bg-lp-accent text-lp-accent-fg font-semibold text-lg flex items-center justify-center gap-3 hover:bg-lp-accent-hover transition-colors"
+                  className="w-full py-4 rounded-full bg-lp-btn text-lp-btn-fg font-semibold text-lg flex items-center justify-center gap-3 hover:bg-lp-btn-hover transition-colors"
                 >
                   <ShoppingBag className="w-5 h-5" />
                   Adicionar ({quantity}) - {formatPrice(totalPrice)}

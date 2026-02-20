@@ -53,7 +53,7 @@ export default function WhatsAppModal() {
               {/* Content */}
               <div className="text-center">
                 {/* Avatar */}
-                <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border-2 border-lp-accent-border">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border-2 border-lp-highlight-border">
                   {data.sections_content.about.owner_photo ? (
                     <img
                       src={data.sections_content.about.owner_photo}
@@ -61,8 +61,8 @@ export default function WhatsAppModal() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-lp-accent-soft flex items-center justify-center">
-                      <MessageCircle className="w-8 h-8 text-lp-accent" />
+                    <div className="w-full h-full bg-lp-highlight-soft flex items-center justify-center">
+                      <MessageCircle className="w-8 h-8 text-lp-highlight" />
                     </div>
                   )}
                 </div>

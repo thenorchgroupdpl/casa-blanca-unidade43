@@ -58,7 +58,7 @@ export default function Header() {
             transition={{ duration: 0.5 }}
           >
             <span className="font-display text-2xl md:text-3xl text-lp-text">
-              Casa <span className="text-lp-accent">Blanca</span>
+              Casa <span className="text-lp-highlight">Blanca</span>
             </span>
           </motion.a>
 
@@ -68,7 +68,7 @@ export default function Header() {
               <motion.a
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-lp-text-muted hover:text-lp-accent transition-colors"
+                className="text-sm font-medium text-lp-text-muted hover:text-lp-highlight transition-colors"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -85,8 +85,8 @@ export default function Header() {
               onClick={openWhatsAppModal}
               className={cn(
                 'hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full',
-                'bg-lp-accent text-lp-accent-fg font-medium text-sm',
-                'bg-lp-accent-hover transition-all duration-200',
+                'bg-lp-btn text-lp-btn-fg font-medium text-sm',
+                'hover:bg-lp-btn-hover transition-all duration-200',
                 'gold-glow-sm hover:gold-glow'
               )}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -129,7 +129,7 @@ export default function Header() {
                       'flex items-center justify-center',
                       'text-xs font-bold',
                       'rounded-full',
-                      'bg-lp-accent text-lp-accent-fg'
+                      'bg-lp-success text-lp-success-fg'
                     )}
                   >
                     {totalItems > 99 ? '99+' : totalItems}

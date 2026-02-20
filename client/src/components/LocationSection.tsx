@@ -58,7 +58,7 @@ export default function LocationSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
         >
-          <p className="text-lp-accent text-sm font-medium tracking-wider uppercase mb-3">
+          <p className="text-lp-highlight text-sm font-medium tracking-wider uppercase mb-3">
             {location.pre_headline}
           </p>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-lp-text">
@@ -90,14 +90,14 @@ export default function LocationSection() {
                 />
               ) : (
                 <div className="w-full h-full bg-lp-surface flex items-center justify-center">
-                  <MapPin className="w-16 h-16 text-lp-accent-soft" />
+                  <MapPin className="w-16 h-16 text-lp-highlight-soft" />
                 </div>
               )}
               
               {/* Overlay */}
               <div className="absolute inset-0 bg-lp-overlay group-hover:bg-black/40 transition-colors flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3 text-lp-text">
-                  <div className="p-4 rounded-full bg-lp-accent gold-glow">
+                  <div className="p-4 rounded-full bg-lp-btn gold-glow">
                     <MapPin className="w-8 h-8" />
                   </div>
                   <span className="font-medium flex items-center gap-2">
@@ -120,8 +120,8 @@ export default function LocationSection() {
             {/* Address */}
             <div className="p-6 bg-lp-surface rounded-2xl border border-lp-border">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-lp-accent-soft">
-                  <MapPin className="w-6 h-6 text-lp-accent" />
+                <div className="p-3 rounded-xl bg-lp-highlight-soft">
+                  <MapPin className="w-6 h-6 text-lp-highlight" />
                 </div>
                 <div>
                   <h3 className="font-medium text-lp-text mb-2">Endereço</h3>
@@ -149,14 +149,14 @@ export default function LocationSection() {
             {/* Phone */}
             <div className="p-6 bg-lp-surface rounded-2xl border border-lp-border">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-lp-accent-soft">
-                  <Phone className="w-6 h-6 text-lp-accent" />
+                <div className="p-3 rounded-xl bg-lp-highlight-soft">
+                  <Phone className="w-6 h-6 text-lp-highlight" />
                 </div>
                 <div>
                   <h3 className="font-medium text-lp-text mb-2">Telefone</h3>
                   <a
                     href={`tel:${contact.phone.replace(/\D/g, '')}`}
-                    className="text-lp-text-muted hover:text-lp-accent transition-colors"
+                    className="text-lp-text-muted hover:text-lp-highlight transition-colors"
                   >
                     {formatPhone(contact.phone)}
                   </a>
@@ -167,11 +167,11 @@ export default function LocationSection() {
             {/* Hours */}
             <button
               onClick={openScheduleModal}
-              className="w-full p-6 bg-lp-surface rounded-2xl border border-lp-border hover:border-lp-accent-border transition-colors text-left"
+              className="w-full p-6 bg-lp-surface rounded-2xl border border-lp-border hover:border-lp-highlight-border transition-colors text-left"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-lp-accent-soft">
-                  <Clock className="w-6 h-6 text-lp-accent" />
+                <div className="p-3 rounded-xl bg-lp-highlight-soft">
+                  <Clock className="w-6 h-6 text-lp-highlight" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-lp-text mb-2">Horário de Funcionamento</h3>
@@ -185,7 +185,7 @@ export default function LocationSection() {
                       </div>
                     ))}
                   </div>
-                  <p className="mt-2 text-lp-accent text-sm">Ver horário completo →</p>
+                  <p className="mt-2 text-lp-highlight text-sm">Ver horário completo →</p>
                 </div>
               </div>
             </button>
@@ -201,10 +201,10 @@ export default function LocationSection() {
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 p-4 rounded-xl',
                     'bg-lp-surface border border-lp-border',
-                    'hover:border-lp-accent-border hover:bg-lp-accent-subtle transition-all'
+                    'hover:border-lp-highlight-border hover:bg-lp-highlight-subtle transition-all'
                   )}
                 >
-                  <social.icon className="w-5 h-5 text-lp-accent" />
+                  <social.icon className="w-5 h-5 text-lp-highlight" />
                   <span className="text-sm text-lp-text-muted hidden sm:inline">
                     {social.handle}
                   </span>

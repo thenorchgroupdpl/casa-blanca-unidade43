@@ -92,8 +92,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
         onClick={handleCardClick}
         className={cn(
           'group relative bg-lp-surface rounded-xl overflow-hidden cursor-pointer',
-          'border border-lp-border hover:border-lp-accent-border transition-all duration-300',
-          'hover:shadow-lg hover:bg-lp-accent-subtle'
+          'border border-lp-border hover:border-lp-highlight-border transition-all duration-300',
+          'hover:shadow-lg hover:bg-lp-highlight-subtle'
         )}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -123,7 +123,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
             onClick={handleAddToCart}
             className={cn(
               'absolute bottom-3 right-3 p-2 rounded-full',
-              'bg-lp-accent text-lp-accent-fg',
+              'bg-lp-btn text-lp-btn-fg',
               'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
               'hover:scale-110 active:scale-95'
             )}
@@ -135,7 +135,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
         {/* Info */}
         <div className="p-4">
           <h3 className="font-medium text-lp-text line-clamp-1">{product.name}</h3>
-          <p className="text-lp-accent font-semibold mt-1">{formatPrice(product.price)}</p>
+          <p className="text-lp-highlight font-semibold mt-1">{formatPrice(product.price)}</p>
         </div>
       </motion.div>
     );
@@ -196,7 +196,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
                   key={idx}
                   className={cn(
                     'w-1.5 h-1.5 rounded-full transition-colors',
-                    idx === currentImageIndex ? 'bg-lp-accent' : 'bg-lp-text-subtle'
+                    idx === currentImageIndex ? 'bg-lp-highlight' : 'bg-lp-text-subtle'
                   )}
                 />
               ))}

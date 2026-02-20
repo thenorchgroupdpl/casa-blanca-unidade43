@@ -138,7 +138,7 @@ export default function OrderOverlay() {
                     'w-full pl-12 pr-4 py-3 rounded-xl',
                     'bg-muted/50 border border-border/50',
                     'text-foreground placeholder:text-muted-foreground',
-                    'focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20',
+                    'focus:outline-none focus:border-lp-highlight/50 focus:ring-1 focus:ring-lp-highlight/20',
                     'transition-all'
                   )}
                 />
@@ -162,7 +162,7 @@ export default function OrderOverlay() {
                   className={cn(
                     'pill flex-shrink-0',
                     !selectedCategory
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-lp-highlight text-lp-highlight-fg'
                       : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                   )}
                 >
@@ -176,7 +176,7 @@ export default function OrderOverlay() {
                     className={cn(
                       'pill flex-shrink-0',
                       selectedCategory === cat.id
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-lp-highlight text-lp-highlight-fg'
                         : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                     )}
                   >
@@ -210,7 +210,7 @@ export default function OrderOverlay() {
                     setSearchQuery('');
                     setSelectedCategory(null);
                   }}
-                  className="mt-6 px-6 py-2 rounded-full bg-primary text-primary-foreground font-medium"
+                  className="mt-6 px-6 py-2 rounded-full bg-lp-btn text-lp-btn-fg font-medium"
                 >
                   Ver todos os produtos
                 </button>
@@ -291,7 +291,7 @@ function FloatingCartBar({ totalItems, totalPrice }: FloatingCartBarProps) {
         className={cn(
           'w-full max-w-lg mx-auto flex items-center justify-between',
           'px-6 py-4 rounded-2xl',
-          'bg-primary text-primary-foreground',
+          'bg-lp-btn text-lp-btn-fg',
           'gold-glow hover:scale-[1.02] active:scale-[0.98] transition-transform'
         )}
       >

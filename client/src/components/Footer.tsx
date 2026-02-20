@@ -39,8 +39,8 @@ export default function Footer() {
           onClick={openWhatsAppModal}
           className={cn(
             'inline-flex items-center gap-3 px-8 py-4 rounded-full',
-            'bg-lp-accent text-lp-accent-fg font-semibold text-lg',
-            'hover:bg-lp-accent-hover transition-all duration-300',
+            'bg-lp-btn text-lp-btn-fg font-semibold text-lg',
+            'hover:bg-lp-btn-hover transition-all duration-300',
             'gold-glow hover:scale-105'
           )}
         >
@@ -55,7 +55,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Logo */}
             <div className="font-display text-xl text-lp-text">
-              Casa <span className="text-lp-accent">Blanca</span>
+              Casa <span className="text-lp-highlight">Blanca</span>
             </div>
 
             {/* Copyright */}

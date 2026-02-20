@@ -1,25 +1,29 @@
 /**
  * Landing Page Theme System
  * 
- * Converts the 5 Design System colors into a complete set of CSS variables
+ * Converts the 8 Design System colors into a complete set of CSS variables
  * that control every visual element on the landing page.
  * 
- * Color Groups:
- * 1. Accent (primary)  → Buttons, badges, prices, stars, icons, overlines
- * 2. Accent Foreground → Text on accent backgrounds (button labels)
- * 3. Background        → Site bg, gradients
- * 4. Surface (accent)  → Cards, modals, popups, drawers
- * 5. Text (foreground) → Headlines, titles
- * 6. Text Muted (muted)→ Subtitles, descriptions, placeholders
- * 7. Border            → Card borders, dividers
+ * Color Groups (8 independent controls):
+ * 1. Button Primary (buttonPrimary) → CTA buttons: "Fazer Pedido", "Mandar Mensagem", "Finalizar Compra"
+ * 2. Highlight (highlight)          → Prices, links, active filters, icons, overlines, stars
+ * 3. Success (success)              → Toast notifications, check icons, cart badges
+ * 4. Background (background)        → Site bg, gradients
+ * 5. Surface (accent)               → Cards, modals, popups, drawers
+ * 6. Text (foreground)              → Headlines, titles
+ * 7. Text Muted (muted)             → Subtitles, descriptions, placeholders
+ * 8. Border                         → Derived from foreground
  */
 
 export interface LandingThemeColors {
-  primary: string;    // Accent/highlight color
-  background: string; // Main site background
-  foreground: string; // Primary text color
-  accent: string;     // Surface/card background
-  muted: string;      // Secondary text color
+  primary: string;        // LEGACY: kept for backward compat, maps to highlight
+  background: string;     // Main site background
+  foreground: string;     // Primary text color
+  accent: string;         // Surface/card background
+  muted: string;          // Secondary text color
+  buttonPrimary: string;  // CTA button backgrounds
+  highlight: string;      // Prices, links, active states, icons, stars
+  success: string;        // Toasts, badges, check icons
 }
 
 /**
@@ -52,7 +56,6 @@ function getLuminance(r: number, g: number, b: number): number {
 function getContrastColor(bgHex: string): string {
   const { r, g, b } = hexToRgb(bgHex);
   const luminance = getLuminance(r, g, b);
-  // Use white text on dark backgrounds, black on light
   return luminance > 0.4 ? '#1a1a1a' : '#ffffff';
 }
 
@@ -87,48 +90,69 @@ function hexToRgba(hex: string, alpha: number): string {
 export function applyLandingTheme(colors: LandingThemeColors, root?: HTMLElement): void {
   const el = root || document.documentElement;
   
-  // === Group 1: Accent (Primary) ===
-  // Controls: CTA buttons, badges, prices, stars, icons, overlines, active states
-  el.style.setProperty('--lp-accent', colors.primary);
-  el.style.setProperty('--lp-accent-hover', adjustColor(colors.primary, -10));
-  el.style.setProperty('--lp-accent-soft', hexToRgba(colors.primary, 0.2));
-  el.style.setProperty('--lp-accent-subtle', hexToRgba(colors.primary, 0.1));
-  el.style.setProperty('--lp-accent-muted', hexToRgba(colors.primary, 0.3));
-  el.style.setProperty('--lp-accent-border', hexToRgba(colors.primary, 0.3));
+  // Resolve the 3 action colors (use legacy primary as fallback)
+  const btnColor = colors.buttonPrimary || colors.primary;
+  const hlColor = colors.highlight || colors.primary;
+  const successColor = colors.success || '#22c55e'; // green default
   
-  // === Group 2: Accent Foreground ===
-  // Controls: Text on accent-colored backgrounds (button labels, badge text)
-  const accentFg = getContrastColor(colors.primary);
-  el.style.setProperty('--lp-accent-fg', accentFg);
+  // === Group 1: Button Primary ===
+  // Controls: CTA buttons ("Fazer Pedido", "Mandar Mensagem", "Finalizar Compra", etc.)
+  el.style.setProperty('--lp-btn', btnColor);
+  el.style.setProperty('--lp-btn-hover', adjustColor(btnColor, -10));
+  el.style.setProperty('--lp-btn-fg', getContrastColor(btnColor));
   
-  // === Group 3: Background ===
+  // === Group 2: Highlight ===
+  // Controls: Prices, links, active filters, icons, stars, overlines, decorative elements
+  el.style.setProperty('--lp-highlight', hlColor);
+  el.style.setProperty('--lp-highlight-soft', hexToRgba(hlColor, 0.2));
+  el.style.setProperty('--lp-highlight-subtle', hexToRgba(hlColor, 0.1));
+  el.style.setProperty('--lp-highlight-muted', hexToRgba(hlColor, 0.3));
+  el.style.setProperty('--lp-highlight-border', hexToRgba(hlColor, 0.3));
+  el.style.setProperty('--lp-highlight-fg', getContrastColor(hlColor));
+  
+  // === Group 3: Success ===
+  // Controls: Toast notifications, check icons, cart quantity badges
+  el.style.setProperty('--lp-success', successColor);
+  el.style.setProperty('--lp-success-soft', hexToRgba(successColor, 0.2));
+  el.style.setProperty('--lp-success-fg', getContrastColor(successColor));
+  
+  // === LEGACY: Keep --lp-accent mapped to highlight for any remaining references ===
+  el.style.setProperty('--lp-accent', hlColor);
+  el.style.setProperty('--lp-accent-hover', adjustColor(hlColor, -10));
+  el.style.setProperty('--lp-accent-soft', hexToRgba(hlColor, 0.2));
+  el.style.setProperty('--lp-accent-subtle', hexToRgba(hlColor, 0.1));
+  el.style.setProperty('--lp-accent-muted', hexToRgba(hlColor, 0.3));
+  el.style.setProperty('--lp-accent-border', hexToRgba(hlColor, 0.3));
+  el.style.setProperty('--lp-accent-fg', getContrastColor(hlColor));
+  
+  // === Group 4: Background ===
   // Controls: Main site background, section backgrounds, gradients
   el.style.setProperty('--lp-bg', colors.background);
   el.style.setProperty('--lp-bg-lighter', adjustColor(colors.background, 5));
   el.style.setProperty('--lp-overlay', hexToRgba(colors.background, 0.8));
   el.style.setProperty('--lp-overlay-heavy', hexToRgba(colors.background, 0.95));
   
-  // === Group 4: Surface ===
+  // === Group 5: Surface ===
   // Controls: Cards, modals, popups, drawers, input backgrounds
   el.style.setProperty('--lp-surface', colors.accent);
   el.style.setProperty('--lp-surface-hover', adjustColor(colors.accent, 8));
   el.style.setProperty('--lp-surface-soft', hexToRgba(colors.accent, 0.5));
   
-  // === Group 5: Text ===
+  // === Group 6: Text ===
   // Controls: Headlines, titles, primary text
   el.style.setProperty('--lp-text', colors.foreground);
   el.style.setProperty('--lp-text-muted', hexToRgba(colors.foreground, 0.6));
   el.style.setProperty('--lp-text-subtle', hexToRgba(colors.foreground, 0.4));
   el.style.setProperty('--lp-text-faint', hexToRgba(colors.foreground, 0.1));
   
-  // === Group 6: Border ===
+  // === Group 7: Border ===
   // Controls: Card borders, dividers, separators
   el.style.setProperty('--lp-border', hexToRgba(colors.foreground, 0.1));
   el.style.setProperty('--lp-border-strong', hexToRgba(colors.foreground, 0.2));
   
   // Also update the existing shadcn/ui CSS variables for compatibility
-  el.style.setProperty('--primary', colors.primary);
-  el.style.setProperty('--primary-foreground', accentFg);
+  el.style.setProperty('--primary', btnColor);
+  el.style.setProperty('--primary-foreground', getContrastColor(btnColor));
   el.style.setProperty('--background', colors.background);
   el.style.setProperty('--foreground', colors.foreground);
   el.style.setProperty('--card', colors.accent);
@@ -136,7 +160,7 @@ export function applyLandingTheme(colors: LandingThemeColors, root?: HTMLElement
   el.style.setProperty('--muted-foreground', hexToRgba(colors.foreground, 0.6));
   el.style.setProperty('--muted', adjustColor(colors.accent, 5));
   el.style.setProperty('--border', hexToRgba(colors.foreground, 0.1));
-  el.style.setProperty('--ring', colors.primary);
+  el.style.setProperty('--ring', hlColor);
 }
 
 /**
@@ -145,6 +169,10 @@ export function applyLandingTheme(colors: LandingThemeColors, root?: HTMLElement
 export function removeLandingTheme(root?: HTMLElement): void {
   const el = root || document.documentElement;
   const vars = [
+    '--lp-btn', '--lp-btn-hover', '--lp-btn-fg',
+    '--lp-highlight', '--lp-highlight-soft', '--lp-highlight-subtle',
+    '--lp-highlight-muted', '--lp-highlight-border', '--lp-highlight-fg',
+    '--lp-success', '--lp-success-soft', '--lp-success-fg',
     '--lp-accent', '--lp-accent-hover', '--lp-accent-soft', '--lp-accent-subtle',
     '--lp-accent-muted', '--lp-accent-border', '--lp-accent-fg',
     '--lp-bg', '--lp-bg-lighter', '--lp-overlay', '--lp-overlay-heavy',
@@ -166,4 +194,7 @@ export const DEFAULT_THEME: LandingThemeColors = {
   foreground: '#FFFFFF',
   accent: '#1a1a1a',
   muted: '#a1a1aa',
+  buttonPrimary: '#D4AF37',
+  highlight: '#D4AF37',
+  success: '#22c55e',
 };

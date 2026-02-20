@@ -26,7 +26,7 @@ export default function AboutSection() {
       <div className="container">
         {/* Pre-headline */}
         <motion.p
-          className="text-lp-accent text-sm font-medium tracking-wider uppercase mb-3"
+          className="text-lp-highlight text-sm font-medium tracking-wider uppercase mb-3"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
@@ -63,8 +63,8 @@ export default function AboutSection() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-lp-accent-soft to-lp-accent-subtle flex items-center justify-center">
-                  <span className="font-display text-6xl text-lp-accent-soft">CB</span>
+                <div className="w-full h-full bg-gradient-to-br from-lp-highlight-soft to-lp-highlight-subtle flex items-center justify-center">
+                  <span className="font-display text-6xl text-lp-highlight-soft">CB</span>
                 </div>
               )}
               {/* Gradient overlay at bottom */}
@@ -80,7 +80,7 @@ export default function AboutSection() {
             </div>
 
             {/* Decorative element */}
-            <div className="absolute -bottom-4 -right-4 w-24 h-24 border-2 border-lp-accent-border rounded-2xl -z-10" />
+            <div className="absolute -bottom-4 -right-4 w-24 h-24 border-2 border-lp-highlight-border rounded-2xl -z-10" />
           </motion.div>
 
           {/* Text Content */}
@@ -102,8 +102,8 @@ export default function AboutSection() {
 
             {/* Signature decoration */}
             <div className="pt-6 flex items-center gap-4">
-              <div className="w-12 h-px bg-lp-accent-soft" />
-              <span className="text-lp-accent font-display text-lg italic">
+              <div className="w-12 h-px bg-lp-highlight-soft" />
+              <span className="text-lp-highlight font-display text-lg italic">
                 Casa Blanca
               </span>
             </div>

@@ -39,7 +39,7 @@ export default function ScheduleModal() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 mx-auto max-w-md"
           >
-            <div className="relative bg-card rounded-3xl p-6 border border-border/50 shadow-2xl">
+            <div className="relative bg-lp-surface rounded-3xl p-6 border border-lp-border shadow-2xl">
               {/* Close Button */}
               <button
                 onClick={closeScheduleModal}
@@ -50,11 +50,11 @@ export default function ScheduleModal() {
 
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <Clock className="w-6 h-6 text-primary" />
+                <div className="p-3 rounded-xl bg-lp-highlight-soft">
+                  <Clock className="w-6 h-6 text-lp-highlight" />
                 </div>
                 <div>
-                  <h3 className="font-display text-xl text-foreground">
+                  <h3 className="font-display text-xl text-lp-text">
                     Horário de Funcionamento
                   </h3>
                   <p className={cn(
@@ -76,20 +76,20 @@ export default function ScheduleModal() {
                       key={day.day}
                       className={cn(
                         'flex justify-between items-center py-3 px-4 rounded-xl transition-colors',
-                        isToday ? 'bg-primary/10 border border-primary/20' : 'hover:bg-muted/30'
+                        isToday ? 'bg-lp-highlight-soft border border-lp-highlight-border' : 'hover:bg-lp-surface-soft'
                       )}
                     >
                       <span className={cn(
                         'font-medium',
-                        isToday ? 'text-primary' : 'text-foreground'
+                        isToday ? 'text-lp-highlight' : 'text-lp-text'
                       )}>
                         {day.day}
                         {isToday && (
-                          <span className="ml-2 text-xs text-primary/70">(Hoje)</span>
+                          <span className="ml-2 text-xs text-lp-highlight/70">(Hoje)</span>
                         )}
                       </span>
                       <span className={cn(
-                        isToday ? 'text-primary' : 'text-muted-foreground'
+                        isToday ? 'text-lp-highlight' : 'text-lp-text-muted'
                       )}>
                         {day.closed ? (
                           <span className="text-red-500/70">Fechado</span>
@@ -107,7 +107,7 @@ export default function ScheduleModal() {
                 onClick={closeScheduleModal}
                 className={cn(
                   'w-full mt-6 py-3 rounded-xl font-medium',
-                  'bg-muted hover:bg-muted/80 text-foreground transition-colors'
+                  'bg-lp-surface-soft hover:bg-lp-border text-lp-text transition-colors'
                 )}
               >
                 Fechar

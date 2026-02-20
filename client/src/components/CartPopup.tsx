@@ -54,10 +54,10 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-lp-border">
               <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-lp-accent" />
+                <ShoppingBag className="w-5 h-5 text-lp-highlight" />
                 <h3 className="font-semibold text-lp-text">Sua Sacola</h3>
                 {totalItems > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-lp-accent text-lp-accent-fg">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-lp-success text-lp-success-fg">
                     {totalItems}
                   </span>
                 )}
@@ -107,7 +107,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                         <h4 className="font-medium text-lp-text text-sm line-clamp-1">
                           {item.product.name}
                         </h4>
-                        <p className="text-lp-accent font-semibold text-sm mt-0.5">
+                        <p className="text-lp-highlight font-semibold text-sm mt-0.5">
                           {formatPrice(item.product.price * item.quantity)}
                         </p>
 

@@ -21,7 +21,7 @@ export default function IntroSection() {
       className="relative bg-lp-bg section-divider pt-16 pb-8"
     >
       {/* Decorative top border */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-lp-accent-soft rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-lp-highlight-soft rounded-full" />
 
       <div className="container text-center">
         <motion.h2

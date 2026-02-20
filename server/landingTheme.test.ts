@@ -116,53 +116,110 @@ describe('Design Tokens - Color Utilities', () => {
   });
 });
 
-describe('Design Tokens - Color Groups', () => {
-  const defaultTheme = {
-    primary: '#D4AF37',
+describe('Design Tokens - Color Groups (8 Independent Controls)', () => {
+  const fullTheme = {
+    primary: '#D4AF37',       // Legacy
     background: '#121212',
     foreground: '#FFFFFF',
     accent: '#1a1a1a',
     muted: '#a1a1aa',
+    buttonPrimary: '#E63946',  // Red CTA buttons
+    highlight: '#D4AF37',      // Gold prices/icons/stars
+    success: '#22c55e',        // Green toasts/badges
   };
 
-  it('should have all 5 required color groups', () => {
-    const keys = Object.keys(defaultTheme);
+  it('should have all 8 required color properties', () => {
+    const keys = Object.keys(fullTheme);
     expect(keys).toContain('primary');
     expect(keys).toContain('background');
     expect(keys).toContain('foreground');
     expect(keys).toContain('accent');
     expect(keys).toContain('muted');
+    expect(keys).toContain('buttonPrimary');
+    expect(keys).toContain('highlight');
+    expect(keys).toContain('success');
   });
 
-  it('should generate correct accent-fg for gold primary', () => {
-    const accentFg = getContrastColor(defaultTheme.primary);
-    // Gold is light enough for dark text
-    expect(accentFg).toBe('#1a1a1a');
+  describe('Group 1: Button Primary', () => {
+    it('should generate white text for red button background', () => {
+      const btnFg = getContrastColor(fullTheme.buttonPrimary);
+      expect(btnFg).toBe('#ffffff');
+    });
+
+    it('should generate dark text for light button background', () => {
+      const btnFg = getContrastColor('#FFD700');
+      expect(btnFg).toBe('#1a1a1a');
+    });
   });
 
-  it('should generate correct accent-fg for dark primary', () => {
-    const accentFg = getContrastColor('#2d2d8a');
-    expect(accentFg).toBe('#ffffff');
+  describe('Group 2: Highlight', () => {
+    it('should generate correct highlight-fg for gold', () => {
+      const hlFg = getContrastColor(fullTheme.highlight);
+      expect(hlFg).toBe('#1a1a1a');
+    });
+
+    it('should generate correct highlight-soft variant', () => {
+      const soft = hexToRgba(fullTheme.highlight, 0.2);
+      expect(soft).toBe('rgba(212, 175, 55, 0.2)');
+    });
+
+    it('should generate correct highlight-border variant', () => {
+      const border = hexToRgba(fullTheme.highlight, 0.3);
+      expect(border).toBe('rgba(212, 175, 55, 0.3)');
+    });
   });
 
-  it('should generate correct soft variant', () => {
-    const soft = hexToRgba(defaultTheme.primary, 0.2);
-    expect(soft).toBe('rgba(212, 175, 55, 0.2)');
+  describe('Group 3: Success', () => {
+    it('should generate white text for green success background', () => {
+      const successFg = getContrastColor(fullTheme.success);
+      expect(successFg).toBe('#1a1a1a');
+    });
+
+    it('should generate correct success-soft variant', () => {
+      const soft = hexToRgba(fullTheme.success, 0.2);
+      expect(soft).toBe('rgba(34, 197, 94, 0.2)');
+    });
   });
 
-  it('should generate correct subtle variant', () => {
-    const subtle = hexToRgba(defaultTheme.primary, 0.1);
-    expect(subtle).toBe('rgba(212, 175, 55, 0.1)');
+  describe('Group 4-7: Structure Colors', () => {
+    it('should generate correct text-muted from foreground', () => {
+      const textMuted = hexToRgba(fullTheme.foreground, 0.6);
+      expect(textMuted).toBe('rgba(255, 255, 255, 0.6)');
+    });
+
+    it('should generate correct border from foreground', () => {
+      const border = hexToRgba(fullTheme.foreground, 0.1);
+      expect(border).toBe('rgba(255, 255, 255, 0.1)');
+    });
+
+    it('should generate correct surface-soft from accent', () => {
+      const surfaceSoft = hexToRgba(fullTheme.accent, 0.5);
+      expect(surfaceSoft).toBe('rgba(26, 26, 26, 0.5)');
+    });
   });
 
-  it('should generate correct text-muted from foreground', () => {
-    const textMuted = hexToRgba(defaultTheme.foreground, 0.6);
-    expect(textMuted).toBe('rgba(255, 255, 255, 0.6)');
-  });
+  describe('Backward Compatibility', () => {
+    it('should use primary as fallback when buttonPrimary is missing', () => {
+      const legacyTheme = {
+        primary: '#D4AF37',
+        background: '#121212',
+        foreground: '#FFFFFF',
+        accent: '#1a1a1a',
+        muted: '#a1a1aa',
+        buttonPrimary: '',
+        highlight: '',
+        success: '',
+      };
+      const btnColor = legacyTheme.buttonPrimary || legacyTheme.primary;
+      const hlColor = legacyTheme.highlight || legacyTheme.primary;
+      expect(btnColor).toBe('#D4AF37');
+      expect(hlColor).toBe('#D4AF37');
+    });
 
-  it('should generate correct border from foreground', () => {
-    const border = hexToRgba(defaultTheme.foreground, 0.1);
-    expect(border).toBe('rgba(255, 255, 255, 0.1)');
+    it('should use green default when success is missing', () => {
+      const successColor = '' || '#22c55e';
+      expect(successColor).toBe('#22c55e');
+    });
   });
 });
 

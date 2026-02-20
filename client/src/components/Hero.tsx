@@ -53,9 +53,9 @@ export default function Hero() {
           {/* Location */}
           <a
             href="#contato"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-lp-border backdrop-blur-sm border border-lp-border hover:border-lp-accent-border transition-colors group"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-lp-border backdrop-blur-sm border border-lp-border hover:border-lp-highlight-border transition-colors group"
           >
-            <MapPin className="w-4 h-4 text-lp-accent" />
+            <MapPin className="w-4 h-4 text-lp-highlight" />
             <span className="text-sm text-lp-text-muted group-hover:text-lp-text transition-colors">
               {data.contact.address.city}
             </span>
@@ -104,8 +104,8 @@ export default function Hero() {
             onClick={openOrderOverlay}
             className={cn(
               'mt-8 inline-flex items-center gap-3 px-8 py-4 rounded-full',
-              'bg-lp-accent text-lp-accent-fg font-semibold text-lg',
-              'hover:bg-lp-accent-hover transition-all duration-300',
+              'bg-lp-btn text-lp-btn-fg font-semibold text-lg',
+              'hover:bg-lp-btn-hover transition-all duration-300',
               'gold-glow hover:scale-105'
             )}
             initial={{ opacity: 0, y: 20 }}
@@ -122,7 +122,7 @@ export default function Hero() {
       {/* Scroll Indicator */}
       <motion.a
         href="#intro"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-lp-text-subtle hover:text-lp-accent transition-colors"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-lp-text-subtle hover:text-lp-highlight transition-colors"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 1.2 }}

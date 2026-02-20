@@ -203,3 +203,15 @@
 - [x] Atualizar painel Design System com grupos de cores inteligentes
 - [x] Implementar sincronização em tempo real via postMessage
 - [x] Testar sincronização completa em todas as seções
+
+## Fase 21: Desmembramento da Paleta de Cores - Granularidade
+- [x] Adicionar 3 novas cores ao ThemeColors: buttonPrimary, highlight, success
+- [x] Atualizar landingTheme.ts com novas CSS variables (--lp-btn, --lp-highlight, --lp-success)
+- [x] Atualizar index.css com defaults e @theme para as novas variáveis
+- [x] Atualizar painel Design System com novos seletores de cor independentes
+- [x] Refatorar botões CTA (Hero, Footer, WhatsApp, Cart) para usar --lp-btn
+- [x] Refatorar preços, links, filtros ativos, ícone carrinho para usar --lp-highlight
+- [x] Refatorar GlobalToast, badges de quantidade para usar --lp-success
+- [x] Atualizar postMessage para enviar as 3 novas cores
+- [x] Atualizar testes unitários
+- [x] Testar visualmente a independência de cada cor
