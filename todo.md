@@ -494,3 +494,9 @@
 - [x] Verificado: nenhum max-w limitador no container raiz
 - [x] SidebarProvider com !bg-zinc-950, SidebarInset com !bg-[#0A0A0A], bg-background removido do sidebar.tsx
 - [x] Testado: Dashboard, Catálogo, Vitrine, Dados da Loja - todos sem faixa branca
+
+## Fase 44c: Correção da Tela Meu Perfil
+- [x] Corrigir fundo branco: min-h-screen w-full bg-[#0A0A0A] text-white
+- [x] Adicionar botão "Voltar ao Dashboard" com ícone ArrowLeft no header sticky
+- [x] Centralizar conteúdo com max-w-3xl mx-auto px-6
+- [x] Testado: fundo dark, botão voltar, cards centralizados, badge de cargo colorido
