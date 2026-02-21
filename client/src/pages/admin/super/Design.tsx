@@ -1,5 +1,5 @@
 import SuperAdminLayout from "@/components/SuperAdminLayout";
-import ImageCropEditor from "@/components/ImageCropEditor";
+import ImageUploader, { type ImageContext } from "@/components/ImageUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -651,10 +651,7 @@ export default function DesignPage() {
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const utils = trpc.useUtils();
 
-  // Crop editor state
-  const [cropFile, setCropFile] = useState<File | null>(null);
-  const [cropOpen, setCropOpen] = useState(false);
-  const [cropCallback, setCropCallback] = useState<((url: string) => void) | null>(null);
+
 
   // Fetch landing design when tenant is selected
   const { data: landingData, isLoading: designLoading } = trpc.tenants.getLandingDesign.useQuery(
@@ -837,36 +834,18 @@ export default function DesignPage() {
     scrollPreviewToSection(tab);
   };
 
-  // Image upload handler with crop editor
-  const handleImageUpload = async (file: File, onSuccess: (url: string) => void) => {
-    if (!selectedTenantId) return;
-    // Open crop editor
-    setCropFile(file);
-    setCropCallback(() => onSuccess);
-    setCropOpen(true);
-  };
-
-  // Handle crop completion - upload the cropped image
-  const handleCropComplete = async (croppedBase64: string, _blob: Blob) => {
-    if (!selectedTenantId || !cropCallback) return;
-    setCropOpen(false);
-
-    const base64Data = croppedBase64.split(",")[1];
-    try {
-      const result = await uploadMutation.mutateAsync({
-        tenantId: selectedTenantId,
-        imageData: base64Data,
-        fileName: cropFile?.name || "cropped-image.jpg",
-        contentType: "image/jpeg",
-      });
-      cropCallback(result.url);
-      setIsDirty(true);
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
-    setCropFile(null);
-    setCropCallback(null);
-  };
+  // Upload handler for ImageUploader component (used in ImageUploadField)
+  const handleImageUploaderUpload = useCallback(async (base64Data: string, fileName: string): Promise<string> => {
+    if (!selectedTenantId) throw new Error("Nenhuma loja selecionada");
+    const result = await uploadMutation.mutateAsync({
+      tenantId: selectedTenantId,
+      imageData: base64Data,
+      fileName,
+      contentType: "image/png",
+    });
+    setIsDirty(true);
+    return result.url;
+  }, [selectedTenantId, uploadMutation]);
 
   // Direct upload (for video or URL paste - no crop)
   const handleDirectUpload = async (file: File, onSuccess: (url: string) => void) => {
@@ -1066,7 +1045,7 @@ export default function DesignPage() {
                       <HomeSection
                         data={design.home || {}}
                         onChange={(field, value) => updateDesign("home", field, value)}
-                        onImageUpload={handleImageUpload}
+                        onImageUploaderUpload={handleImageUploaderUpload}
                         onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
                       />
@@ -1089,7 +1068,7 @@ export default function DesignPage() {
                         data={design.products || {}}
                         categories={landingData?.categories || []}
                         onChange={(field, value) => updateDesign("products", field, value)}
-                        onImageUpload={handleImageUpload}
+                        onImageUploaderUpload={handleImageUploaderUpload}
                         onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
                       />
@@ -1129,7 +1108,7 @@ export default function DesignPage() {
                       <AboutSection
                         data={design.about || {}}
                         onChange={(field, value) => updateDesign("about", field, value)}
-                        onImageUpload={handleImageUpload}
+                        onImageUploaderUpload={handleImageUploaderUpload}
                         onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
                       />
@@ -1152,7 +1131,7 @@ export default function DesignPage() {
                         data={design.reviews || {}}
                         tenant={selectedTenant!}
                         onChange={(field, value) => updateDesign("reviews", field, value)}
-                        onImageUpload={handleImageUpload}
+                        onImageUploaderUpload={handleImageUploaderUpload}
                         onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
                       />
@@ -1174,7 +1153,7 @@ export default function DesignPage() {
                       <InfoSection
                         data={design.info || {}}
                         onChange={(field, value) => updateDesign("info", field, value)}
-                        onImageUpload={handleImageUpload}
+                        onImageUploaderUpload={handleImageUploaderUpload}
                         onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
                       />
@@ -1231,18 +1210,6 @@ export default function DesignPage() {
         )}
       </div>
 
-      {/* Image Crop Editor Modal */}
-      <ImageCropEditor
-        open={cropOpen}
-        onClose={() => {
-          setCropOpen(false);
-          setCropFile(null);
-          setCropCallback(null);
-        }}
-        onComplete={handleCropComplete}
-        file={cropFile}
-        aspectRatio={1}
-      />
     </SuperAdminLayout>
   );
 }
@@ -1514,33 +1481,63 @@ function ImageUploadField({
   value,
   onChange,
   onUpload,
+  onImageUploaderUpload,
   uploading,
   accept = "image/*",
+  imageContext = "background",
 }: {
   label: string;
   value?: string;
   onChange: (url: string) => void;
-  onUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onUpload?: (file: File, onSuccess: (url: string) => void) => void;
+  onImageUploaderUpload?: (base64Data: string, fileName: string) => Promise<string>;
   uploading: boolean;
   accept?: string;
+  imageContext?: ImageContext;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-
   const [isDragging, setIsDragging] = useState(false);
+
+  // For video uploads, use the old direct upload pattern
+  const isVideoMode = accept.includes("video");
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) onUpload(file, onChange);
+    if (file && onUpload) onUpload(file, onChange);
   };
 
+  // If we have the new ImageUploader handler and it's not video mode, use ImageUploader
+  if (onImageUploaderUpload && !isVideoMode) {
+    return (
+      <div className="space-y-1.5">
+        <Label className="text-[11px] text-zinc-400">{label}</Label>
+        <ImageUploader
+          context={imageContext}
+          value={value || null}
+          onChange={onChange}
+          onRemove={() => onChange("")}
+          onUpload={onImageUploaderUpload}
+          uploading={uploading}
+        />
+        <Input
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="ou cole a URL da imagem"
+          className="h-7 text-[11px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-2"
+        />
+      </div>
+    );
+  }
+
+  // Fallback: old pattern for video or when no ImageUploader handler
   return (
     <div className="space-y-1.5">
       <Label className="text-[11px] text-zinc-400">{label}</Label>
       {value ? (
         <div className="relative rounded-xl overflow-hidden ring-1 ring-zinc-700/50 bg-zinc-900/40 group">
-          {accept.includes("video") && value.match(/\.(mp4|webm|mov)$/i) ? (
+          {isVideoMode && value.match(/\.(mp4|webm|mov)$/i) ? (
             <video src={value} className="w-full h-24 object-cover" muted />
           ) : (
             <img src={value} alt="" className="w-full h-24 object-cover" />
@@ -1588,7 +1585,7 @@ function ImageUploadField({
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) onUpload(file, onChange);
+          if (file && onUpload) onUpload(file, onChange);
           e.target.value = "";
         }}
       />
@@ -1603,13 +1600,13 @@ function ImageUploadField({
 function HomeSection({
   data,
   onChange,
-  onImageUpload,
+  onImageUploaderUpload,
   onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["home"]>;
   onChange: (field: string, value: unknown) => void;
-  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onImageUploaderUpload: (base64Data: string, fileName: string) => Promise<string>;
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
@@ -1701,8 +1698,9 @@ function HomeSection({
               label="Logotipo (Imagem)"
               value={data.logoUrl}
               onChange={(url) => onChange("logoUrl", url)}
-              onUpload={onImageUpload}
+              onImageUploaderUpload={onImageUploaderUpload}
               uploading={uploading}
+              imageContext="logo"
             />
             <div className="space-y-1">
               <div className="flex items-center justify-between">
@@ -1954,9 +1952,11 @@ function HomeSection({
           label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
           value={data.bgMediaUrl}
           onChange={(url) => onChange("bgMediaUrl", url)}
-          onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+          onUpload={data.bgMediaType === "video" ? onDirectUpload : undefined}
+          onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
           uploading={uploading}
           accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+          imageContext="background"
         />
 
         {/* Overlay */}
@@ -2001,14 +2001,14 @@ function ProductsSection({
   data,
   categories,
   onChange,
-  onImageUpload,
+  onImageUploaderUpload,
   onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["products"]>;
   categories: { id: number; name: string }[];
   onChange: (field: string, value: unknown) => void;
-  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onImageUploaderUpload: (base64Data: string, fileName: string) => Promise<string>;
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
@@ -2286,8 +2286,9 @@ function ProductsSection({
           label="Imagem (WebP recomendado)"
           value={data.bgMediaUrl}
           onChange={(url) => onChange("bgMediaUrl", url)}
-          onUpload={onImageUpload}
+          onImageUploaderUpload={onImageUploaderUpload}
           uploading={uploading}
+          imageContext="background"
         />
 
         <div className="space-y-1">
@@ -2642,13 +2643,13 @@ function MenuSection({
 function AboutSection({
   data,
   onChange,
-  onImageUpload,
+  onImageUploaderUpload,
   onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["about"]>;
   onChange: (field: string, value: unknown) => void;
-  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onImageUploaderUpload: (base64Data: string, fileName: string) => Promise<string>;
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
@@ -2795,8 +2796,9 @@ function AboutSection({
           label="Imagem"
           value={data.imageUrl}
           onChange={(url) => onChange("imageUrl", url)}
-          onUpload={onImageUpload}
+          onImageUploaderUpload={onImageUploaderUpload}
           uploading={uploading}
+          imageContext="background"
         />
 
         <div className="space-y-1">
@@ -3014,15 +3016,16 @@ function AboutSection({
         <ImageUploadField
           label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
           value={data.bgMediaUrl}
-          onChange={(url) => onChange("bgMediaUrl", url)}
-          onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+          onChange={(url) => onChange("bgMediaUrl", url)}          onUpload={data.bgMediaType === "video" ? onDirectUpload : undefined}
+          onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
           uploading={uploading}
           accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+          imageContext="background"
         />
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-zinc-400">Opacidade do Overlay</Label>
+            <Label className="text-[10px] text-zinc-400">Opacidade do Overlay (Sobre)</Label>
             <span className="text-[10px] text-zinc-400 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
           </div>
           <Slider
@@ -3050,14 +3053,14 @@ function ReviewsSection({
   data,
   tenant,
   onChange,
-  onImageUpload,
+  onImageUploaderUpload,
   onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["reviews"]>;
   tenant: { id: number; googleApiKey?: string | null; googlePlaceId?: string | null };
   onChange: (field: string, value: unknown) => void;
-  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onImageUploaderUpload: (base64Data: string, fileName: string) => Promise<string>;
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
@@ -3325,9 +3328,11 @@ function ReviewsSection({
               label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
               value={data.bgMediaUrl}
               onChange={(url) => onChange("bgMediaUrl", url)}
-              onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+              onUpload={data.bgMediaType === "video" ? onDirectUpload : undefined}
+              onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
               uploading={uploading}
               accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+              imageContext="background"
             />
 
             <div className="space-y-1">
@@ -3359,13 +3364,13 @@ function ReviewsSection({
 function InfoSection({
   data,
   onChange,
-  onImageUpload,
+  onImageUploaderUpload,
   onDirectUpload,
   uploading,
 }: {
   data: NonNullable<LandingDesign["info"]>;
   onChange: (field: string, value: unknown) => void;
-  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onImageUploaderUpload: (base64Data: string, fileName: string) => Promise<string>;
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
@@ -3501,8 +3506,9 @@ function InfoSection({
           label="Imagem de Capa (fachada/local)"
           value={data.mapImageUrl}
           onChange={(url) => onChange("mapImageUrl", url)}
-          onUpload={onImageUpload}
+          onImageUploaderUpload={onImageUploaderUpload}
           uploading={uploading}
+          imageContext="background"
         />
 
         {data.mapImageUrl && (
@@ -3724,9 +3730,11 @@ function InfoSection({
           label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
           value={data.bgMediaUrl}
           onChange={(url) => onChange("bgMediaUrl", url)}
-          onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+          onUpload={data.bgMediaType === "video" ? onDirectUpload : undefined}
+          onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
           uploading={uploading}
           accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+          imageContext="background"
         />
 
         {data.bgMediaUrl && (

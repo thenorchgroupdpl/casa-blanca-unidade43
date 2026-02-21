@@ -85,7 +85,7 @@ export default function Header() {
                 src={logoUrl}
                 alt={companyName}
                 className="w-auto object-contain"
-                style={{ height: `${logoSize}px` }}
+                style={{ height: `${logoSize}px`, maxHeight: '100px' }}
               />
             ) : (
               <span className="font-display text-2xl md:text-3xl text-lp-text">

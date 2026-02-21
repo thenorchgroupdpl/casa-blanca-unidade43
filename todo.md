@@ -522,3 +522,15 @@
 - [x] Procedures: reorder categories, duplicate product, upload image, grouped
 - [x] Escrever testes unitários (18 novos testes, 146 total passando)
 - [ ] Testar fluxo completo no navegador
+
+## Fase 46: Componente Global ImageUploader com Cropper e Preview Contextual
+- [x] Corrigir bug: editor de imagem não abre ao clicar no dropzone do Catálogo
+- [x] Criar componente global ImageUploader com Dropzone + Cropper integrado
+- [x] Aspect Ratio Locking: 1:1 para produtos/perfil, 16:9 para backgrounds, presets para logo (3:1, 4:1, 1:1)
+- [x] Preview Contextual: simular Header (logo), Card de Produto, Seção com Background
+- [x] Pipeline de salvamento: exportar para .webp via backend (sharp)
+- [x] Trava CSS da logo: max-height 80-100px no Header da Landing Page
+- [x] Integrar ImageUploader no Catálogo (produtos) substituindo dropzone atual
+- [x] Integrar ImageUploader no Design System (logo, backgrounds, about, reviews, info)
+- [x] Escrever testes unitários (13 novos testes, 159 total passando)
+- [ ] Testar fluxo completo no navegador

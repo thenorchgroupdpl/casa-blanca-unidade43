@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
+import ImageUploader from "@/components/ImageUploader";
 import { 
   Plus, 
   Pencil, 
@@ -40,7 +41,7 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 // ============================================
@@ -137,9 +138,7 @@ export default function CatalogPage() {
   const [editingProduct, setEditingProduct] = useState<number | null>(null);
   const [productForm, setProductForm] = useState<ProductFormData>(defaultProductForm);
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
   
@@ -230,6 +229,17 @@ export default function CatalogPage() {
   const uploadImage = trpc.products.uploadImage.useMutation({
     onError: (error) => toast.error(error.message),
   });
+
+  // Image upload handler for ImageUploader component
+  const handleImageUploadViaUploader = useCallback(async (base64Data: string, fileName: string): Promise<string> => {
+    const result = await uploadImage.mutateAsync({
+      imageData: base64Data,
+      fileName,
+      contentType: "image/png",
+    });
+    toast.success("Imagem enviada e processada (WebP)");
+    return result.url;
+  }, [uploadImage]);
 
   // Helper functions
   const generateSlug = (name: string) => {
@@ -334,59 +344,6 @@ export default function CatalogPage() {
       createProduct.mutate(payload);
     }
   };
-
-  // Image upload handler
-  const handleImageUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error("Arquivo deve ser uma imagem");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Imagem deve ter no máximo 10MB");
-      return;
-    }
-
-    setImageUploading(true);
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    try {
-      // Convert to base64
-      const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(
-        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-      );
-
-      const result = await uploadImage.mutateAsync({
-        imageData: base64,
-        fileName: file.name,
-        contentType: file.type,
-      });
-
-      setProductForm(prev => ({ ...prev, imageUrl: result.url }));
-      toast.success("Imagem enviada e processada (800x800 WebP)");
-    } catch {
-      setImagePreview(null);
-    } finally {
-      setImageUploading(false);
-    }
-  }, [uploadImage]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) handleImageUpload(file);
-  }, [handleImageUpload]);
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleImageUpload(file);
-  }, [handleImageUpload]);
 
   // Category reorder
   const handleMoveCategory = useCallback((categoryId: number, direction: 'up' | 'down') => {
@@ -961,63 +918,23 @@ export default function CatalogPage() {
                 </div>
               </div>
 
-              {/* Image Upload (Drag & Drop) */}
+              {/* Image Upload (via ImageUploader global component) */}
               <div className="space-y-2">
                 <Label>Imagem do Produto</Label>
-                <div
-                  onDrop={handleDrop}
-                  onDragOver={(e) => e.preventDefault()}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
-                    imageUploading
-                      ? 'border-amber-500/40 bg-amber-500/5'
-                      : imagePreview
-                        ? 'border-zinc-700 bg-zinc-800/50'
-                        : 'border-zinc-700 hover:border-amber-500/40 bg-zinc-800/30 hover:bg-zinc-800/50'
-                  }`}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                  />
-                  
-                  {imageUploading ? (
-                    <div className="flex flex-col items-center gap-2 py-4">
-                      <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
-                      <p className="text-xs text-amber-400">Processando imagem (800x800 WebP)...</p>
-                    </div>
-                  ) : imagePreview ? (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full max-h-48 object-contain rounded-lg"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-1 right-1 h-7 w-7 bg-zinc-900/80 hover:bg-red-500/80 text-white rounded-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setImagePreview(null);
-                          setProductForm(prev => ({ ...prev, imageUrl: "" }));
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <p className="text-[10px] text-zinc-500 mt-2">Clique ou arraste para substituir</p>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2 py-4">
-                      <Upload className="w-8 h-8 text-zinc-500" />
-                      <p className="text-sm text-zinc-400">Arraste uma imagem ou clique para selecionar</p>
-                      <p className="text-[10px] text-zinc-600">Será convertida para 800x800 WebP automaticamente</p>
-                    </div>
-                  )}
-                </div>
+                <ImageUploader
+                  context="product"
+                  value={productForm.imageUrl || null}
+                  onChange={(url) => {
+                    setProductForm(prev => ({ ...prev, imageUrl: url }));
+                    setImagePreview(url);
+                  }}
+                  onRemove={() => {
+                    setProductForm(prev => ({ ...prev, imageUrl: "" }));
+                    setImagePreview(null);
+                  }}
+                  onUpload={handleImageUploadViaUploader}
+                  uploading={uploadImage.isPending}
+                />
               </div>
 
               {/* Highlight Tag */}
@@ -1089,7 +1006,7 @@ export default function CatalogPage() {
               </Button>
               <Button
                 onClick={handleProductSubmit}
-                disabled={createProduct.isPending || updateProduct.isPending || imageUploading}
+                disabled={createProduct.isPending || updateProduct.isPending || uploadImage.isPending}
                 className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
               >
                 {createProduct.isPending || updateProduct.isPending ? "Salvando..." : "Salvar"}
