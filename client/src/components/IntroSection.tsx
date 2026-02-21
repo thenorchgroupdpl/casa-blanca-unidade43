@@ -25,44 +25,43 @@ const GRADIENT_CSS_MAP: Record<string, string> = {
 export default function IntroSection() {
   const { data } = useSiteData();
 
-  if (!data) return null;
+  const intro = data?.sections_content?.intro;
 
-  const { intro } = data.sections_content;
-
-  // Build section background style
+  // ALL hooks MUST be called before any early return (React rules of hooks)
   const sectionStyle = useMemo(() => {
+    if (!intro) return {};
     const style: React.CSSProperties = {};
-
-    // Background color / gradient
     if (intro.bg_gradient && intro.bg_gradient_from && intro.bg_gradient_to) {
       const dir = GRADIENT_CSS_MAP[intro.bg_gradient_direction || 'to-b'] || '180deg';
       style.background = `linear-gradient(${dir}, ${intro.bg_gradient_from}, ${intro.bg_gradient_to})`;
     } else if (intro.bg_color) {
       style.backgroundColor = intro.bg_color;
     }
-
     return style;
-  }, [intro.bg_color, intro.bg_gradient, intro.bg_gradient_from, intro.bg_gradient_to, intro.bg_gradient_direction]);
+  }, [intro?.bg_color, intro?.bg_gradient, intro?.bg_gradient_from, intro?.bg_gradient_to, intro?.bg_gradient_direction]);
 
-  // Headline inline style
   const headlineStyle = useMemo(() => {
+    if (!intro) return {};
     const style: React.CSSProperties = {};
     if (intro.headline_font && intro.headline_font !== 'inherit') style.fontFamily = `'${intro.headline_font}', sans-serif`;
     if (intro.headline_font_size) style.fontSize = `${intro.headline_font_size}px`;
     if (intro.headline_font_weight) style.fontWeight = intro.headline_font_weight;
     if (intro.headline_color) style.color = intro.headline_color;
     return style;
-  }, [intro.headline_font, intro.headline_font_size, intro.headline_font_weight, intro.headline_color]);
+  }, [intro?.headline_font, intro?.headline_font_size, intro?.headline_font_weight, intro?.headline_color]);
 
-  // Subheadline inline style
   const subheadlineStyle = useMemo(() => {
+    if (!intro) return {};
     const style: React.CSSProperties = {};
     if (intro.subheadline_font && intro.subheadline_font !== 'inherit') style.fontFamily = `'${intro.subheadline_font}', sans-serif`;
     if (intro.subheadline_font_size) style.fontSize = `${intro.subheadline_font_size}px`;
     if (intro.subheadline_font_weight) style.fontWeight = intro.subheadline_font_weight;
     if (intro.subheadline_color) style.color = intro.subheadline_color;
     return style;
-  }, [intro.subheadline_font, intro.subheadline_font_size, intro.subheadline_font_weight, intro.subheadline_color]);
+  }, [intro?.subheadline_font, intro?.subheadline_font_size, intro?.subheadline_font_weight, intro?.subheadline_color]);
+
+  // Early return AFTER all hooks
+  if (!data || !intro) return null;
 
   const hasBgMedia = !!intro.bg_media_url;
 

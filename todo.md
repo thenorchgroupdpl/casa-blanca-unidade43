@@ -322,3 +322,6 @@
 - [x] Atualizar VitrineSection.tsx para consumir os novos campos de estilo
 - [x] Atualizar ProductCard.tsx para consumir cores e bordas personalizadas
 - [x] Testar persistência e preview em tempo real
+
+## Fase 33b: Correção de Bug - IntroSection hooks
+- [x] Corrigir erro updateWorkInProgressHook/useMemo no IntroSection.tsx e VitrineSection.tsx (hooks antes de early returns)
