@@ -542,3 +542,16 @@
 - [x] Refatorar campos de Unidade de Medida: input number + select separados (flex gap-4) com preview
 - [x] Sanitização no backend (router) para converter strings vazias em null antes do SQL
 - [x] Testes unitários: 9 novos testes de sanitização (168 total passando)
+
+## Fase 48: Renderização de Novas Propriedades no Frontend
+- [x] ProductCard: exibir unidade de medida (ex: "500g") ao lado do nome (grid) ou abaixo (showcase)
+- [x] ProductCard: renderizar badge promocional (Mais Vendido, Novidade, Vegano) no canto superior esquerdo da imagem
+- [x] ProductCard: aplicar aspect-square + w-full + object-cover nas fotos
+- [x] ProductCard: exibir preço original riscado quando originalPrice > price
+- [x] ProductModal (BottomSheet): exibir unidade de medida, badge e preço original
+- [x] ProductModal: aplicar aspect-square + w-full + object-cover na imagem
+- [x] Header: aplicar max-h-[60px] + object-contain na logo (Landing Page)
+- [x] Design System Preview: usa iframe da Landing Page, alterações refletidas automaticamente
+- [x] Tipo Product atualizado com unitValue, unit, highlightTag, originalPrice
+- [x] Transformação em StoreLanding.tsx mapeando novos campos do backend
+- [x] Testes unitários: 15 novos testes (183 total passando)

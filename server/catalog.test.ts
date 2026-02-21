@@ -348,3 +348,163 @@ describe("Category reorder logic", () => {
     expect(idx).toBe(0);
   });
 });
+
+// ============================================
+// 8. HIGHLIGHT BADGE RENDERING LOGIC
+// ============================================
+
+const HIGHLIGHT_LABELS: Record<string, string> = {
+  mais_vendido: '🔥 Mais Vendido',
+  novidade: '✨ Novidade',
+  vegano: '🌱 Vegano',
+};
+
+describe("Highlight badge rendering", () => {
+  it("maps mais_vendido to correct label", () => {
+    expect(HIGHLIGHT_LABELS["mais_vendido"]).toBe("🔥 Mais Vendido");
+  });
+
+  it("maps novidade to correct label", () => {
+    expect(HIGHLIGHT_LABELS["novidade"]).toBe("✨ Novidade");
+  });
+
+  it("maps vegano to correct label", () => {
+    expect(HIGHLIGHT_LABELS["vegano"]).toBe("🌱 Vegano");
+  });
+
+  it("returns undefined for empty string (no badge)", () => {
+    expect(HIGHLIGHT_LABELS[""]).toBeUndefined();
+  });
+
+  it("returns undefined for null-ish values", () => {
+    const tag: string | null = null;
+    const label = tag ? HIGHLIGHT_LABELS[tag] : null;
+    expect(label).toBeNull();
+  });
+});
+
+// ============================================
+// 9. UNIT OF MEASURE DISPLAY LOGIC
+// ============================================
+
+function formatUnit(unitValue?: string | null, unit?: string | null): string | null {
+  if (!unitValue || !unit) return null;
+  return `${unitValue}${unit}`;
+}
+
+describe("Unit of measure display", () => {
+  it("formats unit correctly (700ml)", () => {
+    expect(formatUnit("700", "ml")).toBe("700ml");
+  });
+
+  it("formats unit correctly (1.5kg)", () => {
+    expect(formatUnit("1.5", "kg")).toBe("1.5kg");
+  });
+
+  it("formats unit correctly (1L)", () => {
+    expect(formatUnit("1", "L")).toBe("1L");
+  });
+
+  it("returns null when unitValue is null", () => {
+    expect(formatUnit(null, "ml")).toBeNull();
+  });
+
+  it("returns null when unit is null", () => {
+    expect(formatUnit("700", null)).toBeNull();
+  });
+
+  it("returns null when both are null", () => {
+    expect(formatUnit(null, null)).toBeNull();
+  });
+
+  it("returns null when unitValue is empty string", () => {
+    expect(formatUnit("", "ml")).toBeNull();
+  });
+});
+
+// ============================================
+// 10. PRODUCT DATA TRANSFORMATION (public API → frontend)
+// ============================================
+
+function transformProduct(p: any) {
+  return {
+    id: p.id.toString(),
+    name: p.name,
+    description: p.description || '',
+    price: Number(p.price),
+    originalPrice: p.originalPrice ? Number(p.originalPrice) : null,
+    images: p.imageUrl ? [p.imageUrl] : [],
+    available: p.isAvailable,
+    unitValue: p.unitValue || null,
+    unit: p.unit || null,
+    highlightTag: p.highlightTag || null,
+  };
+}
+
+describe("Product data transformation", () => {
+  it("transforms product with all new fields", () => {
+    const raw = {
+      id: 42,
+      name: "Pão Artesanal",
+      description: "Fermentação natural",
+      price: "24.90",
+      originalPrice: "29.90",
+      imageUrl: "https://example.com/pao.webp",
+      isAvailable: true,
+      unitValue: "500",
+      unit: "g",
+      highlightTag: "novidade",
+    };
+
+    const result = transformProduct(raw);
+
+    expect(result.id).toBe("42");
+    expect(result.price).toBe(24.9);
+    expect(result.originalPrice).toBe(29.9);
+    expect(result.unitValue).toBe("500");
+    expect(result.unit).toBe("g");
+    expect(result.highlightTag).toBe("novidade");
+    expect(result.images).toEqual(["https://example.com/pao.webp"]);
+  });
+
+  it("transforms product with null optional fields", () => {
+    const raw = {
+      id: 43,
+      name: "Café Expresso",
+      description: "",
+      price: "8.00",
+      originalPrice: null,
+      imageUrl: null,
+      isAvailable: true,
+      unitValue: null,
+      unit: null,
+      highlightTag: null,
+    };
+
+    const result = transformProduct(raw);
+
+    expect(result.originalPrice).toBeNull();
+    expect(result.unitValue).toBeNull();
+    expect(result.unit).toBeNull();
+    expect(result.highlightTag).toBeNull();
+    expect(result.images).toEqual([]);
+  });
+
+  it("handles missing fields gracefully", () => {
+    const raw = {
+      id: 44,
+      name: "Item Simples",
+      price: "10.00",
+      isAvailable: true,
+    };
+
+    const result = transformProduct(raw);
+
+    expect(result.description).toBe("");
+    expect(result.originalPrice).toBeNull();
+    expect(result.unitValue).toBeNull();
+    expect(result.unit).toBeNull();
+    expect(result.highlightTag).toBeNull();
+    expect(result.images).toEqual([]);
+  });
+});

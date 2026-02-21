@@ -2,7 +2,9 @@
  * Product Bottom Sheet - Casa Blanca
  * Design: Warm Luxury - Drawer for product details and quantity selection
  * Features: Large image, description, quantity controls, add to cart
+ * Now supports: highlight badges, unit of measure, original price strikethrough
  * Consumes menu_style from SiteData for Design System customization
+ * Image standardization: aspect-square, w-full, object-cover
  */
 
 import { useState, useEffect } from 'react';
@@ -10,6 +12,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useUI, useCart, useToast, useSiteData } from '@/store/useStore';
+
+// Map highlight tag values to display labels
+const HIGHLIGHT_LABELS: Record<string, string> = {
+  mais_vendido: '🔥 Mais Vendido',
+  novidade: '✨ Novidade',
+  vegano: '🌱 Vegano',
+};
+
+function formatUnit(unitValue?: string | null, unit?: string | null): string | null {
+  if (!unitValue || !unit) return null;
+  return `${unitValue}${unit}`;
+}
 
 export default function ProductBottomSheet() {
   const { data } = useSiteData();
@@ -58,6 +72,8 @@ export default function ProductBottomSheet() {
   if (!selectedProduct) return null;
 
   const totalPrice = selectedProduct.price * quantity;
+  const highlightLabel = selectedProduct.highlightTag ? HIGHLIGHT_LABELS[selectedProduct.highlightTag] : null;
+  const unitDisplay = formatUnit(selectedProduct.unitValue, selectedProduct.unit);
 
   // Menu style overrides
   const modalBg = ms?.modalBgColor;
@@ -110,23 +126,25 @@ export default function ProductBottomSheet() {
 
             {/* Content */}
             <div className="overflow-y-auto max-h-[calc(90vh-60px)]">
-              {/* Product Image - Enforced aspect-ratio and object-fit */}
-              <div className="relative aspect-square max-h-[300px] bg-lp-surface">
+              {/* Product Image - aspect-square + w-full + object-cover */}
+              <div className="relative aspect-square w-full max-h-[300px] bg-lp-surface overflow-hidden">
                 {selectedProduct.images?.[currentImageIndex] ? (
                   <img
                     src={selectedProduct.images[currentImageIndex]}
                     alt={selectedProduct.name}
-                    className="w-full h-full"
-                    style={{
-                      aspectRatio: '1 / 1',
-                      objectFit: 'cover',
-                      objectPosition: 'center',
-                    }}
+                    className="w-full h-full object-cover object-center"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-lp-surface">
                     <ShoppingBag className="w-16 h-16 text-lp-text-muted" />
                   </div>
+                )}
+
+                {/* Highlight Badge - top-left floating */}
+                {highlightLabel && (
+                  <span className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full bg-black/70 text-white text-xs font-medium backdrop-blur-sm">
+                    {highlightLabel}
+                  </span>
                 )}
                 
                 {/* Image Navigation Dots */}
@@ -150,14 +168,25 @@ export default function ProductBottomSheet() {
 
               {/* Product Info */}
               <div className="p-6 space-y-4">
-                {/* Name & Price */}
+                {/* Name, Unit & Price */}
                 <div>
-                  <h2 className="font-display text-2xl text-lp-text mb-2">
+                  <h2 className="font-display text-2xl text-lp-text mb-1">
                     {selectedProduct.name}
                   </h2>
-                  <p className="text-lp-highlight text-xl font-semibold">
-                    {formatPrice(selectedProduct.price)}
-                  </p>
+                  {/* Unit of measure below the name */}
+                  {unitDisplay && (
+                    <p className="text-sm text-lp-text-muted mb-2">{unitDisplay}</p>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <p className="text-lp-highlight text-xl font-semibold">
+                      {formatPrice(selectedProduct.price)}
+                    </p>
+                    {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
+                      <span className="text-lp-text-muted text-sm line-through">
+                        {formatPrice(selectedProduct.originalPrice)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Description */}

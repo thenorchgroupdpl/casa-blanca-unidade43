@@ -209,6 +209,10 @@ export interface Product {
   images: string[];
   description: string;
   available: boolean;
+  unitValue?: string | null;
+  unit?: string | null;
+  highlightTag?: string | null;
+  originalPrice?: number | null;
 }
 
 export interface Category {

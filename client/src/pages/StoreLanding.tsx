@@ -636,8 +636,12 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         name: p.name,
         description: p.description || '',
         price: Number(p.price),
+        originalPrice: p.originalPrice ? Number(p.originalPrice) : null,
         images: p.imageUrl ? [p.imageUrl] : [],
         available: p.isAvailable,
+        unitValue: p.unitValue || null,
+        unit: p.unit || null,
+        highlightTag: p.highlightTag || null,
       })),
   }));
 

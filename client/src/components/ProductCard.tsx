@@ -2,8 +2,8 @@
  * Product Card Component - Casa Blanca
  * Design: Warm Luxury - Light card on dark background
  * Features: Image gallery navigation, price, add to cart CTA
- * Now supports granular card style overrides from Design System
- * Image standardization: aspect-ratio 1:1, width 100%, object-fit cover, object-position center
+ * Now supports: highlight badges, unit of measure, granular card style overrides
+ * Image standardization: aspect-square, w-full, object-cover
  */
 
 import { useState, useMemo } from 'react';
@@ -33,6 +33,19 @@ interface ProductCardProps {
   cardStyle?: CardStyleOverrides;
 }
 
+// Map highlight tag values to display labels
+const HIGHLIGHT_LABELS: Record<string, string> = {
+  mais_vendido: '🔥 Mais Vendido',
+  novidade: '✨ Novidade',
+  vegano: '🌱 Vegano',
+};
+
+// Format unit of measure for display
+function formatUnit(unitValue?: string | null, unit?: string | null): string | null {
+  if (!unitValue || !unit) return null;
+  return `${unitValue}${unit}`;
+}
+
 export default function ProductCard({ product, index = 0, variant = 'showcase', cardStyle }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addItem } = useCart();
@@ -40,6 +53,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   const { showToast } = useToast();
 
   const hasMultipleImages = product.images.length > 1;
+  const highlightLabel = product.highlightTag ? HIGHLIGHT_LABELS[product.highlightTag] : null;
+  const unitDisplay = formatUnit(product.unitValue, product.unit);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -56,7 +71,6 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log('Adding to cart:', product.name);
     addItem(product, 1);
     showToast('Produto adicionado!', `${product.name} adicionado à sacola.`);
   };
@@ -78,6 +92,9 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     return style;
   }, [cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
 
+  // =============================================
+  // GRID VARIANT
+  // =============================================
   if (variant === 'grid') {
     return (
       <motion.div
@@ -94,24 +111,25 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
         transition={{ duration: 0.4, delay: index * 0.05 }}
         whileHover={{ y: -4 }}
       >
-        {/* Image - Padronização: aspect-ratio 1:1, object-fit cover, object-position center */}
-        <div className="relative overflow-hidden" style={{ aspectRatio: '1 / 1', width: '100%' }}>
+        {/* Image - aspect-square + w-full + object-cover */}
+        <div className="relative aspect-square w-full overflow-hidden">
           {product.images[currentImageIndex] ? (
             <img
               src={product.images[currentImageIndex]}
               alt={product.name}
-              className="transition-transform duration-500 group-hover:scale-105"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center',
-              }}
+              className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full bg-lp-surface flex items-center justify-center">
               <span className="text-3xl text-lp-text-muted">🍽️</span>
             </div>
+          )}
+
+          {/* Highlight Badge - top-left floating */}
+          {highlightLabel && (
+            <span className="absolute top-2 left-2 z-10 px-2.5 py-1 rounded-full bg-black/70 text-white text-[11px] font-medium backdrop-blur-sm">
+              {highlightLabel}
+            </span>
           )}
           
           {/* Quick Add Button */}
@@ -135,19 +153,31 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
             style={cardStyle?.nameColor ? { color: cardStyle.nameColor } : undefined}
           >
             {product.name}
+            {unitDisplay && (
+              <span className="text-lp-text-muted font-normal text-xs ml-1.5">• {unitDisplay}</span>
+            )}
           </h3>
-          <p
-            className="text-lp-highlight font-semibold mt-1"
-            style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
-          >
-            {formatPrice(product.price)}
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <p
+              className="text-lp-highlight font-semibold"
+              style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
+            >
+              {formatPrice(product.price)}
+            </p>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-lp-text-muted text-xs line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+          </div>
         </div>
       </motion.div>
     );
   }
 
-  // Showcase variant (horizontal scroll)
+  // =============================================
+  // SHOWCASE VARIANT (horizontal scroll)
+  // =============================================
   return (
     <motion.div
       onClick={handleCardClick}
@@ -163,24 +193,25 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
       transition={{ duration: 0.4, delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
-      {/* Image Container - Padronização: aspect-ratio 1:1, object-fit cover, object-position center */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: '1 / 1', width: '100%' }}>
+      {/* Image Container - aspect-square + w-full + object-cover */}
+      <div className="relative aspect-square w-full overflow-hidden">
         {product.images[currentImageIndex] ? (
           <img
             src={product.images[currentImageIndex]}
             alt={product.name}
-            className="transition-transform duration-500 group-hover:scale-105"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-            }}
+            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full bg-lp-surface flex items-center justify-center">
             <span className="text-3xl text-lp-text-muted">🍽️</span>
           </div>
+        )}
+
+        {/* Highlight Badge - top-left floating */}
+        {highlightLabel && (
+          <span className="absolute top-2 left-2 z-10 px-2.5 py-1 rounded-full bg-black/70 text-white text-[11px] font-medium backdrop-blur-sm">
+            {highlightLabel}
+          </span>
         )}
 
         {/* Image Navigation */}
@@ -223,6 +254,10 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
         >
           {product.name}
         </h3>
+        {/* Unit of measure below the name */}
+        {unitDisplay && (
+          <p className="text-xs text-gray-400 mt-0.5">{unitDisplay}</p>
+        )}
         <p
           className="text-sm text-gray-600 mt-0.5 line-clamp-1"
           style={cardStyle?.descColor ? { color: cardStyle.descColor } : undefined}
@@ -230,13 +265,18 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
           {product.description}
         </p>
         
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-3 flex items-center gap-2">
           <span
             className="text-lg font-bold text-gray-900"
             style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
           >
             {formatPrice(product.price)}
           </span>
+          {product.originalPrice && product.originalPrice > product.price && (
+            <span className="text-sm text-gray-400 line-through">
+              {formatPrice(product.originalPrice)}
+            </span>
+          )}
         </div>
 
         {/* Add Button */}
