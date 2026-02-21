@@ -98,7 +98,7 @@ export default function ProductBottomSheet() {
                   <img
                     src={selectedProduct.images[currentImageIndex]}
                     alt={selectedProduct.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-lp-surface">

@@ -80,6 +80,50 @@ export interface HeroContent {
 export interface IntroContent {
   headline: string;
   subheadline: string;
+  // Granular style overrides from Design System (Products section)
+  headline_font?: string;
+  headline_font_size?: number;
+  headline_font_weight?: string;
+  headline_color?: string;
+  subheadline_font?: string;
+  subheadline_font_size?: number;
+  subheadline_font_weight?: string;
+  subheadline_color?: string;
+  // Card template
+  card_bg_color?: string;
+  card_name_color?: string;
+  card_price_color?: string;
+  card_desc_color?: string;
+  card_border_radius?: number;
+  card_border_color?: string;
+  card_border_width?: number;
+  // Section background
+  bg_color?: string;
+  bg_gradient?: boolean;
+  bg_gradient_from?: string;
+  bg_gradient_to?: string;
+  bg_gradient_direction?: string;
+  bg_media_url?: string;
+  bg_media_type?: 'image' | 'video';
+  bg_overlay_opacity?: number;
+  bg_overlay_color?: string;
+  // View All button
+  view_all_bg_color?: string;
+  view_all_text_color?: string;
+  view_all_font?: string;
+  view_all_font_size?: number;
+  view_all_font_weight?: string;
+  view_all_label?: string;
+  // CTA button
+  cta_text?: string;
+  cta_bg_color?: string;
+  cta_text_color?: string;
+  cta_gradient?: boolean;
+  cta_gradient_end?: string;
+  cta_font?: string;
+  cta_font_size?: number;
+  cta_font_weight?: string;
+  cta_action?: string;
 }
 
 export interface AboutContent {

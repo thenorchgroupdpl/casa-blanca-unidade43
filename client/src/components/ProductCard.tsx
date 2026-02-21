@@ -1,23 +1,36 @@
 /**
  * Product Card Component - Casa Blanca
  * Design: Warm Luxury - Light card on dark background
- * Features: Image gallery navigation, price, add to cart CTA, inline toast
+ * Features: Image gallery navigation, price, add to cart CTA
+ * Now supports granular card style overrides from Design System
+ * Image standardization: aspect-ratio 1:1, width 100%, object-fit cover, object-position center
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useCart, useUI, useToast } from '@/store/useStore';
 import type { Product } from '@/types';
 
+export interface CardStyleOverrides {
+  bgColor?: string;
+  nameColor?: string;
+  priceColor?: string;
+  descColor?: string;
+  borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+}
+
 interface ProductCardProps {
   product: Product;
   index?: number;
   variant?: 'showcase' | 'grid';
+  cardStyle?: CardStyleOverrides;
 }
 
-export default function ProductCard({ product, index = 0, variant = 'showcase' }: ProductCardProps) {
+export default function ProductCard({ product, index = 0, variant = 'showcase', cardStyle }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addItem } = useCart();
   const { openProductSheet } = useUI();
@@ -49,6 +62,16 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
     openProductSheet(product);
   };
 
+  // Card container style from Design System overrides
+  const cardContainerStyle = useMemo(() => {
+    const style: React.CSSProperties = {};
+    if (cardStyle?.bgColor) style.backgroundColor = cardStyle.bgColor;
+    if (cardStyle?.borderRadius !== undefined) style.borderRadius = `${cardStyle.borderRadius}px`;
+    if (cardStyle?.borderColor) style.borderColor = cardStyle.borderColor;
+    if (cardStyle?.borderWidth !== undefined) style.borderWidth = `${cardStyle.borderWidth}px`;
+    return style;
+  }, [cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth]);
+
   if (variant === 'grid') {
     return (
       <motion.div
@@ -58,19 +81,26 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
           'border border-lp-border hover:border-lp-highlight-border transition-all duration-300',
           'hover:shadow-lg hover:bg-lp-highlight-subtle'
         )}
+        style={cardContainerStyle}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
         whileHover={{ y: -4 }}
       >
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden">
+        {/* Image - Padronização: aspect-ratio 1:1, object-fit cover, object-position center */}
+        <div className="relative overflow-hidden" style={{ aspectRatio: '1 / 1', width: '100%' }}>
           {product.images[currentImageIndex] ? (
             <img
               src={product.images[currentImageIndex]}
               alt={product.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="transition-transform duration-500 group-hover:scale-105"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
             />
           ) : (
             <div className="w-full h-full bg-lp-surface flex items-center justify-center">
@@ -94,8 +124,18 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
 
         {/* Info */}
         <div className="p-4">
-          <h3 className="font-medium text-lp-text line-clamp-1">{product.name}</h3>
-          <p className="text-lp-highlight font-semibold mt-1">{formatPrice(product.price)}</p>
+          <h3
+            className="font-medium text-lp-text line-clamp-1"
+            style={cardStyle?.nameColor ? { color: cardStyle.nameColor } : undefined}
+          >
+            {product.name}
+          </h3>
+          <p
+            className="text-lp-highlight font-semibold mt-1"
+            style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
+          >
+            {formatPrice(product.price)}
+          </p>
         </div>
       </motion.div>
     );
@@ -110,19 +150,26 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
         'product-card rounded-2xl overflow-hidden',
         'shadow-lg hover:shadow-xl transition-all duration-300'
       )}
+      style={cardContainerStyle}
       initial={{ opacity: 0, x: 20 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
-      {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden">
+      {/* Image Container - Padronização: aspect-ratio 1:1, object-fit cover, object-position center */}
+      <div className="relative overflow-hidden" style={{ aspectRatio: '1 / 1', width: '100%' }}>
         {product.images[currentImageIndex] ? (
           <img
             src={product.images[currentImageIndex]}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="transition-transform duration-500 group-hover:scale-105"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
           />
         ) : (
           <div className="w-full h-full bg-lp-surface flex items-center justify-center">
@@ -164,11 +211,26 @@ export default function ProductCard({ product, index = 0, variant = 'showcase' }
 
       {/* Info */}
       <div className="p-4">
-        <h3 className="font-medium text-gray-900 line-clamp-1">{product.name}</h3>
-        <p className="text-sm text-gray-600 mt-0.5 line-clamp-1">{product.description}</p>
+        <h3
+          className="font-medium text-gray-900 line-clamp-1"
+          style={cardStyle?.nameColor ? { color: cardStyle.nameColor } : undefined}
+        >
+          {product.name}
+        </h3>
+        <p
+          className="text-sm text-gray-600 mt-0.5 line-clamp-1"
+          style={cardStyle?.descColor ? { color: cardStyle.descColor } : undefined}
+        >
+          {product.description}
+        </p>
         
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900">{formatPrice(product.price)}</span>
+          <span
+            className="text-lg font-bold text-gray-900"
+            style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
+          >
+            {formatPrice(product.price)}
+          </span>
         </div>
 
         {/* Add Button */}

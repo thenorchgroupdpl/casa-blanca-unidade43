@@ -123,6 +123,51 @@ type LandingDesign = {
     subheadline?: string;
     maxCategories?: number;
     offersCategoryId?: number | null;
+    // 2.1 Headline granular
+    headlineFont?: string;
+    headlineFontSize?: number;
+    headlineFontWeight?: string;
+    headlineColor?: string;
+    // 2.2 Subheadline granular
+    subheadlineFont?: string;
+    subheadlineFontSize?: number;
+    subheadlineFontWeight?: string;
+    subheadlineColor?: string;
+    // 2.3 Template de Cards
+    cardBgColor?: string;
+    cardNameColor?: string;
+    cardPriceColor?: string;
+    cardDescColor?: string;
+    cardBorderRadius?: number; // px
+    cardBorderColor?: string;
+    cardBorderWidth?: number; // px
+    // 2.4 Fundo da Seção
+    bgColor?: string;
+    bgGradient?: boolean;
+    bgGradientFrom?: string;
+    bgGradientTo?: string;
+    bgGradientDirection?: string; // to-b, to-r, to-br, etc.
+    bgMediaUrl?: string;
+    bgMediaType?: "image" | "video";
+    bgOverlayOpacity?: number;
+    bgOverlayColor?: string;
+    // 2.5 Botão Ver Todas
+    viewAllBgColor?: string;
+    viewAllTextColor?: string;
+    viewAllFont?: string;
+    viewAllFontSize?: number;
+    viewAllFontWeight?: string;
+    viewAllLabel?: string;
+    // 2.6 Botão CTA (Rodapé)
+    ctaText?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    ctaGradient?: boolean;
+    ctaGradientEnd?: string;
+    ctaFont?: string;
+    ctaFontSize?: number;
+    ctaFontWeight?: string;
+    ctaAction?: string; // URL or anchor
   };
   about?: {
     // 2.1 Pre-headline (overline)
@@ -802,6 +847,9 @@ export default function DesignPage() {
                         data={design.products || {}}
                         categories={landingData?.categories || []}
                         onChange={(field, value) => updateDesign("products", field, value)}
+                        onImageUpload={handleImageUpload}
+                        onDirectUpload={handleDirectUpload}
+                        uploading={uploadMutation.isPending}
                       />
                       <Separator className="bg-zinc-800" />
                       <SectionColorsPanel
@@ -1674,15 +1722,72 @@ function HomeSection({
 // PRODUCTS SECTION
 // ============================================
 
+const GRADIENT_DIRECTIONS = [
+  { value: "to-b", label: "↓ Cima → Baixo" },
+  { value: "to-t", label: "↑ Baixo → Cima" },
+  { value: "to-r", label: "→ Esq → Dir" },
+  { value: "to-l", label: "← Dir → Esq" },
+  { value: "to-br", label: "↘ Diagonal" },
+  { value: "to-bl", label: "↙ Diagonal" },
+  { value: "to-tr", label: "↗ Diagonal" },
+  { value: "to-tl", label: "↖ Diagonal" },
+];
+
 function ProductsSection({
   data,
   categories,
   onChange,
+  onImageUpload,
+  onDirectUpload,
+  uploading,
 }: {
   data: NonNullable<LandingDesign["products"]>;
   categories: { id: number; name: string }[];
   onChange: (field: string, value: unknown) => void;
+  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
+  uploading: boolean;
 }) {
+  // Reusable color picker row
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  // Reusable font selector
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
+        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+          <SelectValue placeholder="Herdar Global" />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          <SelectItem value="inherit">Herdar Global</SelectItem>
+          {ALL_FONTS.map((f) => (
+            <SelectItem key={f} value={f}>
+              <span style={{ fontFamily: f }}>{f}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -1690,31 +1795,10 @@ function ProductsSection({
         Seção Produtos
       </h3>
 
-      <div className="space-y-2">
-        <div>
-          <Label className="text-[11px] text-zinc-400">Headline</Label>
-          <Input
-            value={data.headline || ""}
-            onChange={(e) => onChange("headline", e.target.value)}
-            placeholder="Nosso Cardápio"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-          />
-        </div>
-        <div>
-          <Label className="text-[11px] text-zinc-400">Subheadline</Label>
-          <Input
-            value={data.subheadline || ""}
-            onChange={(e) => onChange("subheadline", e.target.value)}
-            placeholder="Escolha seus favoritos"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-          />
-        </div>
-      </div>
-
-      <Separator className="bg-zinc-800" />
-
-      <div className="space-y-2">
-        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Categorias</Label>
+      {/* ===== CATEGORIAS (Regra de Negócio) ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">Categorias (Dados do Catálogo)</Label>
+        <p className="text-[10px] text-zinc-500 italic">Os produtos vêm do módulo de Catálogo e não são editáveis aqui.</p>
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] text-zinc-500">Máximo na LP</span>
@@ -1724,7 +1808,7 @@ function ProductsSection({
             value={[data.maxCategories ?? 3]}
             onValueChange={([v]) => onChange("maxCategories", v)}
             min={1}
-            max={3}
+            max={6}
             step={1}
             className="w-full"
           />
@@ -1759,6 +1843,321 @@ function ProductsSection({
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      {/* ===== 2.1 HEADLINE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.1 Headline (Título da Seção)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Input
+            value={data.headline || ""}
+            onChange={(e) => onChange("headline", e.target.value)}
+            placeholder="Nosso Cardápio"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.headlineFontSize ?? 48}px</span>
+            </div>
+            <Slider
+              value={[data.headlineFontSize ?? 48]}
+              onValueChange={([v]) => onChange("headlineFontSize", v)}
+              min={24}
+              max={96}
+              step={2}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Título" value={data.headlineColor} defaultVal="" field="headlineColor" />
+      </div>
+
+      {/* ===== 2.2 SUBHEADLINE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.2 Subheadline (Subtítulo)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Input
+            value={data.subheadline || ""}
+            onChange={(e) => onChange("subheadline", e.target.value)}
+            placeholder="Escolha seus favoritos"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <FontSelect label="Fonte" value={data.subheadlineFont} field="subheadlineFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.subheadlineFontSize ?? 18}px</span>
+            </div>
+            <Slider
+              value={[data.subheadlineFontSize ?? 18]}
+              onValueChange={([v]) => onChange("subheadlineFontSize", v)}
+              min={12}
+              max={36}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.subheadlineFontWeight || "400"} onValueChange={(v) => onChange("subheadlineFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <ColorRow label="Cor do Subtítulo" value={data.subheadlineColor} defaultVal="" field="subheadlineColor" />
+      </div>
+
+      {/* ===== 2.3 TEMPLATE DE CARDS ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.3 Template de Cards</Label>
+        <p className="text-[10px] text-zinc-500 italic">Personalização visual dos cards. Dados dos produtos (nome, preço, foto) vêm do Catálogo.</p>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
+        <ColorRow label="Fundo do Card" value={data.cardBgColor} defaultVal="#ffffff" field="cardBgColor" />
+        <ColorRow label="Nome do Produto" value={data.cardNameColor} defaultVal="#111827" field="cardNameColor" />
+        <ColorRow label="Preço" value={data.cardPriceColor} defaultVal="" field="cardPriceColor" />
+        <ColorRow label="Descrição Curta" value={data.cardDescColor} defaultVal="#6b7280" field="cardDescColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Borda</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Raio (px)</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.cardBorderRadius ?? 16}px</span>
+            </div>
+            <Slider
+              value={[data.cardBorderRadius ?? 16]}
+              onValueChange={([v]) => onChange("cardBorderRadius", v)}
+              min={0}
+              max={32}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Espessura (px)</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.cardBorderWidth ?? 1}px</span>
+            </div>
+            <Slider
+              value={[data.cardBorderWidth ?? 1]}
+              onValueChange={([v]) => onChange("cardBorderWidth", v)}
+              min={0}
+              max={4}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        </div>
+        <ColorRow label="Cor da Borda" value={data.cardBorderColor} defaultVal="" field="cardBorderColor" />
+      </div>
+
+      {/* ===== 2.4 FUNDO DA SEÇÃO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.4 Fundo da Seção</Label>
+
+        <ColorRow label="Cor Sólida" value={data.bgColor} defaultVal="" field="bgColor" />
+
+        <Separator className="bg-zinc-800" />
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={data.bgGradient ?? false}
+            onCheckedChange={(v) => onChange("bgGradient", v)}
+          />
+          <Label className="text-[10px] text-zinc-400">Gradiente</Label>
+        </div>
+        {data.bgGradient && (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <ColorRow label="De" value={data.bgGradientFrom} defaultVal="#ffffff" field="bgGradientFrom" />
+              <ColorRow label="Para" value={data.bgGradientTo} defaultVal="#f3f4f6" field="bgGradientTo" />
+            </div>
+            <div>
+              <Label className="text-[10px] text-zinc-500">Direção</Label>
+              <Select value={data.bgGradientDirection || "to-b"} onValueChange={(v) => onChange("bgGradientDirection", v)}>
+                <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {GRADIENT_DIRECTIONS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Imagem de Fundo</Label>
+
+        <ImageUploadField
+          label="Imagem (WebP recomendado)"
+          value={data.bgMediaUrl}
+          onChange={(url) => onChange("bgMediaUrl", url)}
+          onUpload={onImageUpload}
+          uploading={uploading}
+        />
+
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
+            <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
+          </div>
+          <Slider
+            value={[data.bgOverlayOpacity ?? 0]}
+            onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
+            min={0}
+            max={100}
+            step={5}
+            className="w-full"
+          />
+        </div>
+        <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
+      </div>
+
+      {/* ===== 2.5 BOTÃO VER TODAS ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.5 Botão "Ver Todas"</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Label</Label>
+          <Input
+            value={data.viewAllLabel || ""}
+            onChange={(e) => onChange("viewAllLabel", e.target.value)}
+            placeholder="Ver Todas"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <ColorRow label="Cor de Fundo" value={data.viewAllBgColor} defaultVal="" field="viewAllBgColor" />
+        <ColorRow label="Cor do Texto" value={data.viewAllTextColor} defaultVal="" field="viewAllTextColor" />
+        <FontSelect label="Fonte" value={data.viewAllFont} field="viewAllFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.viewAllFontSize ?? 14}px</span>
+            </div>
+            <Slider
+              value={[data.viewAllFontSize ?? 14]}
+              onValueChange={([v]) => onChange("viewAllFontSize", v)}
+              min={10}
+              max={24}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.viewAllFontWeight || "500"} onValueChange={(v) => onChange("viewAllFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== 2.6 BOTÃO CTA ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.6 Botão CTA (Ver Cardápio Completo)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Label</Label>
+          <Input
+            value={data.ctaText || ""}
+            onChange={(e) => onChange("ctaText", e.target.value)}
+            placeholder="Ver Cardápio Completo"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        </div>
+        <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="" field="ctaBgColor" />
+        <ColorRow label="Cor do Texto" value={data.ctaTextColor} defaultVal="" field="ctaTextColor" />
+
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={data.ctaGradient ?? false}
+            onCheckedChange={(v) => onChange("ctaGradient", v)}
+          />
+          <Label className="text-[10px] text-zinc-400">Gradiente</Label>
+        </div>
+        {data.ctaGradient && (
+          <ColorRow label="Cor Final do Gradiente" value={data.ctaGradientEnd} defaultVal="" field="ctaGradientEnd" />
+        )}
+
+        <FontSelect label="Fonte" value={data.ctaFont} field="ctaFont" />
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+              <span className="text-[10px] text-zinc-500 font-mono">{data.ctaFontSize ?? 16}px</span>
+            </div>
+            <Slider
+              value={[data.ctaFontSize ?? 16]}
+              onValueChange={([v]) => onChange("ctaFontSize", v)}
+              min={12}
+              max={24}
+              step={1}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.ctaFontWeight || "500"} onValueChange={(v) => onChange("ctaFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-[10px] text-zinc-500">Ação (URL ou âncora)</Label>
+          <Input
+            value={data.ctaAction || ""}
+            onChange={(e) => onChange("ctaAction", e.target.value)}
+            placeholder="#cardapio ou https://..."
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
         </div>
       </div>
     </div>

@@ -306,3 +306,19 @@
 - [x] Atualizar transformTenantDataToSiteData para carregar novos campos about do banco
 - [x] Atualizar AboutSection.tsx para consumir os novos campos de estilo
 - [x] Testar persistência e preview em tempo real
+
+## Fase 33: Controles Granulares da Seção Produtos (Vitrine)
+- [x] Analisar ProductsSection no Design.tsx, VitrineSection.tsx e ProductCard.tsx
+- [x] Expandir tipo LandingDesign.products com campos granulares (headline, subheadline, cards, fundo, botões)
+- [x] 2.1 HEADLINE: fonte, tamanho, peso, cor, texto editável
+- [x] 2.2 SUBHEADLINE: fonte, tamanho, peso, cor, texto editável
+- [x] 2.3 TEMPLATE DE CARDS: cor fundo card, cor nome produto, cor preço, cor descrição, border-radius, border-color, border-width
+- [x] 2.3b Padronização de imagem: aspect-ratio 1/1, width 100%, object-fit cover, object-position center
+- [x] 2.4 FUNDO DA SEÇÃO: cor sólida, gradiente direcional, upload imagem (WebP), opacidade
+- [x] 2.5 BOTÃO VER TODAS: cor fundo, cor texto, fonte, tamanho, peso, label editável
+- [x] 2.6 BOTÃO CTA: cor fundo (com gradiente), cor texto, fonte, tamanho, peso, label editável, ação (URL/âncora)
+- [x] Atualizar postMessage handler no StoreLanding para mapear novos campos products
+- [x] Atualizar transformTenantDataToSiteData para carregar novos campos products do banco
+- [x] Atualizar VitrineSection.tsx para consumir os novos campos de estilo
+- [x] Atualizar ProductCard.tsx para consumir cores e bordas personalizadas
+- [x] Testar persistência e preview em tempo real
