@@ -316,6 +316,9 @@ export interface InfoStyleOverrides {
   subheadlineFontWeight?: string;
   subheadlineColor?: string;
   // 6.2 Map
+  showMapPin?: boolean;
+  showMapLabel?: boolean;
+  mapCoverUrl?: string;
   mapPinColor?: string;
   mapBtnBgColor?: string;
   mapBtnTextColor?: string;

@@ -375,3 +375,16 @@
 - [x] Atualizar LocationSection.tsx para consumir novos estilos
 - [x] Atualizar Footer.tsx para consumir novos estilos
 - [x] Testar persistência e preview em tempo real
+
+## Fase 37: Bug Fix + Redesign Visual do Painel Design System
+### PARTE 1: Correção Funcional
+- [x] Corrigir ícones sobrepostos na seção Informações (LocationSection)
+- [x] Adicionar toggles de visibilidade para cada ícone (pin e mapa)
+- [x] Renderização condicional dos ícones no DOM
+### PARTE 2: Redesign Estético do Editor
+- [x] Remover borda branca grossa do painel, substituir por separação sutil dark (shadow-2xl)
+- [x] Redesign da hierarquia e alinhamento (grid system, ritmo vertical consistente)
+- [x] Transformar títulos de seções em navegação clara (SubPanel accordions com estado ativo)
+- [x] Modernizar inputs, selects e color pickers (bg-zinc-900/60, focus ring amber)
+- [x] Redesenhar campos de upload para Drag & Drop Zone com preview de imagem
+- [x] Manter todas as funcionalidades e conexões com banco de dados intactas (78 testes passando)

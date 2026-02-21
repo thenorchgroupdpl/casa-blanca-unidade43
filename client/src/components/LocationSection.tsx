@@ -197,12 +197,7 @@ export default function LocationSection() {
                 <div className={cn(
                   "w-full h-full flex items-center justify-center",
                   hasBgMedia ? "bg-black/30 backdrop-blur-sm" : "bg-lp-surface"
-                )}>
-                  <MapPin
-                    className="w-16 h-16"
-                    style={{ color: s.mapPinColor || undefined }}
-                  />
-                </div>
+                )} />
               )}
               
               <div
@@ -215,29 +210,35 @@ export default function LocationSection() {
               >
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                 <div className="relative flex flex-col items-center gap-3 text-lp-text">
-                  <div
-                    className="p-4 rounded-full gold-glow"
-                    style={{
-                      backgroundColor: s.mapBtnBgColor || undefined,
-                    }}
-                  >
-                    <MapPin
-                      className="w-8 h-8"
-                      style={{ color: s.mapPinColor || s.mapBtnTextColor || undefined }}
-                    />
-                  </div>
-                  <span
-                    className="font-medium flex items-center gap-2"
-                    style={{
-                      color: s.mapBtnTextColor || undefined,
-                      fontFamily: s.mapBtnFont || undefined,
-                      fontSize: s.mapBtnFontSize ? `${s.mapBtnFontSize}px` : undefined,
-                      fontWeight: s.mapBtnFontWeight ? Number(s.mapBtnFontWeight) : undefined,
-                    }}
-                  >
-                    {mapBtnLabel}
-                    <ExternalLink className="w-4 h-4" />
-                  </span>
+                  {/* Pin icon - toggleable */}
+                  {(s.showMapPin !== false) && (
+                    <div
+                      className="p-4 rounded-full gold-glow"
+                      style={{
+                        backgroundColor: s.mapBtnBgColor || undefined,
+                      }}
+                    >
+                      <MapPin
+                        className="w-8 h-8"
+                        style={{ color: s.mapPinColor || s.mapBtnTextColor || undefined }}
+                      />
+                    </div>
+                  )}
+                  {/* Map button label - toggleable */}
+                  {(s.showMapLabel !== false) && (
+                    <span
+                      className="font-medium flex items-center gap-2"
+                      style={{
+                        color: s.mapBtnTextColor || undefined,
+                        fontFamily: s.mapBtnFont || undefined,
+                        fontSize: s.mapBtnFontSize ? `${s.mapBtnFontSize}px` : undefined,
+                        fontWeight: s.mapBtnFontWeight ? Number(s.mapBtnFontWeight) : undefined,
+                      }}
+                    >
+                      {mapBtnLabel}
+                      <ExternalLink className="w-4 h-4" />
+                    </span>
+                  )}
                 </div>
               </div>
             </button>

@@ -59,8 +59,65 @@ import {
   Youtube,
   Globe,
   ExternalLink,
+  ChevronDown,
+  Layers,
+  Menu,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+
+// ============================================
+// REUSABLE SUB-PANEL (Accordion)
+// ============================================
+function SubPanel({
+  id,
+  title,
+  icon,
+  defaultOpen = false,
+  badge,
+  children,
+}: {
+  id: string;
+  title: string;
+  icon?: React.ReactNode;
+  defaultOpen?: boolean;
+  badge?: string;
+  children: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className={`rounded-xl transition-all duration-200 ${
+      isOpen
+        ? 'bg-zinc-800/40 ring-1 ring-zinc-700/60'
+        : 'bg-zinc-800/20 hover:bg-zinc-800/30'
+    }`}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 w-full px-3.5 py-2.5 text-left"
+      >
+        {icon && <span className={`shrink-0 ${isOpen ? 'text-amber-500' : 'text-zinc-500'}`}>{icon}</span>}
+        <span className={`text-xs font-semibold tracking-wide uppercase flex-1 ${
+          isOpen ? 'text-zinc-200' : 'text-zinc-400'
+        }`}>
+          {title}
+        </span>
+        {badge && (
+          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            {badge}
+          </span>
+        )}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${
+          isOpen ? 'rotate-180 text-amber-500' : 'text-zinc-600'
+        }`} />
+      </button>
+      {isOpen && (
+        <div className="px-3.5 pb-3.5 pt-1 space-y-2.5">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ============================================
 // COLOR PICKER WITH LOCAL STATE
@@ -967,28 +1024,28 @@ export default function DesignPage() {
         ) : (
           <div className="flex flex-1 overflow-hidden min-h-0">
             {/* Left Panel - Editor */}
-            <div className="w-[380px] shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden min-h-0">
+            <div className="w-[400px] shrink-0 flex flex-col overflow-hidden min-h-0 bg-zinc-900/80" style={{ boxShadow: '4px 0 24px rgba(0,0,0,0.4), 1px 0 0 rgba(63,63,70,0.3)' }}>
               {/* Section Tabs */}
-              <div className="flex border-b border-zinc-800 shrink-0 overflow-x-auto">
+              <div className="flex border-b border-zinc-800/80 shrink-0 overflow-x-auto bg-zinc-900/60 backdrop-blur-sm">
                 {SECTION_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center gap-1 px-2.5 py-2 text-[11px] font-medium whitespace-nowrap transition-colors border-b-2 ${
+                    className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold whitespace-nowrap transition-all border-b-2 ${
                       activeTab === tab.id
-                        ? "border-amber-500 text-amber-500 bg-amber-500/5"
-                        : "border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                        ? "border-amber-500 text-amber-400 bg-amber-500/5"
+                        : "border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/40"
                     }`}
                   >
-                    <tab.icon className="h-3 w-3" />
+                    <tab.icon className={`h-3.5 w-3.5 ${activeTab === tab.id ? 'text-amber-500' : ''}`} />
                     {tab.label}
                   </button>
                 ))}
               </div>
 
               {/* Editor Content */}
-              <div className="flex-1 overflow-y-auto min-h-0">
-                <div className="p-3 space-y-5">
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin">
+                <div className="p-4 space-y-4">
                   {/* Global Styles */}
                   <GlobalStylesPanel
                     colors={colors}
@@ -1140,7 +1197,7 @@ export default function DesignPage() {
 
             {/* Right Panel - Preview */}
             <div className="flex-1 bg-zinc-950 flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 shrink-0">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800/50 shrink-0 bg-zinc-950/80">
                 <span className="text-[11px] text-zinc-500 font-medium">
                   PREVIEW — /{selectedTenant?.slug}
                   {previewMode === "mobile" ? " (Mobile 375px)" : " (Desktop)"}
@@ -1151,12 +1208,12 @@ export default function DesignPage() {
                   </span>
                 )}
               </div>
-              <div className="flex-1 flex items-start justify-center p-3 overflow-auto">
+              <div className="flex-1 flex items-start justify-center p-4 overflow-auto">
                 <div
-                  className={`h-full rounded-lg overflow-hidden border border-zinc-800 bg-black transition-all duration-300 ${
+                  className={`h-full rounded-xl overflow-hidden bg-black transition-all duration-300 ${
                     previewMode === "mobile"
-                      ? "w-[375px] shadow-2xl shadow-black/50"
-                      : "w-full"
+                      ? "w-[375px] shadow-2xl shadow-black/60 ring-1 ring-zinc-800/50"
+                      : "w-full ring-1 ring-zinc-800/30"
                   }`}
                 >
                   {selectedTenant && (
@@ -1278,18 +1335,22 @@ function GlobalStylesPanel({
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div>
+    <div className="rounded-xl overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-sm font-semibold text-zinc-300 hover:text-white w-full"
+        className={`flex items-center gap-2.5 text-sm font-semibold w-full px-3.5 py-3 rounded-xl transition-all ${
+          isOpen
+            ? 'bg-gradient-to-r from-amber-500/10 to-transparent text-amber-400 ring-1 ring-amber-500/20'
+            : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60'
+        }`}
       >
-        <Palette className="h-4 w-4 text-amber-500" />
+        <Palette className={`h-4 w-4 ${isOpen ? 'text-amber-500' : 'text-zinc-500'}`} />
         Estilos Globais
-        <span className="ml-auto text-xs text-zinc-500">{isOpen ? "▼" : "▶"}</span>
+        <ChevronDown className={`ml-auto h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-amber-500' : 'text-zinc-600'}`} />
       </button>
 
       {isOpen && (
-        <div className="mt-3 space-y-4">
+        <div className="mt-2 space-y-4 px-1">
           {/* Action Colors */}
           <div className="space-y-2">
             <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Cores de Ação</Label>
@@ -1306,7 +1367,7 @@ function GlobalStylesPanel({
                       <span className="text-[10px]">{icon}</span>
                       <span className="text-xs font-medium text-zinc-200">{label}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-500 leading-tight mt-0.5 truncate">{description}</p>
+                    <p className="text-[10px] text-zinc-400 leading-tight mt-0.5 truncate">{description}</p>
                   </div>
                   <Input
                     value={colors[key]}
@@ -1362,7 +1423,7 @@ function GlobalStylesPanel({
                       <span className="text-[10px]">{icon}</span>
                       <span className="text-xs font-medium text-zinc-200">{label}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-500 leading-tight mt-0.5 truncate">{description}</p>
+                    <p className="text-[10px] text-zinc-400 leading-tight mt-0.5 truncate">{description}</p>
                   </div>
                   <Input
                     value={colors[key]}
@@ -1384,7 +1445,7 @@ function GlobalStylesPanel({
               <div>
                 <span className="text-[11px] text-zinc-500">Fonte Principal</span>
                 <Select value={fontFamily} onValueChange={onFontFamilyChange}>
-                  <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs w-full">
+                  <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -1399,7 +1460,7 @@ function GlobalStylesPanel({
               <div>
                 <span className="text-[11px] text-zinc-500">Fonte Títulos</span>
                 <Select value={fontDisplay} onValueChange={onFontDisplayChange}>
-                  <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs w-full">
+                  <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -1465,46 +1526,61 @@ function ImageUploadField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) onUpload(file, onChange);
+  };
+
   return (
     <div className="space-y-1.5">
       <Label className="text-[11px] text-zinc-400">{label}</Label>
-      {value && (
-        <div className="relative rounded-lg overflow-hidden border border-zinc-700 bg-zinc-800">
+      {value ? (
+        <div className="relative rounded-xl overflow-hidden ring-1 ring-zinc-700/50 bg-zinc-900/40 group">
           {accept.includes("video") && value.match(/\.(mp4|webm|mov)$/i) ? (
-            <video src={value} className="w-full h-20 object-cover" muted />
+            <video src={value} className="w-full h-24 object-cover" muted />
           ) : (
-            <img src={value} alt="" className="w-full h-20 object-cover" />
+            <img src={value} alt="" className="w-full h-24 object-cover" />
           )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <button
             onClick={() => onChange("")}
-            className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-black/80 text-[10px]"
+            className="absolute top-1.5 right-1.5 bg-black/70 backdrop-blur-sm text-white rounded-lg w-6 h-6 flex items-center justify-center hover:bg-red-500/80 text-[10px] transition-colors ring-1 ring-white/10"
           >
             ✕
           </button>
         </div>
-      )}
-      <div className="flex gap-1.5">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="flex-1 border-zinc-700 text-zinc-300 hover:text-white text-[11px] h-7"
+      ) : (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => !uploading && inputRef.current?.click()}
+          className={`flex flex-col items-center justify-center gap-1.5 py-5 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+            isDragging
+              ? 'border-amber-500/50 bg-amber-500/5'
+              : 'border-zinc-700/40 bg-zinc-900/30 hover:border-zinc-600/60 hover:bg-zinc-800/30'
+          }`}
         >
           {uploading ? (
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
           ) : (
-            <Upload className="h-3 w-3 mr-1" />
+            <Upload className="h-5 w-5 text-zinc-500" />
           )}
-          {uploading ? "Enviando..." : "Upload"}
-        </Button>
-        <Input
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="ou cole a URL"
-          className="flex-1 h-7 text-[11px] bg-zinc-800 border-zinc-700 px-2"
-        />
-      </div>
+          <span className="text-[11px] text-zinc-500">
+            {uploading ? 'Enviando...' : 'Arraste ou clique para enviar'}
+          </span>
+        </div>
+      )}
+      <Input
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="ou cole a URL da imagem"
+        className="h-7 text-[11px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-2"
+      />
       <input
         ref={inputRef}
         type="file"
@@ -1540,7 +1616,7 @@ function HomeSection({
   // Reusable color picker row
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <div className="flex items-center gap-2">
         <ColorPickerInput
           value={value || defaultVal}
@@ -1550,7 +1626,7 @@ function HomeSection({
         <Input
           value={value || defaultVal}
           onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
         />
       </div>
     </div>
@@ -1559,9 +1635,9 @@ function HomeSection({
   // Reusable font selector
   const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
         <SelectContent className="max-h-60">
@@ -1578,20 +1654,21 @@ function HomeSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <Home className="h-4 w-4 text-amber-500" />
-        Seção Home
-      </h3>
+      <div className="flex items-center gap-2.5 pb-2 mb-1 border-b border-zinc-800/60">
+        <div className="p-1.5 rounded-lg bg-amber-500/10">
+          <Home className="h-4 w-4 text-amber-500" />
+        </div>
+        <h3 className="text-sm font-bold text-zinc-100 tracking-tight">Seção Home</h3>
+      </div>
 
       {/* ===== 1.1 HEADER ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.1 Header (Barra da Logo)</Label>
+      <SubPanel id="1-1-header-barra-da-logo" title="1.1 Header (Barra da Logo)">
 
         <ColorRow label="Cor de Fundo" value={data.headerBgColor} defaultVal="rgba(0,0,0,0.3)" field="headerBgColor" />
 
         {/* Logo Type */}
         <div className="space-y-1.5">
-          <Label className="text-[10px] text-zinc-500">Tipo de Logotipo</Label>
+          <Label className="text-[10px] text-zinc-400">Tipo de Logotipo</Label>
           <div className="flex gap-1.5">
             <button
               onClick={() => onChange("logoType", "text")}
@@ -1629,8 +1706,8 @@ function HomeSection({
             />
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-[10px] text-zinc-500">Tamanho do Logo</Label>
-                <span className="text-[10px] text-zinc-500 font-mono">{data.logoSize ?? 80}px</span>
+                <Label className="text-[10px] text-zinc-400">Tamanho do Logo</Label>
+                <span className="text-[10px] text-zinc-400 font-mono">{data.logoSize ?? 80}px</span>
               </div>
               <Slider
                 value={[data.logoSize ?? 80]}
@@ -1646,77 +1723,74 @@ function HomeSection({
 
         {data.logoType === "text" && (
           <div className="space-y-1.5">
-            <Label className="text-[10px] text-zinc-500">Nome da Empresa</Label>
+            <Label className="text-[10px] text-zinc-400">Nome da Empresa</Label>
             <Input
               value={data.companyName || ""}
               onChange={(e) => onChange("companyName", e.target.value)}
               placeholder="Casa Blanca"
-              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
             />
           </div>
         )}
-      </div>
+      </SubPanel>
 
       {/* ===== 1.2 BOX LOCALIZAÇÃO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.2 Box de Localização</Label>
+      <SubPanel id="1-2-box-de-localiza-o" title="1.2 Box de Localização">
         <div className="grid grid-cols-3 gap-2">
           <ColorRow label="Fundo" value={data.locationBoxBg} defaultVal="rgba(255,255,255,0.1)" field="locationBoxBg" />
           <ColorRow label="Texto" value={data.locationBoxText} defaultVal="#a1a1aa" field="locationBoxText" />
           <ColorRow label="Ícone" value={data.locationBoxIcon} defaultVal="#d4a853" field="locationBoxIcon" />
         </div>
         <div>
-          <Label className="text-[10px] text-zinc-500">Label da Cidade</Label>
+          <Label className="text-[10px] text-zinc-400">Label da Cidade</Label>
           <Input
             value={data.locationLabel || ""}
             onChange={(e) => onChange("locationLabel", e.target.value)}
             placeholder="Ex: Patos de Minas"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 1.3 BOX HORÁRIOS ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.3 Box de Atendimento</Label>
+      <SubPanel id="1-3-box-de-atendimento" title="1.3 Box de Atendimento">
         <div className="grid grid-cols-3 gap-2">
           <ColorRow label="Fundo" value={data.scheduleBoxBg} defaultVal="rgba(34,197,94,0.15)" field="scheduleBoxBg" />
           <ColorRow label="Texto" value={data.scheduleBoxText} defaultVal="#22c55e" field="scheduleBoxText" />
           <ColorRow label="Ícone" value={data.scheduleBoxIcon} defaultVal="#22c55e" field="scheduleBoxIcon" />
         </div>
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto do Horário</Label>
+          <Label className="text-[10px] text-zinc-400">Texto do Horário</Label>
           <Input
             value={data.scheduleLabel || ""}
             onChange={(e) => onChange("scheduleLabel", e.target.value)}
             placeholder="Ex: Abre às 18h"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <ColorRow label="Cor Aberto" value={data.badgeOpenColor} defaultVal="#22c55e" field="badgeOpenColor" />
           <ColorRow label="Cor Fechado" value={data.badgeClosedColor} defaultVal="#ef4444" field="badgeClosedColor" />
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 1.4 HEADLINE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.4 Headline (Título Principal)</Label>
+      <SubPanel id="1-4-headline-t-tulo-principal" title="1.4 Headline (Título Principal)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Textarea
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Gastronomia de Alta Performance"
-            className="bg-zinc-800 border-zinc-700 text-xs min-h-[60px] resize-y"
+            className="bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs min-h-[60px] resize-y"
           />
         </div>
         <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.headlineFontSize ?? 64}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.headlineFontSize ?? 64}px</span>
             </div>
             <Slider
               value={[data.headlineFontSize ?? 64]}
@@ -1728,9 +1802,9 @@ function HomeSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1742,26 +1816,25 @@ function HomeSection({
           </div>
         </div>
         <ColorRow label="Cor do Título" value={data.headlineColor} defaultVal="#ffffff" field="headlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 1.5 SUBHEADLINE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.5 Subheadline (Subtítulo)</Label>
+      <SubPanel id="1-5-subheadline-subt-tulo" title="1.5 Subheadline (Subtítulo)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Textarea
             value={data.subheadline || ""}
             onChange={(e) => onChange("subheadline", e.target.value)}
             placeholder="Experiência única em sua cidade"
-            className="bg-zinc-800 border-zinc-700 text-xs min-h-[50px] resize-y"
+            className="bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs min-h-[50px] resize-y"
           />
         </div>
         <FontSelect label="Fonte" value={data.subheadlineFont} field="subheadlineFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.subheadlineFontSize ?? 20}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.subheadlineFontSize ?? 20}px</span>
             </div>
             <Slider
               value={[data.subheadlineFontSize ?? 20]}
@@ -1773,9 +1846,9 @@ function HomeSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.subheadlineFontWeight || "400"} onValueChange={(v) => onChange("subheadlineFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1787,18 +1860,17 @@ function HomeSection({
           </div>
         </div>
         <ColorRow label="Cor do Subtítulo" value={data.subheadlineColor} defaultVal="#a1a1aa" field="subheadlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 1.6 BOTÃO CTA ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.6 Botão CTA</Label>
+      <SubPanel id="1-6-bot-o-cta" title="1.6 Botão CTA">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto do Botão</Label>
+          <Label className="text-[10px] text-zinc-400">Texto do Botão</Label>
           <Input
             value={data.ctaText || ""}
             onChange={(e) => onChange("ctaText", e.target.value)}
             placeholder="Fazer Pedido"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -1817,9 +1889,9 @@ function HomeSection({
           <ColorRow label="Cor Final do Gradiente" value={data.ctaGradientEnd} defaultVal="#f0c674" field="ctaGradientEnd" />
         )}
         <div>
-          <Label className="text-[10px] text-zinc-500">Ação do Botão</Label>
+          <Label className="text-[10px] text-zinc-400">Ação do Botão</Label>
           <Select value={data.ctaAction || "#cardapio"} onValueChange={(v) => onChange("ctaAction", v)}>
-            <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+            <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1844,15 +1916,14 @@ function HomeSection({
             {data.ctaText || 'Fazer Pedido'}
           </div>
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 1.7 FUNDO DA SEÇÃO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">1.7 Fundo da Seção</Label>
+      <SubPanel id="1-7-fundo-da-se-o" title="1.7 Fundo da Seção">
 
         {/* Media Type */}
         <div className="space-y-1.5">
-          <Label className="text-[10px] text-zinc-500">Tipo de Mídia</Label>
+          <Label className="text-[10px] text-zinc-400">Tipo de Mídia</Label>
           <div className="flex gap-1.5">
             <button
               onClick={() => onChange("bgMediaType", "image")}
@@ -1891,8 +1962,8 @@ function HomeSection({
         {/* Overlay */}
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
-            <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 50}%</span>
+            <Label className="text-[10px] text-zinc-400">Opacidade do Overlay</Label>
+            <span className="text-[10px] text-zinc-400 font-mono">{data.bgOverlayOpacity ?? 50}%</span>
           </div>
           <Slider
             value={[data.bgOverlayOpacity ?? 50]}
@@ -1906,7 +1977,7 @@ function HomeSection({
 
         <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
         <ColorRow label="Cor de Fallback (sem imagem)" value={data.bgFallbackColor} defaultVal="#1a1a1a" field="bgFallbackColor" />
-      </div>
+      </SubPanel>
     </div>
   );
 }
@@ -1944,7 +2015,7 @@ function ProductsSection({
   // Reusable color picker row
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <div className="flex items-center gap-2">
         <ColorPickerInput
           value={value || defaultVal}
@@ -1954,7 +2025,7 @@ function ProductsSection({
         <Input
           value={value || defaultVal}
           onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
         />
       </div>
     </div>
@@ -1963,9 +2034,9 @@ function ProductsSection({
   // Reusable font selector
   const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
         <SelectContent className="max-h-60">
@@ -1982,15 +2053,16 @@ function ProductsSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <ShoppingBag className="h-4 w-4 text-amber-500" />
-        Seção Produtos
-      </h3>
+      <div className="flex items-center gap-2.5 pb-2 mb-1 border-b border-zinc-800/60">
+        <div className="p-1.5 rounded-lg bg-amber-500/10">
+          <ShoppingBag className="h-4 w-4 text-amber-500" />
+        </div>
+        <h3 className="text-sm font-bold text-zinc-100 tracking-tight">Seção Produtos</h3>
+      </div>
 
       {/* ===== CATEGORIAS (Regra de Negócio) ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">Categorias (Dados do Catálogo)</Label>
-        <p className="text-[10px] text-zinc-500 italic">Os produtos vêm do módulo de Catálogo e não são editáveis aqui.</p>
+      <SubPanel id="categorias-dados-do-cat-logo" title="Categorias (Dados do Catálogo)">
+        <p className="text-[10px] text-zinc-400 italic">Os produtos vêm do módulo de Catálogo e não são editáveis aqui.</p>
         <div>
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] text-zinc-500">Máximo na LP</span>
@@ -2023,7 +2095,7 @@ function ProductsSection({
             value={data.offersCategoryId?.toString() || "none"}
             onValueChange={(v) => onChange("offersCategoryId", v === "none" ? null : parseInt(v))}
           >
-            <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs w-full">
+            <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs w-full">
               <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-700">
@@ -2036,26 +2108,25 @@ function ProductsSection({
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 2.1 HEADLINE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.1 Headline (Título da Seção)</Label>
+      <SubPanel id="2-1-headline-t-tulo-da-se-o" title="2.1 Headline (Título da Seção)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Input
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Nosso Cardápio"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.headlineFontSize ?? 48}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.headlineFontSize ?? 48}px</span>
             </div>
             <Slider
               value={[data.headlineFontSize ?? 48]}
@@ -2067,9 +2138,9 @@ function ProductsSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2081,26 +2152,25 @@ function ProductsSection({
           </div>
         </div>
         <ColorRow label="Cor do Título" value={data.headlineColor} defaultVal="" field="headlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.2 SUBHEADLINE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.2 Subheadline (Subtítulo)</Label>
+      <SubPanel id="2-2-subheadline-subt-tulo" title="2.2 Subheadline (Subtítulo)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Input
             value={data.subheadline || ""}
             onChange={(e) => onChange("subheadline", e.target.value)}
             placeholder="Escolha seus favoritos"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <FontSelect label="Fonte" value={data.subheadlineFont} field="subheadlineFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.subheadlineFontSize ?? 18}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.subheadlineFontSize ?? 18}px</span>
             </div>
             <Slider
               value={[data.subheadlineFontSize ?? 18]}
@@ -2112,9 +2182,9 @@ function ProductsSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.subheadlineFontWeight || "400"} onValueChange={(v) => onChange("subheadlineFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2126,12 +2196,11 @@ function ProductsSection({
           </div>
         </div>
         <ColorRow label="Cor do Subtítulo" value={data.subheadlineColor} defaultVal="" field="subheadlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.3 TEMPLATE DE CARDS ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.3 Template de Cards</Label>
-        <p className="text-[10px] text-zinc-500 italic">Personalização visual dos cards. Dados dos produtos (nome, preço, foto) vêm do Catálogo.</p>
+      <SubPanel id="2-3-template-de-cards" title="2.3 Template de Cards">
+        <p className="text-[10px] text-zinc-400 italic">Personalização visual dos cards. Dados dos produtos (nome, preço, foto) vêm do Catálogo.</p>
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
@@ -2145,8 +2214,8 @@ function ProductsSection({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Raio (px)</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.cardBorderRadius ?? 16}px</span>
+              <Label className="text-[10px] text-zinc-400">Raio (px)</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.cardBorderRadius ?? 16}px</span>
             </div>
             <Slider
               value={[data.cardBorderRadius ?? 16]}
@@ -2159,8 +2228,8 @@ function ProductsSection({
           </div>
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Espessura (px)</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.cardBorderWidth ?? 1}px</span>
+              <Label className="text-[10px] text-zinc-400">Espessura (px)</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.cardBorderWidth ?? 1}px</span>
             </div>
             <Slider
               value={[data.cardBorderWidth ?? 1]}
@@ -2173,11 +2242,10 @@ function ProductsSection({
           </div>
         </div>
         <ColorRow label="Cor da Borda" value={data.cardBorderColor} defaultVal="" field="cardBorderColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.4 FUNDO DA SEÇÃO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.4 Fundo da Seção</Label>
+      <SubPanel id="2-4-fundo-da-se-o" title="2.4 Fundo da Seção">
 
         <ColorRow label="Cor Sólida" value={data.bgColor} defaultVal="" field="bgColor" />
 
@@ -2196,9 +2264,9 @@ function ProductsSection({
               <ColorRow label="Para" value={data.bgGradientTo} defaultVal="#f3f4f6" field="bgGradientTo" />
             </div>
             <div>
-              <Label className="text-[10px] text-zinc-500">Direção</Label>
+              <Label className="text-[10px] text-zinc-400">Direção</Label>
               <Select value={data.bgGradientDirection || "to-b"} onValueChange={(v) => onChange("bgGradientDirection", v)}>
-                <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -2224,8 +2292,8 @@ function ProductsSection({
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
-            <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
+            <Label className="text-[10px] text-zinc-400">Opacidade do Overlay</Label>
+            <span className="text-[10px] text-zinc-400 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
           </div>
           <Slider
             value={[data.bgOverlayOpacity ?? 0]}
@@ -2237,18 +2305,17 @@ function ProductsSection({
           />
         </div>
         <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.5 BOTÃO VER TODAS ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.5 Botão "Ver Todas"</Label>
+      <SubPanel id="2-5-botao-ver-todas" title='2.5 Botão "Ver Todas"'>
         <div>
-          <Label className="text-[10px] text-zinc-500">Label</Label>
+          <Label className="text-[10px] text-zinc-400">Label</Label>
           <Input
             value={data.viewAllLabel || ""}
             onChange={(e) => onChange("viewAllLabel", e.target.value)}
             placeholder="Ver Todas"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <ColorRow label="Cor de Fundo" value={data.viewAllBgColor} defaultVal="" field="viewAllBgColor" />
@@ -2257,8 +2324,8 @@ function ProductsSection({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.viewAllFontSize ?? 14}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.viewAllFontSize ?? 14}px</span>
             </div>
             <Slider
               value={[data.viewAllFontSize ?? 14]}
@@ -2270,9 +2337,9 @@ function ProductsSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.viewAllFontWeight || "500"} onValueChange={(v) => onChange("viewAllFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2283,18 +2350,17 @@ function ProductsSection({
             </Select>
           </div>
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 2.6 BOTÃO CTA ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.6 Botão CTA (Ver Cardápio Completo)</Label>
+      <SubPanel id="2-6-bot-o-cta-ver-card-pio-com" title="2.6 Botão CTA (Ver Cardápio Completo)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Label</Label>
+          <Label className="text-[10px] text-zinc-400">Label</Label>
           <Input
             value={data.ctaText || ""}
             onChange={(e) => onChange("ctaText", e.target.value)}
             placeholder="Ver Cardápio Completo"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="" field="ctaBgColor" />
@@ -2315,8 +2381,8 @@ function ProductsSection({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.ctaFontSize ?? 16}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.ctaFontSize ?? 16}px</span>
             </div>
             <Slider
               value={[data.ctaFontSize ?? 16]}
@@ -2328,9 +2394,9 @@ function ProductsSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.ctaFontWeight || "500"} onValueChange={(v) => onChange("ctaFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2343,15 +2409,15 @@ function ProductsSection({
         </div>
 
         <div>
-          <Label className="text-[10px] text-zinc-500">Ação (URL ou âncora)</Label>
+          <Label className="text-[10px] text-zinc-400">Ação (URL ou âncora)</Label>
           <Input
             value={data.ctaAction || ""}
             onChange={(e) => onChange("ctaAction", e.target.value)}
             placeholder="#cardapio ou https://..."
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
-      </div>
+      </SubPanel>
     </div>
   );
 }
@@ -2369,7 +2435,7 @@ function MenuSection({
 }) {
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <div className="flex items-center gap-2">
         <ColorPickerInput
           value={value || defaultVal}
@@ -2379,7 +2445,7 @@ function MenuSection({
         <Input
           value={value || defaultVal}
           onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
         />
       </div>
     </div>
@@ -2387,9 +2453,9 @@ function MenuSection({
 
   const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
         <SelectContent className="max-h-60">
@@ -2406,7 +2472,7 @@ function MenuSection({
 
   return (
     <div className="space-y-4">
-      <p className="text-[10px] text-zinc-500 bg-zinc-800/50 rounded p-2">
+      <p className="text-[10px] text-zinc-400 bg-zinc-800/50 rounded p-2">
         Estilize os modais dinâmicos do Cardápio (Drawer, Filtros, Cards e Modal de Detalhes). Os dados dos produtos vêm do Catálogo e não são editáveis aqui.
       </p>
 
@@ -2417,7 +2483,7 @@ function MenuSection({
         <ColorRow label="Cor de Fundo do Painel" value={data.panelBgColor} defaultVal="#0a0a0a" field="panelBgColor" />
 
         <div>
-          <Label className="text-[10px] text-zinc-500">Opacidade do Overlay (fundo escuro)</Label>
+          <Label className="text-[10px] text-zinc-400">Opacidade do Overlay (fundo escuro)</Label>
           <div className="flex items-center gap-3">
             <Slider
               value={[data.panelOverlayOpacity ?? 50]}
@@ -2470,22 +2536,22 @@ function MenuSection({
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Borda do Card</Label>
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <Label className="text-[10px] text-zinc-500">Raio (px)</Label>
+            <Label className="text-[10px] text-zinc-400">Raio (px)</Label>
             <Input
               type="number"
               value={data.cardBorderRadius ?? 12}
               onChange={(e) => onChange("cardBorderRadius", Number(e.target.value))}
-              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
             />
           </div>
           <ColorRow label="Cor" value={data.cardBorderColor} defaultVal="#222222" field="cardBorderColor" />
           <div>
-            <Label className="text-[10px] text-zinc-500">Espessura (px)</Label>
+            <Label className="text-[10px] text-zinc-400">Espessura (px)</Label>
             <Input
               type="number"
               value={data.cardBorderWidth ?? 1}
               onChange={(e) => onChange("cardBorderWidth", Number(e.target.value))}
-              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
             />
           </div>
         </div>
@@ -2495,18 +2561,18 @@ function MenuSection({
         <div className="grid grid-cols-3 gap-2">
           <FontSelect label="Fonte" value={data.cardFont} field="cardFont" />
           <div>
-            <Label className="text-[10px] text-zinc-500">Tamanho (px)</Label>
+            <Label className="text-[10px] text-zinc-400">Tamanho (px)</Label>
             <Input
               type="number"
               value={data.cardFontSize ?? 14}
               onChange={(e) => onChange("cardFontSize", Number(e.target.value))}
-              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.cardFontWeight || "400"} onValueChange={(v) => onChange("cardFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2534,18 +2600,18 @@ function MenuSection({
         <div className="grid grid-cols-3 gap-2">
           <FontSelect label="Fonte" value={data.modalCtaFont} field="modalCtaFont" />
           <div>
-            <Label className="text-[10px] text-zinc-500">Tamanho (px)</Label>
+            <Label className="text-[10px] text-zinc-400">Tamanho (px)</Label>
             <Input
               type="number"
               value={data.modalCtaFontSize ?? 18}
               onChange={(e) => onChange("modalCtaFontSize", Number(e.target.value))}
-              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.modalCtaFontWeight || "600"} onValueChange={(v) => onChange("modalCtaFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2589,7 +2655,7 @@ function AboutSection({
   // Reusable color picker row
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <div className="flex items-center gap-2">
         <ColorPickerInput
           value={value || defaultVal}
@@ -2599,7 +2665,7 @@ function AboutSection({
         <Input
           value={value || defaultVal}
           onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
         />
       </div>
     </div>
@@ -2608,9 +2674,9 @@ function AboutSection({
   // Reusable font selector
   const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
         <SelectContent className="max-h-60">
@@ -2627,29 +2693,30 @@ function AboutSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <Users2 className="h-4 w-4 text-amber-500" />
-        Seção Sobre Nós
-      </h3>
+      <div className="flex items-center gap-2.5 pb-2 mb-1 border-b border-zinc-800/60">
+        <div className="p-1.5 rounded-lg bg-amber-500/10">
+          <Users2 className="h-4 w-4 text-amber-500" />
+        </div>
+        <h3 className="text-sm font-bold text-zinc-100 tracking-tight">Seção Sobre Nós</h3>
+      </div>
 
       {/* ===== 2.1 PRE-HEADLINE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.1 Pre-headline (Overline)</Label>
+      <SubPanel id="2-1-pre-headline-overline" title="2.1 Pre-headline (Overline)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Input
             value={data.preHeadline || ""}
             onChange={(e) => onChange("preHeadline", e.target.value)}
             placeholder="CONHEÇA NOSSA HISTÓRIA"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <FontSelect label="Fonte" value={data.preHeadlineFont} field="preHeadlineFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.preHeadlineFontSize ?? 14}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.preHeadlineFontSize ?? 14}px</span>
             </div>
             <Slider
               value={[data.preHeadlineFontSize ?? 14]}
@@ -2661,9 +2728,9 @@ function AboutSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.preHeadlineFontWeight || "500"} onValueChange={(v) => onChange("preHeadlineFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2675,26 +2742,25 @@ function AboutSection({
           </div>
         </div>
         <ColorRow label="Cor" value={data.preHeadlineColor} defaultVal="" field="preHeadlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.2 HEADLINE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.2 Headline (Título Principal)</Label>
+      <SubPanel id="2-2-headline-t-tulo-principal" title="2.2 Headline (Título Principal)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Input
             value={data.headline || ""}
             onChange={(e) => onChange("headline", e.target.value)}
             placeholder="Sobre Nós"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.headlineFontSize ?? 48}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.headlineFontSize ?? 48}px</span>
             </div>
             <Slider
               value={[data.headlineFontSize ?? 48]}
@@ -2706,9 +2772,9 @@ function AboutSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2720,11 +2786,10 @@ function AboutSection({
           </div>
         </div>
         <ColorRow label="Cor do Título" value={data.headlineColor} defaultVal="" field="headlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.3 FOTO DO PROPRIETÁRIO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.3 Foto do Proprietário</Label>
+      <SubPanel id="2-3-foto-do-propriet-rio" title="2.3 Foto do Proprietário">
 
         <ImageUploadField
           label="Imagem"
@@ -2736,8 +2801,8 @@ function AboutSection({
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-zinc-500">Arredondamento</Label>
-            <span className="text-[10px] text-zinc-500 font-mono">{data.imageRadius ?? 16}px</span>
+            <Label className="text-[10px] text-zinc-400">Arredondamento</Label>
+            <span className="text-[10px] text-zinc-400 font-mono">{data.imageRadius ?? 16}px</span>
           </div>
           <Slider
             value={[data.imageRadius ?? 16]}
@@ -2752,20 +2817,20 @@ function AboutSection({
         <Separator className="bg-zinc-800" />
 
         <div>
-          <Label className="text-[10px] text-zinc-500">Nome do Proprietário</Label>
+          <Label className="text-[10px] text-zinc-400">Nome do Proprietário</Label>
           <Input
             value={data.ownerName || ""}
             onChange={(e) => onChange("ownerName", e.target.value)}
             placeholder="Nome do proprietário"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <FontSelect label="Fonte do Nome" value={data.ownerNameFont} field="ownerNameFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.ownerNameFontSize ?? 20}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.ownerNameFontSize ?? 20}px</span>
             </div>
             <Slider
               value={[data.ownerNameFontSize ?? 20]}
@@ -2777,9 +2842,9 @@ function AboutSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.ownerNameFontWeight || "700"} onValueChange={(v) => onChange("ownerNameFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2795,35 +2860,34 @@ function AboutSection({
         <Separator className="bg-zinc-800" />
 
         <div>
-          <Label className="text-[10px] text-zinc-500">Título / Cargo</Label>
+          <Label className="text-[10px] text-zinc-400">Título / Cargo</Label>
           <Input
             value={data.ownerTitle || ""}
             onChange={(e) => onChange("ownerTitle", e.target.value)}
             placeholder="Fundador & Chef"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
         <ColorRow label="Cor do Título" value={data.ownerTitleColor} defaultVal="#a1a1aa" field="ownerTitleColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.4 STORYTELLING ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.4 Storytelling (Texto)</Label>
+      <SubPanel id="2-4-storytelling-texto" title="2.4 Storytelling (Texto)">
         <div>
-          <Label className="text-[10px] text-zinc-500">Texto</Label>
+          <Label className="text-[10px] text-zinc-400">Texto</Label>
           <Textarea
             value={data.storytelling || ""}
             onChange={(e) => onChange("storytelling", e.target.value)}
             placeholder="Conte a história do negócio..."
-            className="bg-zinc-800 border-zinc-700 text-xs min-h-[100px] resize-y"
+            className="bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs min-h-[100px] resize-y"
           />
         </div>
         <FontSelect label="Fonte" value={data.storytellingFont} field="storytellingFont" />
         <div className="grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-              <span className="text-[10px] text-zinc-500 font-mono">{data.storytellingFontSize ?? 18}px</span>
+              <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+              <span className="text-[10px] text-zinc-400 font-mono">{data.storytellingFontSize ?? 18}px</span>
             </div>
             <Slider
               value={[data.storytellingFontSize ?? 18]}
@@ -2835,9 +2899,9 @@ function AboutSection({
             />
           </div>
           <div>
-            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.storytellingFontWeight || "400"} onValueChange={(v) => onChange("storytellingFontWeight", v)}>
-              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -2849,11 +2913,10 @@ function AboutSection({
           </div>
         </div>
         <ColorRow label="Cor do Texto" value={data.storytellingColor} defaultVal="" field="storytellingColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 2.5 ASSINATURA ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.5 Assinatura</Label>
+      <SubPanel id="2-5-assinatura" title="2.5 Assinatura">
         <div className="flex items-center gap-2">
           <Switch
             checked={data.showSignature ?? true}
@@ -2864,25 +2927,24 @@ function AboutSection({
         {(data.showSignature ?? true) && (
           <>
             <div>
-              <Label className="text-[10px] text-zinc-500">Texto (vazio = nome da empresa)</Label>
+              <Label className="text-[10px] text-zinc-400">Texto (vazio = nome da empresa)</Label>
               <Input
                 value={data.signatureText || ""}
                 onChange={(e) => onChange("signatureText", e.target.value)}
                 placeholder="Nome da empresa"
-                className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+                className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
               />
             </div>
             <ColorRow label="Cor" value={data.signatureColor} defaultVal="" field="signatureColor" />
           </>
         )}
-      </div>
+      </SubPanel>
 
       {/* ===== 2.6 LAYOUT ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.6 Layout</Label>
+      <SubPanel id="2-6-layout" title="2.6 Layout">
 
         <div className="space-y-1.5">
-          <Label className="text-[10px] text-zinc-500">Posição da Imagem</Label>
+          <Label className="text-[10px] text-zinc-400">Posição da Imagem</Label>
           <div className="flex gap-1.5">
             <button
               onClick={() => onChange("imagePosition", "left")}
@@ -2916,14 +2978,13 @@ function AboutSection({
           />
           <Label className="text-[10px] text-zinc-400">Elemento decorativo</Label>
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 2.7 FUNDO DA SEÇÃO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">2.7 Fundo da Seção</Label>
+      <SubPanel id="2-7-fundo-da-se-o" title="2.7 Fundo da Seção">
 
         <div className="space-y-1.5">
-          <Label className="text-[10px] text-zinc-500">Tipo de Mídia</Label>
+          <Label className="text-[10px] text-zinc-400">Tipo de Mídia</Label>
           <div className="flex gap-1.5">
             <button
               onClick={() => onChange("bgMediaType", "image")}
@@ -2961,8 +3022,8 @@ function AboutSection({
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
-            <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
+            <Label className="text-[10px] text-zinc-400">Opacidade do Overlay</Label>
+            <span className="text-[10px] text-zinc-400 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
           </div>
           <Slider
             value={[data.bgOverlayOpacity ?? 0]}
@@ -2976,7 +3037,7 @@ function AboutSection({
 
         <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
         <ColorRow label="Cor de Fallback (sem imagem)" value={data.bgFallbackColor} defaultVal="" field="bgFallbackColor" />
-      </div>
+      </SubPanel>
     </div>
   );
 }
@@ -3003,7 +3064,7 @@ function ReviewsSection({
   // Reusable color picker row
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <div className="flex items-center gap-2">
         <ColorPickerInput
           value={value || defaultVal}
@@ -3013,7 +3074,7 @@ function ReviewsSection({
         <Input
           value={value || defaultVal}
           onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
         />
       </div>
     </div>
@@ -3022,9 +3083,9 @@ function ReviewsSection({
   // Reusable font selector
   const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
         <SelectContent className="max-h-60">
@@ -3041,10 +3102,12 @@ function ReviewsSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <Star className="h-4 w-4 text-amber-500" />
-        Seção Avaliações
-      </h3>
+      <div className="flex items-center gap-2.5 pb-2 mb-1 border-b border-zinc-800/60">
+        <div className="p-1.5 rounded-lg bg-amber-500/10">
+          <Star className="h-4 w-4 text-amber-500" />
+        </div>
+        <h3 className="text-sm font-bold text-zinc-100 tracking-tight">Seção Avaliações</h3>
+      </div>
 
       <div className="flex items-center justify-between">
         <div>
@@ -3061,22 +3124,21 @@ function ReviewsSection({
         <div className="space-y-3">
 
           {/* ===== 5.1 HEADLINE E LABEL ===== */}
-          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.1 Headline e Label</Label>
+          <SubPanel id="5-1-headline-e-label" title="5.1 Headline e Label">
 
             {/* Label (Overline) */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] text-zinc-500 uppercase tracking-wider">Label (Sobretítulo)</Label>
+              <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Label (Sobretítulo)</Label>
               <Input
                 value={data.label || ""}
                 onChange={(e) => onChange("label", e.target.value)}
                 placeholder="AVALIAÇÕES"
-                className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+                className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
               />
               <FontSelect label="Fonte" value={data.labelFont} field="labelFont" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+                  <Label className="text-[10px] text-zinc-400">Tamanho</Label>
                   <div className="flex items-center gap-2">
                     <Slider
                       value={[data.labelFontSize || 14]}
@@ -3084,13 +3146,13 @@ function ReviewsSection({
                       min={10} max={24} step={1}
                       className="flex-1"
                     />
-                    <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{data.labelFontSize || 14}px</span>
+                    <span className="text-[10px] text-zinc-400 font-mono w-8 text-right">{data.labelFontSize || 14}px</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-500">Peso</Label>
+                  <Label className="text-[10px] text-zinc-400">Peso</Label>
                   <Select value={data.labelFontWeight || "500"} onValueChange={(v) => onChange("labelFontWeight", v)}>
-                    <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                    <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -3108,17 +3170,17 @@ function ReviewsSection({
 
             {/* Headline */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] text-zinc-500 uppercase tracking-wider">Headline (Título Principal)</Label>
+              <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Headline (Título Principal)</Label>
               <Input
                 value={data.headline || ""}
                 onChange={(e) => onChange("headline", e.target.value)}
                 placeholder="O que dizem nossos clientes"
-                className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+                className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
               />
               <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+                  <Label className="text-[10px] text-zinc-400">Tamanho</Label>
                   <div className="flex items-center gap-2">
                     <Slider
                       value={[data.headlineFontSize || 36]}
@@ -3126,13 +3188,13 @@ function ReviewsSection({
                       min={20} max={72} step={1}
                       className="flex-1"
                     />
-                    <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{data.headlineFontSize || 36}px</span>
+                    <span className="text-[10px] text-zinc-400 font-mono w-8 text-right">{data.headlineFontSize || 36}px</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-zinc-500">Peso</Label>
+                  <Label className="text-[10px] text-zinc-400">Peso</Label>
                   <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
-                    <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                    <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -3145,33 +3207,30 @@ function ReviewsSection({
               </div>
               <ColorRow label="Cor do Headline" value={data.headlineColor} defaultVal="" field="headlineColor" />
             </div>
-          </div>
+          </SubPanel>
 
           {/* ===== 5.2 NOTA MÉDIA E ESTRELAS ===== */}
-          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.2 Nota Média e Estrelas</Label>
+          <SubPanel id="5-2-nota-m-dia-e-estrelas" title="5.2 Nota Média e Estrelas">
 
             <ColorRow label="Cor das Estrelas (--cor-estrelas)" value={data.starColor} defaultVal="#facc15" field="starColor" />
             <p className="text-[10px] text-zinc-600">Totalmente independente da cor primária dos botões</p>
 
             <ColorRow label="Cor do Número da Nota (ex: 4.9)" value={data.ratingNumberColor} defaultVal="" field="ratingNumberColor" />
             <ColorRow label="Cor do Total de Avaliações" value={data.ratingTotalColor} defaultVal="" field="ratingTotalColor" />
-          </div>
+          </SubPanel>
 
           {/* ===== 5.3 CARDS DE AVALIAÇÃO ===== */}
-          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.3 Cards de Avaliação</Label>
+          <SubPanel id="5-3-cards-de-avalia-o" title="5.3 Cards de Avaliação">
             <p className="text-[10px] text-zinc-600">Dados dos depoimentos são read-only (Google ou cadastro manual)</p>
 
             <ColorRow label="Fundo do Card" value={data.cardBgColor} defaultVal="" field="cardBgColor" />
             <ColorRow label="Cor do Nome do Avaliador" value={data.cardNameColor} defaultVal="" field="cardNameColor" />
             <ColorRow label="Cor da Data" value={data.cardDateColor} defaultVal="" field="cardDateColor" />
             <ColorRow label="Cor do Texto da Avaliação" value={data.cardTextColor} defaultVal="" field="cardTextColor" />
-          </div>
+          </SubPanel>
 
           {/* ===== 5.4 BOTÃO CTA GOOGLE ===== */}
-          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.4 Botão CTA Google</Label>
+          <SubPanel id="5-4-bot-o-cta-google" title="5.4 Botão CTA Google">
             <p className="text-[10px] text-zinc-600">Link redireciona para o Google Places configurado nas Integrações</p>
 
             <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="" field="ctaBgColor" />
@@ -3179,7 +3238,7 @@ function ReviewsSection({
             <FontSelect label="Fonte" value={data.ctaFont} field="ctaFont" />
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+                <Label className="text-[10px] text-zinc-400">Tamanho</Label>
                 <div className="flex items-center gap-2">
                   <Slider
                     value={[data.ctaFontSize || 14]}
@@ -3187,13 +3246,13 @@ function ReviewsSection({
                     min={10} max={24} step={1}
                     className="flex-1"
                   />
-                  <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{data.ctaFontSize || 14}px</span>
+                  <span className="text-[10px] text-zinc-400 font-mono w-8 text-right">{data.ctaFontSize || 14}px</span>
                 </div>
               </div>
               <div>
-                <Label className="text-[10px] text-zinc-500">Peso</Label>
+                <Label className="text-[10px] text-zinc-400">Peso</Label>
                 <Select value={data.ctaFontWeight || "400"} onValueChange={(v) => onChange("ctaFontWeight", v)}>
-                  <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                  <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -3226,17 +3285,16 @@ function ReviewsSection({
               </div>
               <p className="text-[10px] text-zinc-600">Configure nas Integrações do cliente</p>
             </div>
-          </div>
+          </SubPanel>
 
           {/* ===== 5.5 FUNDO DA SEÇÃO ===== */}
-          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.5 Fundo da Seção</Label>
+          <SubPanel id="5-5-fundo-da-se-o" title="5.5 Fundo da Seção">
 
             <ColorRow label="Cor Sólida de Fundo" value={data.bgColor} defaultVal="" field="bgColor" />
 
             {/* Media type toggle */}
             <div className="space-y-1">
-              <Label className="text-[10px] text-zinc-500">Tipo de Mídia</Label>
+              <Label className="text-[10px] text-zinc-400">Tipo de Mídia</Label>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => onChange("bgMediaType", "image")}
@@ -3274,8 +3332,8 @@ function ReviewsSection({
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
-                <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
+                <Label className="text-[10px] text-zinc-400">Opacidade do Overlay</Label>
+                <span className="text-[10px] text-zinc-400 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
               </div>
               <Slider
                 value={[data.bgOverlayOpacity ?? 0]}
@@ -3286,7 +3344,7 @@ function ReviewsSection({
 
             <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
             <p className="text-[10px] text-zinc-600">CSS Responsivo: background-size: cover, background-position: center</p>
-          </div>
+          </SubPanel>
 
         </div>
       )}
@@ -3314,7 +3372,7 @@ function InfoSection({
   // Reusable color picker row
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <div className="flex items-center gap-2">
         <ColorPickerInput
           value={value || defaultVal}
@@ -3324,7 +3382,7 @@ function InfoSection({
         <Input
           value={value || defaultVal}
           onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
         />
       </div>
     </div>
@@ -3333,9 +3391,9 @@ function InfoSection({
   // Reusable font selector
   const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
     <div>
-      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
       <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
         <SelectContent className="max-h-60">
@@ -3361,8 +3419,8 @@ function InfoSection({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <div className="flex items-center justify-between">
-            <Label className="text-[10px] text-zinc-500">Tamanho</Label>
-            <span className="text-[10px] text-zinc-500 font-mono">{(data as Record<string, number>)[sizeField] ?? defaultSize}px</span>
+            <Label className="text-[10px] text-zinc-400">Tamanho</Label>
+            <span className="text-[10px] text-zinc-400 font-mono">{(data as Record<string, number>)[sizeField] ?? defaultSize}px</span>
           </div>
           <Slider
             value={[(data as Record<string, number>)[sizeField] ?? defaultSize]}
@@ -3374,9 +3432,9 @@ function InfoSection({
           />
         </div>
         <div>
-          <Label className="text-[10px] text-zinc-500">Peso</Label>
+          <Label className="text-[10px] text-zinc-400">Peso</Label>
           <Select value={(data as Record<string, string>)[weightField] || defaultWeight} onValueChange={(v) => onChange(weightField, v)}>
-            <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+            <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -3392,14 +3450,15 @@ function InfoSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <Info className="h-4 w-4 text-amber-500" />
-        Seção Informações / Rodapé
-      </h3>
+      <div className="flex items-center gap-2.5 pb-2 mb-1 border-b border-zinc-800/60">
+        <div className="p-1.5 rounded-lg bg-amber-500/10">
+          <Info className="h-4 w-4 text-amber-500" />
+        </div>
+        <h3 className="text-sm font-bold text-zinc-100 tracking-tight">Seção Informações / Rodapé</h3>
+      </div>
 
       {/* ===== 6.1 LABEL, HEADLINE E SUBTÍTULO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.1 Label, Headline e Subtítulo</Label>
+      <SubPanel id="6-1-label-headline-e-subt-tulo" title="6.1 Label, Headline e Subtítulo">
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Label (Sobretítulo)</Label>
@@ -3407,7 +3466,7 @@ function InfoSection({
           value={data.label || data.headline1 || ""}
           onChange={(e) => { onChange("label", e.target.value); onChange("headline1", e.target.value); }}
           placeholder="VENHA NOS VISITAR"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <TypoBlock fontField="labelFont" sizeField="labelFontSize" weightField="labelFontWeight" defaultSize={12} defaultWeight="600" minSize={8} maxSize={24} />
         <ColorRow label="Cor do Label" value={data.labelColor} defaultVal="" field="labelColor" />
@@ -3418,7 +3477,7 @@ function InfoSection({
           value={data.headline || data.subheadline1 || ""}
           onChange={(e) => { onChange("headline", e.target.value); onChange("subheadline1", e.target.value); }}
           placeholder="Nossa Localização"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <TypoBlock fontField="headlineFont" sizeField="headlineFontSize" weightField="headlineFontWeight" defaultSize={48} defaultWeight="700" minSize={24} maxSize={96} />
         <ColorRow label="Cor do Headline" value={data.headlineColor} defaultVal="" field="headlineColor" />
@@ -3429,15 +3488,14 @@ function InfoSection({
           value={data.subheadline || data.subheadline2 || ""}
           onChange={(e) => { onChange("subheadline", e.target.value); onChange("subheadline2", e.target.value); }}
           placeholder="Estamos esperando por você"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <TypoBlock fontField="subheadlineFont" sizeField="subheadlineFontSize" weightField="subheadlineFontWeight" defaultSize={18} defaultWeight="400" minSize={12} maxSize={36} />
         <ColorRow label="Cor do Subtítulo" value={data.subheadlineColor} defaultVal="" field="subheadlineColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 6.2 BLOCO DE LOCALIZAÇÃO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.2 Bloco de Localização</Label>
+      <SubPanel id="6-2-bloco-de-localiza-o" title="6.2 Bloco de Localização">
 
         <ImageUploadField
           label="Imagem de Capa (fachada/local)"
@@ -3473,7 +3531,7 @@ function InfoSection({
           value={data.mapBtnLabel || ""}
           onChange={(e) => onChange("mapBtnLabel", e.target.value)}
           placeholder="Abrir no Mapa"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <ColorRow label="Cor de Fundo" value={data.mapBtnBgColor} defaultVal="" field="mapBtnBgColor" />
         <ColorRow label="Cor do Texto" value={data.mapBtnTextColor} defaultVal="" field="mapBtnTextColor" />
@@ -3481,19 +3539,18 @@ function InfoSection({
 
         <Separator className="bg-zinc-800" />
         <div>
-          <Label className="text-[10px] text-zinc-500">URL do Google Maps</Label>
+          <Label className="text-[10px] text-zinc-400">URL do Google Maps</Label>
           <Input
             value={data.mapUrl || ""}
             onChange={(e) => onChange("mapUrl", e.target.value)}
             placeholder="https://maps.google.com/..."
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
-      </div>
+      </SubPanel>
 
       {/* ===== 6.3 CARD DE ENDEREÇO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.3 Card de Endereço</Label>
+      <SubPanel id="6-3-card-de-endere-o" title="6.3 Card de Endereço">
 
         <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
         <div className="grid grid-cols-2 gap-2">
@@ -3507,15 +3564,14 @@ function InfoSection({
           value={data.addressText || ""}
           onChange={(e) => onChange("addressText", e.target.value)}
           placeholder="Rua Exemplo, 123 - Bairro, Cidade/UF"
-          className="bg-zinc-800 border-zinc-700 text-xs min-h-[60px]"
+          className="bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs min-h-[60px]"
         />
         <TypoBlock fontField="addressFont" sizeField="addressFontSize" weightField="addressFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
         <ColorRow label="Cor do Texto" value={data.addressTextColor} defaultVal="" field="addressTextColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 6.4 CARD DE TELEFONE ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.4 Card de Telefone</Label>
+      <SubPanel id="6-4-card-de-telefone" title="6.4 Card de Telefone">
 
         <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
         <div className="grid grid-cols-2 gap-2">
@@ -3530,15 +3586,14 @@ function InfoSection({
           value={data.phoneText || ""}
           onChange={(e) => onChange("phoneText", e.target.value)}
           placeholder="(11) 99999-9999"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <TypoBlock fontField="phoneFont" sizeField="phoneFontSize" weightField="phoneFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
         <ColorRow label="Cor do Texto" value={data.phoneTextColor} defaultVal="" field="phoneTextColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 6.5 CARD DE HORÁRIO ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.5 Card de Horário de Funcionamento</Label>
+      <SubPanel id="6-5-card-de-hor-rio-de-funcion" title="6.5 Card de Horário de Funcionamento">
 
         <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
         <div className="grid grid-cols-2 gap-2">
@@ -3552,15 +3607,14 @@ function InfoSection({
           value={data.hoursLinkUrl || ""}
           onChange={(e) => onChange("hoursLinkUrl", e.target.value)}
           placeholder="URL ou âncora (ex: #horarios)"
-          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <TypoBlock fontField="hoursLinkFont" sizeField="hoursLinkFontSize" weightField="hoursLinkFontWeight" defaultSize={14} defaultWeight="600" minSize={10} maxSize={24} />
         <ColorRow label="Cor do Link" value={data.hoursLinkColor} defaultVal="" field="hoursLinkColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== 6.6 BOTÕES DE REDES SOCIAIS ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.6 Redes Sociais</Label>
+      <SubPanel id="6-6-redes-sociais" title="6.6 Redes Sociais">
 
         <Label className="text-[10px] text-zinc-400 font-medium">Estilos Globais</Label>
         <ColorRow label="Fundo dos Botões" value={data.socialBtnBgColor} defaultVal="" field="socialBtnBgColor" />
@@ -3584,7 +3638,7 @@ function InfoSection({
             value={data.socialInstagramUrl || ""}
             onChange={(e) => onChange("socialInstagramUrl", e.target.value)}
             placeholder="https://instagram.com/seurestaurante"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         )}
 
@@ -3606,7 +3660,7 @@ function InfoSection({
             value={data.socialFacebookUrl || ""}
             onChange={(e) => onChange("socialFacebookUrl", e.target.value)}
             placeholder="https://facebook.com/seurestaurante"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         )}
 
@@ -3628,14 +3682,13 @@ function InfoSection({
             value={data.socialYoutubeUrl || ""}
             onChange={(e) => onChange("socialYoutubeUrl", e.target.value)}
             placeholder="https://youtube.com/@seurestaurante"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         )}
-      </div>
+      </SubPanel>
 
       {/* ===== 6.7 FUNDO DA SEÇÃO E CARDS ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.7 Fundo da Seção e Cards</Label>
+      <SubPanel id="6-7-fundo-da-se-o-e-cards" title="6.7 Fundo da Seção e Cards">
 
         <ColorRow label="Fundo do Rodapé (Seção)" value={data.sectionBgColor} defaultVal="" field="sectionBgColor" />
         <ColorRow label="Fundo dos Cards Flutuantes" value={data.cardsBgColor} defaultVal="" field="cardsBgColor" />
@@ -3693,11 +3746,10 @@ function InfoSection({
           </div>
         )}
         <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="rgba(0,0,0,0.5)" field="bgOverlayColor" />
-      </div>
+      </SubPanel>
 
       {/* ===== EXIBIÇÃO (TOGGLES) ===== */}
-      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
-        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">Visibilidade</Label>
+      <SubPanel id="visibilidade" title="Visibilidade">
         {[
           { key: "showMap", label: "Mapa / Localização" },
           { key: "showAddress", label: "Card de Endereço" },
@@ -3713,7 +3765,7 @@ function InfoSection({
             />
           </div>
         ))}
-      </div>
+      </SubPanel>
     </div>
   );
 }
@@ -3756,12 +3808,14 @@ function SectionColorsPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-          <Palette className="h-4 w-4 text-purple-400" />
-          {label}
-        </h3>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-zinc-500">
+          <div className="p-1 rounded-md bg-purple-500/10">
+            <Palette className="h-3.5 w-3.5 text-purple-400" />
+          </div>
+          <h3 className="text-xs font-bold text-zinc-200 tracking-tight">{label}</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-zinc-400">
             {isEnabled ? "Personalizado" : "Global"}
           </span>
           <Switch
@@ -3784,7 +3838,7 @@ function SectionColorsPanel({
             <Input
               value={colors.background || defaults.background}
               onChange={(e) => updateField("background", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
@@ -3799,7 +3853,7 @@ function SectionColorsPanel({
             <Input
               value={colors.text || defaults.text}
               onChange={(e) => updateField("text", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
@@ -3814,7 +3868,7 @@ function SectionColorsPanel({
             <Input
               value={colors.textMuted || defaults.textMuted}
               onChange={(e) => updateField("textMuted", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
@@ -3829,7 +3883,7 @@ function SectionColorsPanel({
             <Input
               value={colors.highlight || defaults.highlight}
               onChange={(e) => updateField("highlight", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
@@ -3844,7 +3898,7 @@ function SectionColorsPanel({
             <Input
               value={colors.surface || defaults.surface}
               onChange={(e) => updateField("surface", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
@@ -3859,7 +3913,7 @@ function SectionColorsPanel({
             <Input
               value={colors.buttonBg || defaults.buttonBg}
               onChange={(e) => updateField("buttonBg", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
@@ -3874,7 +3928,7 @@ function SectionColorsPanel({
             <Input
               value={colors.buttonFg || defaults.buttonFg}
               onChange={(e) => updateField("buttonFg", e.target.value)}
-              className="w-20 h-6 text-[10px] bg-zinc-800 border-zinc-700 px-1.5"
+              className="w-20 h-6 text-[10px] bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 px-1.5"
             />
           </div>
 
