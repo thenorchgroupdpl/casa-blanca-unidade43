@@ -268,6 +268,36 @@ export interface MenuStyleOverrides {
   qtyNumberColor?: string;
 }
 
+export interface FeedbacksStyleOverrides {
+  label?: string;
+  labelFont?: string;
+  labelFontSize?: number;
+  labelFontWeight?: string;
+  labelColor?: string;
+  headline?: string;
+  headlineFont?: string;
+  headlineFontSize?: number;
+  headlineFontWeight?: string;
+  headlineColor?: string;
+  starColor?: string;
+  ratingNumberColor?: string;
+  ratingTotalColor?: string;
+  cardBgColor?: string;
+  cardNameColor?: string;
+  cardDateColor?: string;
+  cardTextColor?: string;
+  ctaBgColor?: string;
+  ctaTextColor?: string;
+  ctaFont?: string;
+  ctaFontSize?: number;
+  ctaFontWeight?: string;
+  bgColor?: string;
+  bgMediaUrl?: string;
+  bgMediaType?: 'image' | 'video';
+  bgOverlayOpacity?: number;
+  bgOverlayColor?: string;
+}
+
 export interface SiteData {
   project_name: string;
   logo_url?: string;
@@ -279,6 +309,7 @@ export interface SiteData {
   feedbacks: Feedback[];
   catalog: Category[];
   menu_style?: MenuStyleOverrides;
+  feedbacks_style?: FeedbacksStyleOverrides;
   section_colors?: {
     hero?: SectionColors;
     intro?: SectionColors;

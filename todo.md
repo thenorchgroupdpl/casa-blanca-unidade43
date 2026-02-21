@@ -344,3 +344,17 @@
 - [x] Atualizar OrderOverlay.tsx para consumir novos estilos
 - [x] Atualizar ProductBottomSheet.tsx para consumir novos estilos
 - [x] Testar persistência e preview em tempo real
+
+## Fase 35: Controles Granulares da Seção 5 (Feedbacks/Avaliações)
+- [x] Analisar FeedbacksSection.tsx, Design.tsx e postMessage handler
+- [x] Expandir tipo LandingDesign com campos feedbacks granulares
+- [x] 5.1 HEADLINE E LABEL: conteúdo, tipografia (fonte, tamanho, peso), cor
+- [x] 5.2 NOTA MÉDIA E ESTRELAS: cor exclusiva estrelas, cor nota média, cor total avaliações
+- [x] 5.3 CARDS DE AVALIAÇÃO: cor fundo card, cor nome avaliador, cor data, cor corpo texto
+- [x] 5.4 BOTÃO CTA GOOGLE: cor fundo, cor texto, tipografia (fonte, tamanho, peso)
+- [x] 5.5 FUNDO DA SEÇÃO: cor sólida, upload imagem, slider opacidade/overlay
+- [x] Implementar FeedbacksSection no Design.tsx com 5 sub-painéis
+- [x] Atualizar postMessage handler no StoreLanding para campos feedbacks
+- [x] Atualizar transformTenantDataToSiteData para carregar campos feedbacks do banco
+- [x] Atualizar FeedbacksSection.tsx (componente) para consumir novos estilos
+- [x] Testar persistência e preview em tempo real

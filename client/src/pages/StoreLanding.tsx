@@ -354,6 +354,41 @@ export default function StoreLanding() {
           };
         }
 
+        // Update feedbacks style overrides
+        if (design?.reviews) {
+          const r = design.reviews;
+          updatedData.feedbacks_style = {
+            ...updatedData.feedbacks_style,
+            label: r.label,
+            labelFont: r.labelFont,
+            labelFontSize: r.labelFontSize,
+            labelFontWeight: r.labelFontWeight,
+            labelColor: r.labelColor,
+            headline: r.headline,
+            headlineFont: r.headlineFont,
+            headlineFontSize: r.headlineFontSize,
+            headlineFontWeight: r.headlineFontWeight,
+            headlineColor: r.headlineColor,
+            starColor: r.starColor,
+            ratingNumberColor: r.ratingNumberColor,
+            ratingTotalColor: r.ratingTotalColor,
+            cardBgColor: r.cardBgColor,
+            cardNameColor: r.cardNameColor,
+            cardDateColor: r.cardDateColor,
+            cardTextColor: r.cardTextColor,
+            ctaBgColor: r.ctaBgColor,
+            ctaTextColor: r.ctaTextColor,
+            ctaFont: r.ctaFont,
+            ctaFontSize: r.ctaFontSize,
+            ctaFontWeight: r.ctaFontWeight,
+            bgColor: r.bgColor,
+            bgMediaUrl: r.bgMediaUrl,
+            bgMediaType: r.bgMediaType,
+            bgOverlayOpacity: r.bgOverlayOpacity,
+            bgOverlayColor: r.bgOverlayColor,
+          };
+        }
+
         // Update section colors
         if (sectionColors || design?.sectionColors) {
           updatedData.section_colors = sectionColors || design?.sectionColors || {};
@@ -786,6 +821,35 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       qtyBtnBgColor: ld.menu.qtyBtnBgColor,
       qtyBtnTextColor: ld.menu.qtyBtnTextColor,
       qtyNumberColor: ld.menu.qtyNumberColor,
+    } : undefined,
+    feedbacks_style: ld?.reviews ? {
+      label: ld.reviews.label,
+      labelFont: ld.reviews.labelFont,
+      labelFontSize: ld.reviews.labelFontSize,
+      labelFontWeight: ld.reviews.labelFontWeight,
+      labelColor: ld.reviews.labelColor,
+      headline: ld.reviews.headline,
+      headlineFont: ld.reviews.headlineFont,
+      headlineFontSize: ld.reviews.headlineFontSize,
+      headlineFontWeight: ld.reviews.headlineFontWeight,
+      headlineColor: ld.reviews.headlineColor,
+      starColor: ld.reviews.starColor,
+      ratingNumberColor: ld.reviews.ratingNumberColor,
+      ratingTotalColor: ld.reviews.ratingTotalColor,
+      cardBgColor: ld.reviews.cardBgColor,
+      cardNameColor: ld.reviews.cardNameColor,
+      cardDateColor: ld.reviews.cardDateColor,
+      cardTextColor: ld.reviews.cardTextColor,
+      ctaBgColor: ld.reviews.ctaBgColor,
+      ctaTextColor: ld.reviews.ctaTextColor,
+      ctaFont: ld.reviews.ctaFont,
+      ctaFontSize: ld.reviews.ctaFontSize,
+      ctaFontWeight: ld.reviews.ctaFontWeight,
+      bgColor: ld.reviews.bgColor,
+      bgMediaUrl: ld.reviews.bgMediaUrl,
+      bgMediaType: ld.reviews.bgMediaType,
+      bgOverlayOpacity: ld.reviews.bgOverlayOpacity,
+      bgOverlayColor: ld.reviews.bgOverlayColor,
     } : undefined,
     section_colors: ld?.sectionColors || {},
   };

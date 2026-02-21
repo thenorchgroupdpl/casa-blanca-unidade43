@@ -298,6 +298,37 @@ type LandingDesign = {
     headline?: string;
     isVisible?: boolean;
     starColor?: string;
+    // 5.1 Label (Overline)
+    label?: string;
+    labelFont?: string;
+    labelFontSize?: number;
+    labelFontWeight?: string;
+    labelColor?: string;
+    // 5.1 Headline
+    headlineFont?: string;
+    headlineFontSize?: number;
+    headlineFontWeight?: string;
+    headlineColor?: string;
+    // 5.2 Nota Média e Estrelas
+    ratingNumberColor?: string;
+    ratingTotalColor?: string;
+    // 5.3 Cards de Avaliação
+    cardBgColor?: string;
+    cardNameColor?: string;
+    cardDateColor?: string;
+    cardTextColor?: string;
+    // 5.4 Botão CTA Google
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    ctaFont?: string;
+    ctaFontSize?: number;
+    ctaFontWeight?: string;
+    // 5.5 Fundo da Seção
+    bgColor?: string;
+    bgMediaUrl?: string;
+    bgMediaType?: "image" | "video";
+    bgOverlayOpacity?: number;
+    bgOverlayColor?: string;
   };
   feedbacks?: {
     starColor?: string;
@@ -992,6 +1023,9 @@ export default function DesignPage() {
                         data={design.reviews || {}}
                         tenant={selectedTenant!}
                         onChange={(field, value) => updateDesign("reviews", field, value)}
+                        onImageUpload={handleImageUpload}
+                        onDirectUpload={handleDirectUpload}
+                        uploading={uploadMutation.isPending}
                       />
                       <Separator className="bg-zinc-800" />
                       <SectionColorsPanel
@@ -2883,11 +2917,56 @@ function ReviewsSection({
   data,
   tenant,
   onChange,
+  onImageUpload,
+  onDirectUpload,
+  uploading,
 }: {
   data: NonNullable<LandingDesign["reviews"]>;
   tenant: { id: number; googleApiKey?: string | null; googlePlaceId?: string | null };
   onChange: (field: string, value: unknown) => void;
+  onImageUpload: (file: File, onSuccess: (url: string) => void) => void;
+  onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
+  uploading: boolean;
 }) {
+  // Reusable color picker row
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPickerInput
+          value={value || defaultVal}
+          onChange={(v) => onChange(field, v)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  // Reusable font selector
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
+        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+          <SelectValue placeholder="Herdar Global" />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          <SelectItem value="inherit">Herdar Global</SelectItem>
+          {ALL_FONTS.map((f) => (
+            <SelectItem key={f} value={f}>
+              <span style={{ fontFamily: f }}>{f}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -2907,59 +2986,236 @@ function ReviewsSection({
       </div>
 
       {data.isVisible !== false && (
-        <div className="space-y-2">
-          <div>
-            <Label className="text-[11px] text-zinc-400">Headline</Label>
-            <Input
-              value={data.headline || ""}
-              onChange={(e) => onChange("headline", e.target.value)}
-              placeholder="O que dizem nossos clientes"
-              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-            />
-          </div>
+        <div className="space-y-3">
 
-          <Separator className="bg-zinc-800" />
+          {/* ===== 5.1 HEADLINE E LABEL ===== */}
+          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.1 Headline e Label</Label>
 
-          {/* Cor das Estrelas */}
-          <div className="space-y-1">
-            <Label className="text-[11px] text-zinc-500 uppercase tracking-wider">Cor das Estrelas</Label>
-            <div className="flex items-center gap-2">
-              <ColorPickerInput
-                value={data.starColor || "#facc15"}
-                onChange={(v) => onChange("starColor", v)}
-                className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
-              />
+            {/* Label (Overline) */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-zinc-500 uppercase tracking-wider">Label (Sobretítulo)</Label>
               <Input
-                value={data.starColor || "#facc15"}
-                onChange={(e) => onChange("starColor", e.target.value)}
-                className="h-7 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1"
+                value={data.label || ""}
+                onChange={(e) => onChange("label", e.target.value)}
+                placeholder="AVALIAÇÕES"
+                className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              />
+              <FontSelect label="Fonte" value={data.labelFont} field="labelFont" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+                  <div className="flex items-center gap-2">
+                    <Slider
+                      value={[data.labelFontSize || 14]}
+                      onValueChange={([v]) => onChange("labelFontSize", v)}
+                      min={10} max={24} step={1}
+                      className="flex-1"
+                    />
+                    <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{data.labelFontSize || 14}px</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px] text-zinc-500">Peso</Label>
+                  <Select value={data.labelFontWeight || "500"} onValueChange={(v) => onChange("labelFontWeight", v)}>
+                    <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONT_WEIGHT_OPTIONS.map((w) => (
+                        <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <ColorRow label="Cor do Label" value={data.labelColor} defaultVal="" field="labelColor" />
+            </div>
+
+            <Separator className="bg-zinc-800" />
+
+            {/* Headline */}
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-zinc-500 uppercase tracking-wider">Headline (Título Principal)</Label>
+              <Input
+                value={data.headline || ""}
+                onChange={(e) => onChange("headline", e.target.value)}
+                placeholder="O que dizem nossos clientes"
+                className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+              />
+              <FontSelect label="Fonte" value={data.headlineFont} field="headlineFont" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+                  <div className="flex items-center gap-2">
+                    <Slider
+                      value={[data.headlineFontSize || 36]}
+                      onValueChange={([v]) => onChange("headlineFontSize", v)}
+                      min={20} max={72} step={1}
+                      className="flex-1"
+                    />
+                    <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{data.headlineFontSize || 36}px</span>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px] text-zinc-500">Peso</Label>
+                  <Select value={data.headlineFontWeight || "700"} onValueChange={(v) => onChange("headlineFontWeight", v)}>
+                    <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONT_WEIGHT_OPTIONS.map((w) => (
+                        <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <ColorRow label="Cor do Headline" value={data.headlineColor} defaultVal="" field="headlineColor" />
+            </div>
+          </div>
+
+          {/* ===== 5.2 NOTA MÉDIA E ESTRELAS ===== */}
+          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.2 Nota Média e Estrelas</Label>
+
+            <ColorRow label="Cor das Estrelas (--cor-estrelas)" value={data.starColor} defaultVal="#facc15" field="starColor" />
+            <p className="text-[10px] text-zinc-600">Totalmente independente da cor primária dos botões</p>
+
+            <ColorRow label="Cor do Número da Nota (ex: 4.9)" value={data.ratingNumberColor} defaultVal="" field="ratingNumberColor" />
+            <ColorRow label="Cor do Total de Avaliações" value={data.ratingTotalColor} defaultVal="" field="ratingTotalColor" />
+          </div>
+
+          {/* ===== 5.3 CARDS DE AVALIAÇÃO ===== */}
+          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.3 Cards de Avaliação</Label>
+            <p className="text-[10px] text-zinc-600">Dados dos depoimentos são read-only (Google ou cadastro manual)</p>
+
+            <ColorRow label="Fundo do Card" value={data.cardBgColor} defaultVal="" field="cardBgColor" />
+            <ColorRow label="Cor do Nome do Avaliador" value={data.cardNameColor} defaultVal="" field="cardNameColor" />
+            <ColorRow label="Cor da Data" value={data.cardDateColor} defaultVal="" field="cardDateColor" />
+            <ColorRow label="Cor do Texto da Avaliação" value={data.cardTextColor} defaultVal="" field="cardTextColor" />
+          </div>
+
+          {/* ===== 5.4 BOTÃO CTA GOOGLE ===== */}
+          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.4 Botão CTA Google</Label>
+            <p className="text-[10px] text-zinc-600">Link redireciona para o Google Places configurado nas Integrações</p>
+
+            <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="" field="ctaBgColor" />
+            <ColorRow label="Cor do Texto" value={data.ctaTextColor} defaultVal="" field="ctaTextColor" />
+            <FontSelect label="Fonte" value={data.ctaFont} field="ctaFont" />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+                <div className="flex items-center gap-2">
+                  <Slider
+                    value={[data.ctaFontSize || 14]}
+                    onValueChange={([v]) => onChange("ctaFontSize", v)}
+                    min={10} max={24} step={1}
+                    className="flex-1"
+                  />
+                  <span className="text-[10px] text-zinc-500 font-mono w-8 text-right">{data.ctaFontSize || 14}px</span>
+                </div>
+              </div>
+              <div>
+                <Label className="text-[10px] text-zinc-500">Peso</Label>
+                <Select value={data.ctaFontWeight || "400"} onValueChange={(v) => onChange("ctaFontWeight", v)}>
+                  <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FONT_WEIGHT_OPTIONS.map((w) => (
+                      <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator className="bg-zinc-800" />
+
+            {/* API Google Status */}
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Status da Integração</Label>
+              <div className="px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-zinc-500">API Key</span>
+                  <span className={`text-[11px] ${tenant.googleApiKey ? "text-green-400" : "text-zinc-600"}`}>
+                    {tenant.googleApiKey ? "✓ Configurada" : "✗ Não configurada"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-zinc-500">Place ID</span>
+                  <span className={`text-[11px] ${tenant.googlePlaceId ? "text-green-400" : "text-zinc-600"}`}>
+                    {tenant.googlePlaceId ? "✓ Configurado" : "✗ Não configurado"}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-600">Configure nas Integrações do cliente</p>
+            </div>
+          </div>
+
+          {/* ===== 5.5 FUNDO DA SEÇÃO ===== */}
+          <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+            <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">5.5 Fundo da Seção</Label>
+
+            <ColorRow label="Cor Sólida de Fundo" value={data.bgColor} defaultVal="" field="bgColor" />
+
+            {/* Media type toggle */}
+            <div className="space-y-1">
+              <Label className="text-[10px] text-zinc-500">Tipo de Mídia</Label>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => onChange("bgMediaType", "image")}
+                  className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                    (data.bgMediaType || "image") === "image"
+                      ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                      : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                  }`}
+                >
+                  <ImageIcon className="h-3 w-3 inline mr-1" />
+                  Imagem
+                </button>
+                <button
+                  onClick={() => onChange("bgMediaType", "video")}
+                  className={`flex-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                    data.bgMediaType === "video"
+                      ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                      : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                  }`}
+                >
+                  <Video className="h-3 w-3 inline mr-1" />
+                  Vídeo
+                </button>
+              </div>
+            </div>
+
+            <ImageUploadField
+              label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
+              value={data.bgMediaUrl}
+              onChange={(url) => onChange("bgMediaUrl", url)}
+              onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+              uploading={uploading}
+              accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+            />
+
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] text-zinc-500">Opacidade do Overlay</Label>
+                <span className="text-[10px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 0}%</span>
+              </div>
+              <Slider
+                value={[data.bgOverlayOpacity ?? 0]}
+                onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
+                min={0} max={100} step={5}
               />
             </div>
-            <p className="text-[10px] text-zinc-600">Cor das estrelas de avaliação (independente da cor de destaque)</p>
+
+            <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
+            <p className="text-[10px] text-zinc-600">CSS Responsivo: background-size: cover, background-position: center</p>
           </div>
 
-          <Separator className="bg-zinc-800" />
-
-          <div className="space-y-1.5">
-            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">API Google</Label>
-            <p className="text-[10px] text-zinc-600">
-              Configure nas Integrações do cliente.
-            </p>
-            <div className="px-2 py-1.5 rounded bg-zinc-800/50 border border-zinc-700/50 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500">API Key</span>
-                <span className={`text-[11px] ${tenant.googleApiKey ? "text-green-400" : "text-zinc-600"}`}>
-                  {tenant.googleApiKey ? "✓" : "✗"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500">Place ID</span>
-                <span className={`text-[11px] ${tenant.googlePlaceId ? "text-green-400" : "text-zinc-600"}`}>
-                  {tenant.googlePlaceId ? "✓" : "✗"}
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>
