@@ -88,15 +88,44 @@ describe("users router", () => {
       const users = await caller.users.list();
 
       expect(Array.isArray(users)).toBe(true);
-      // Should return at least the test users
       expect(users.length).toBeGreaterThanOrEqual(1);
-      // Each user should have expected fields
       if (users.length > 0) {
         const user = users[0];
         expect(user).toHaveProperty("id");
         expect(user).toHaveProperty("email");
         expect(user).toHaveProperty("role");
         expect(user).toHaveProperty("tenantName");
+      }
+    });
+
+    it("users list includes isActive field", async () => {
+      const ctx = createSuperAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const users = await caller.users.list();
+
+      expect(users.length).toBeGreaterThanOrEqual(1);
+      if (users.length > 0) {
+        const user = users[0];
+        expect(user).toHaveProperty("isActive");
+        expect(typeof user.isActive).toBe("boolean");
+      }
+    });
+
+    it("users list includes enriched fields (tenantName, loginMethod, createdAt)", async () => {
+      const ctx = createSuperAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      const users = await caller.users.list();
+
+      expect(users.length).toBeGreaterThanOrEqual(1);
+      if (users.length > 0) {
+        const user = users[0];
+        // tenantName is enriched from tenants table (can be null)
+        expect(user).toHaveProperty("tenantName");
+        // loginMethod and createdAt come from schema
+        expect(user).toHaveProperty("loginMethod");
+        expect(user).toHaveProperty("createdAt");
       }
     });
 
@@ -136,6 +165,62 @@ describe("users router", () => {
         caller.users.updateRole({
           userId: 1,
           role: "admin",
+        })
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("users.toggleActive", () => {
+    it("super admin can toggle user active status", async () => {
+      const ctx = createSuperAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      // Get a user to toggle
+      const users = await caller.users.list();
+      expect(users.length).toBeGreaterThanOrEqual(1);
+
+      const targetUser = users[users.length - 1]; // Use last user to avoid self-toggle issues
+      const originalStatus = targetUser.isActive;
+
+      // Toggle to opposite
+      const result = await caller.users.toggleActive({
+        userId: targetUser.id,
+        isActive: !originalStatus,
+      });
+      expect(result).toEqual({ success: true });
+
+      // Verify change
+      const updatedUsers = await caller.users.list();
+      const updatedUser = updatedUsers.find((u) => u.id === targetUser.id);
+      expect(updatedUser?.isActive).toBe(!originalStatus);
+
+      // Restore original status
+      await caller.users.toggleActive({
+        userId: targetUser.id,
+        isActive: originalStatus,
+      });
+    });
+
+    it("rejects non-super-admin from toggling active status", async () => {
+      const ctx = createRegularUserContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.users.toggleActive({
+          userId: 1,
+          isActive: false,
+        })
+      ).rejects.toThrow();
+    });
+
+    it("rejects client admin from toggling active status", async () => {
+      const ctx = createClientAdminContext();
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(
+        caller.users.toggleActive({
+          userId: 1,
+          isActive: false,
         })
       ).rejects.toThrow();
     });

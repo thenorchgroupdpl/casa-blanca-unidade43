@@ -544,9 +544,20 @@ export async function getAllUsers() {
     role: users.role,
     tenantId: users.tenantId,
     loginMethod: users.loginMethod,
+    isActive: users.isActive,
+    avatarUrl: users.avatarUrl,
     createdAt: users.createdAt,
     lastSignedIn: users.lastSignedIn,
   }).from(users).orderBy(desc(users.createdAt));
+}
+
+export async function toggleUserActive(userId: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users)
+    .set({ isActive })
+    .where(eq(users.id, userId));
 }
 
 export async function deleteUser(id: number): Promise<void> {

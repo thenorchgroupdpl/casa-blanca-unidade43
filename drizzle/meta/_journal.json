@@ -50,6 +50,13 @@
       "when": 1771568265369,
       "tag": "0006_flippant_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1771647836191,
+      "tag": "0007_elite_snowbird",
+      "breakpoints": true
     }
   ]
 }

@@ -3,7 +3,7 @@ import { router, superAdminProcedure } from "../_core/trpc";
 import * as db from "../db";
 
 export const usersRouter = router({
-  // List all users
+  // List all users (with enriched tenant names)
   list: superAdminProcedure.query(async () => {
     const usersList = await db.getAllUsers();
     const tenantsList = await db.getAllTenants();
@@ -26,6 +26,17 @@ export const usersRouter = router({
     }))
     .mutation(async ({ input }) => {
       await db.updateUserRole(input.userId, input.role, input.tenantId ?? undefined);
+      return { success: true };
+    }),
+
+  // Toggle user active status
+  toggleActive: superAdminProcedure
+    .input(z.object({
+      userId: z.number(),
+      isActive: z.boolean(),
+    }))
+    .mutation(async ({ input }) => {
+      await db.toggleUserActive(input.userId, input.isActive);
       return { success: true };
     }),
 

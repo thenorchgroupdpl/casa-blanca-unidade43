@@ -388,3 +388,19 @@
 - [x] Modernizar inputs, selects e color pickers (bg-zinc-900/60, focus ring amber)
 - [x] Redesenhar campos de upload para Drag & Drop Zone com preview de imagem
 - [x] Manter todas as funcionalidades e conexões com banco de dados intactas (78 testes passando)
+
+## Fase 38: Sistema de Filtros - Tela de Usuários do Super Admin
+- [x] Analisar página de Usuários, schema de users e router existente
+- [x] Adicionar campo isActive (boolean) ao schema de users
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Atualizar router de usuários com toggleActive e enriched list
+- [x] Criar procedure toggleActive para ativar/desativar usuários (tenants já disponível via tenants.list)
+- [x] Redesenhar página de Usuários com barra de busca + filtro tenant visíveis
+- [x] Implementar botão "Filtros Avançados" com painel colapsável para filtros extras
+- [x] Filtro por método de autenticação (Email/Senha vs Google vs Manus)
+- [x] Filtro por nível de acesso/role (Super Admin, Lojista, Admin, Usuário)
+- [x] Filtro por status de atividade (Ativo vs Inativo) com toggle switch na tabela
+- [x] Filtro por data de cadastro (Date range com inputs nativos)
+- [x] Atualização da tabela em tempo real (filtragem client-side instantânea)
+- [x] Escrever testes unitários (83 testes passando, 12 testes de users)
+- [x] Testar fluxo completo no navegador (verificado visualmente)
