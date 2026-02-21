@@ -298,6 +298,74 @@ export interface FeedbacksStyleOverrides {
   bgOverlayColor?: string;
 }
 
+export interface InfoStyleOverrides {
+  // 6.1 Label, Headline, Subtitle
+  label?: string;
+  labelFont?: string;
+  labelFontSize?: number;
+  labelFontWeight?: string;
+  labelColor?: string;
+  headline?: string;
+  headlineFont?: string;
+  headlineFontSize?: number;
+  headlineFontWeight?: string;
+  headlineColor?: string;
+  subheadline?: string;
+  subheadlineFont?: string;
+  subheadlineFontSize?: number;
+  subheadlineFontWeight?: string;
+  subheadlineColor?: string;
+  // 6.2 Map
+  mapPinColor?: string;
+  mapBtnBgColor?: string;
+  mapBtnTextColor?: string;
+  mapBtnFont?: string;
+  mapBtnFontSize?: number;
+  mapBtnFontWeight?: string;
+  mapBtnLabel?: string;
+  mapUrl?: string;
+  // 6.3 Address
+  addressIconColor?: string;
+  addressIconBgColor?: string;
+  addressText?: string;
+  addressTextColor?: string;
+  addressFont?: string;
+  addressFontSize?: number;
+  addressFontWeight?: string;
+  // 6.4 Phone
+  phoneIconColor?: string;
+  phoneIconBgColor?: string;
+  phoneText?: string;
+  phoneTextColor?: string;
+  phoneFont?: string;
+  phoneFontSize?: number;
+  phoneFontWeight?: string;
+  // 6.5 Hours
+  hoursIconColor?: string;
+  hoursIconBgColor?: string;
+  hoursLinkColor?: string;
+  hoursLinkFont?: string;
+  hoursLinkFontSize?: number;
+  hoursLinkFontWeight?: string;
+  hoursLinkUrl?: string;
+  // 6.6 Social
+  socialBtnBgColor?: string;
+  socialIconColor?: string;
+  socialInstagramUrl?: string;
+  socialInstagramEnabled?: boolean;
+  socialFacebookUrl?: string;
+  socialFacebookEnabled?: boolean;
+  socialYoutubeUrl?: string;
+  socialYoutubeEnabled?: boolean;
+  // 6.7 Background
+  sectionBgColor?: string;
+  cardsBgColor?: string;
+  bgMediaUrl?: string;
+  bgMediaType?: 'image' | 'video';
+  bgOverlayOpacity?: number;
+  bgOverlayColor?: string;
+}
+
 export interface SiteData {
   project_name: string;
   logo_url?: string;
@@ -310,6 +378,7 @@ export interface SiteData {
   catalog: Category[];
   menu_style?: MenuStyleOverrides;
   feedbacks_style?: FeedbacksStyleOverrides;
+  info_style?: InfoStyleOverrides;
   section_colors?: {
     hero?: SectionColors;
     intro?: SectionColors;

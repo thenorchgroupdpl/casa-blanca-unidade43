@@ -2,8 +2,10 @@
  * Footer Component - Casa Blanca
  * Design: Warm Luxury - CTA section with legal info
  * Features: Final WhatsApp CTA, copyright, developer credits, dynamic company name
+ *           + info_style overrides from Design System
  */
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -12,6 +14,9 @@ import { useSiteData, useUI } from '@/store/useStore';
 export default function Footer() {
   const { data } = useSiteData();
   const { openWhatsAppModal } = useUI();
+
+  // All hooks BEFORE early returns
+  const s = useMemo(() => data?.info_style || {}, [data?.info_style]);
 
   if (!data) return null;
 
@@ -24,8 +29,14 @@ export default function Footer() {
   const firstName = nameParts[0] || '';
   const restName = nameParts.slice(1).join(' ');
 
+  // Use sectionBgColor from info_style for footer background
+  const footerBg = s.sectionBgColor;
+
   return (
-    <footer className="bg-lp-surface-soft border-t border-lp-border">
+    <footer
+      className={cn(!footerBg && "bg-lp-surface-soft", "border-t border-lp-border")}
+      style={footerBg ? { backgroundColor: footerBg } : undefined}
+    >
       {/* CTA Section */}
       <motion.div
         className="container py-16 text-center"
@@ -78,8 +89,6 @@ export default function Footer() {
             <p className="text-sm text-lp-text-subtle">
               {footer.copyright || `© ${currentYear} ${companyName}. Todos os direitos reservados.`}
             </p>
-
-
           </div>
         </div>
       </div>

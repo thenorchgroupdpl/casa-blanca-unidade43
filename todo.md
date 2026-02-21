@@ -358,3 +358,20 @@
 - [x] Atualizar transformTenantDataToSiteData para carregar campos feedbacks do banco
 - [x] Atualizar FeedbacksSection.tsx (componente) para consumir novos estilos
 - [x] Testar persistência e preview em tempo real
+
+## Fase 36: Controles Granulares da Seção 6 (Informações/Rodapé)
+- [x] Analisar LocationSection.tsx, Footer.tsx, InfoSection no Design.tsx
+- [x] Expandir tipo LandingDesign.info com campos granulares
+- [x] 6.1 LABEL, HEADLINE E SUBTÍTULO: conteúdo, tipografia, cor
+- [x] 6.2 BLOCO DE LOCALIZAÇÃO: upload imagem capa, cor pin, botão abrir mapa (cor, texto, URL)
+- [x] 6.3 CARD DE ENDEREÇO: cor ícone, cor fundo ícone, texto editável, tipografia, cor
+- [x] 6.4 CARD DE TELEFONE: cor ícone, cor fundo ícone, texto com máscara, tipografia, cor, href tel:
+- [x] 6.5 CARD DE HORÁRIO: cor ícone, cor fundo ícone, link ver horário completo, tipografia, cor
+- [x] 6.6 BOTÕES REDES SOCIAIS: cor fundo, cor ícones, inputs URL, toggles visibilidade
+- [x] 6.7 FUNDO DA SEÇÃO E CARDS: cor fundo rodapé, cor fundo cards flutuantes
+- [x] Implementar InfoSection no Design.tsx com 7 sub-painéis
+- [x] Atualizar postMessage handler no StoreLanding para campos info
+- [x] Atualizar transformTenantDataToSiteData para carregar campos info do banco
+- [x] Atualizar LocationSection.tsx para consumir novos estilos
+- [x] Atualizar Footer.tsx para consumir novos estilos
+- [x] Testar persistência e preview em tempo real

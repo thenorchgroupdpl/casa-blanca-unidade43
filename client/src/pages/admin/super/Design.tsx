@@ -52,6 +52,13 @@ import {
   Smartphone,
   Monitor,
   MapPin,
+  Phone,
+  Clock,
+  Instagram,
+  Facebook,
+  Youtube,
+  Globe,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
@@ -334,16 +341,81 @@ type LandingDesign = {
     starColor?: string;
   };
   info?: {
+    // 6.1 Label, Headline e Subtítulo
+    label?: string;
+    labelFont?: string;
+    labelFontSize?: number;
+    labelFontWeight?: string;
+    labelColor?: string;
+    headline?: string;
+    headlineFont?: string;
+    headlineFontSize?: number;
+    headlineFontWeight?: string;
+    headlineColor?: string;
+    subheadline?: string;
+    subheadlineFont?: string;
+    subheadlineFontSize?: number;
+    subheadlineFontWeight?: string;
+    subheadlineColor?: string;
+    // Legacy aliases
     headline1?: string;
     subheadline1?: string;
     headline2?: string;
     subheadline2?: string;
     ctaText?: string;
+    // 6.2 Bloco de Localização
+    mapImageUrl?: string;
+    mapOverlayOpacity?: number;
+    mapPinColor?: string;
+    mapBtnBgColor?: string;
+    mapBtnTextColor?: string;
+    mapBtnFont?: string;
+    mapBtnFontSize?: number;
+    mapBtnFontWeight?: string;
+    mapBtnLabel?: string;
+    mapUrl?: string; // Google Maps share link
+    // 6.3 Card de Endereço
+    addressIconColor?: string;
+    addressIconBgColor?: string;
+    addressText?: string;
+    addressTextColor?: string;
+    addressFont?: string;
+    addressFontSize?: number;
+    addressFontWeight?: string;
+    // 6.4 Card de Telefone
+    phoneIconColor?: string;
+    phoneIconBgColor?: string;
+    phoneText?: string;
+    phoneTextColor?: string;
+    phoneFont?: string;
+    phoneFontSize?: number;
+    phoneFontWeight?: string;
+    // 6.5 Card de Horário
+    hoursIconColor?: string;
+    hoursIconBgColor?: string;
+    hoursLinkColor?: string;
+    hoursLinkFont?: string;
+    hoursLinkFontSize?: number;
+    hoursLinkFontWeight?: string;
+    hoursLinkUrl?: string;
+    // 6.6 Redes Sociais
+    socialBtnBgColor?: string;
+    socialIconColor?: string;
+    socialInstagramUrl?: string;
+    socialInstagramEnabled?: boolean;
+    socialFacebookUrl?: string;
+    socialFacebookEnabled?: boolean;
+    socialYoutubeUrl?: string;
+    socialYoutubeEnabled?: boolean;
+    // 6.7 Fundo da Seção e Cards
+    sectionBgColor?: string;
+    cardsBgColor?: string;
+    // Background media
     bgMediaUrl?: string;
     bgMediaType?: "image" | "video";
     bgOverlayOpacity?: number;
-    mapImageUrl?: string;
-    mapOverlayOpacity?: number;
+    bgOverlayColor?: string;
+    // Visibility toggles
     showMap?: boolean;
     showAddress?: boolean;
     showPhone?: boolean;
@@ -3239,66 +3311,337 @@ function InfoSection({
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
+  // Reusable color picker row
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPickerInput
+          value={value || defaultVal}
+          onChange={(v) => onChange(field, v)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  // Reusable font selector
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
+        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+          <SelectValue placeholder="Herdar Global" />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          <SelectItem value="inherit">Herdar Global</SelectItem>
+          {ALL_FONTS.map((f) => (
+            <SelectItem key={f} value={f}>
+              <span style={{ fontFamily: f }}>{f}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  // Reusable typography block (font, size, weight)
+  const TypoBlock = ({ fontField, sizeField, weightField, defaultSize, defaultWeight, minSize = 10, maxSize = 96 }: {
+    fontField: string; sizeField: string; weightField: string;
+    defaultSize: number; defaultWeight: string;
+    minSize?: number; maxSize?: number;
+  }) => (
+    <>
+      <FontSelect label="Fonte" value={(data as Record<string, string>)[fontField]} field={fontField} />
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <div className="flex items-center justify-between">
+            <Label className="text-[10px] text-zinc-500">Tamanho</Label>
+            <span className="text-[10px] text-zinc-500 font-mono">{(data as Record<string, number>)[sizeField] ?? defaultSize}px</span>
+          </div>
+          <Slider
+            value={[(data as Record<string, number>)[sizeField] ?? defaultSize]}
+            onValueChange={([v]) => onChange(sizeField, v)}
+            min={minSize}
+            max={maxSize}
+            step={1}
+            className="w-full"
+          />
+        </div>
+        <div>
+          <Label className="text-[10px] text-zinc-500">Peso</Label>
+          <Select value={(data as Record<string, string>)[weightField] || defaultWeight} onValueChange={(v) => onChange(weightField, v)}>
+            <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FONT_WEIGHT_OPTIONS.map((w) => (
+                <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-white flex items-center gap-2">
         <Info className="h-4 w-4 text-amber-500" />
-        Seção Informações
+        Seção Informações / Rodapé
       </h3>
 
-      <div className="space-y-2">
+      {/* ===== 6.1 LABEL, HEADLINE E SUBTÍTULO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.1 Label, Headline e Subtítulo</Label>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Label (Sobretítulo)</Label>
+        <Input
+          value={data.label || data.headline1 || ""}
+          onChange={(e) => { onChange("label", e.target.value); onChange("headline1", e.target.value); }}
+          placeholder="VENHA NOS VISITAR"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+        />
+        <TypoBlock fontField="labelFont" sizeField="labelFontSize" weightField="labelFontWeight" defaultSize={12} defaultWeight="600" minSize={8} maxSize={24} />
+        <ColorRow label="Cor do Label" value={data.labelColor} defaultVal="" field="labelColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Headline (Título Principal)</Label>
+        <Input
+          value={data.headline || data.subheadline1 || ""}
+          onChange={(e) => { onChange("headline", e.target.value); onChange("subheadline1", e.target.value); }}
+          placeholder="Nossa Localização"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+        />
+        <TypoBlock fontField="headlineFont" sizeField="headlineFontSize" weightField="headlineFontWeight" defaultSize={48} defaultWeight="700" minSize={24} maxSize={96} />
+        <ColorRow label="Cor do Headline" value={data.headlineColor} defaultVal="" field="headlineColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Subtítulo</Label>
+        <Input
+          value={data.subheadline || data.subheadline2 || ""}
+          onChange={(e) => { onChange("subheadline", e.target.value); onChange("subheadline2", e.target.value); }}
+          placeholder="Estamos esperando por você"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+        />
+        <TypoBlock fontField="subheadlineFont" sizeField="subheadlineFontSize" weightField="subheadlineFontWeight" defaultSize={18} defaultWeight="400" minSize={12} maxSize={36} />
+        <ColorRow label="Cor do Subtítulo" value={data.subheadlineColor} defaultVal="" field="subheadlineColor" />
+      </div>
+
+      {/* ===== 6.2 BLOCO DE LOCALIZAÇÃO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.2 Bloco de Localização</Label>
+
+        <ImageUploadField
+          label="Imagem de Capa (fachada/local)"
+          value={data.mapImageUrl}
+          onChange={(url) => onChange("mapImageUrl", url)}
+          onUpload={onImageUpload}
+          uploading={uploading}
+        />
+
+        {data.mapImageUrl && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] text-zinc-400">Opacidade do Overlay</Label>
+              <span className="text-[11px] text-zinc-500 font-mono">{data.mapOverlayOpacity ?? 40}%</span>
+            </div>
+            <Slider
+              value={[data.mapOverlayOpacity ?? 40]}
+              onValueChange={([v]) => onChange("mapOverlayOpacity", v)}
+              min={0}
+              max={100}
+              step={5}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        <Separator className="bg-zinc-800" />
+        <ColorRow label="Cor do Pin (Mapa)" value={data.mapPinColor} defaultVal="" field="mapPinColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Botão &lsquo;Abrir no Mapa&rsquo;</Label>
+        <Input
+          value={data.mapBtnLabel || ""}
+          onChange={(e) => onChange("mapBtnLabel", e.target.value)}
+          placeholder="Abrir no Mapa"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+        />
+        <ColorRow label="Cor de Fundo" value={data.mapBtnBgColor} defaultVal="" field="mapBtnBgColor" />
+        <ColorRow label="Cor do Texto" value={data.mapBtnTextColor} defaultVal="" field="mapBtnTextColor" />
+        <TypoBlock fontField="mapBtnFont" sizeField="mapBtnFontSize" weightField="mapBtnFontWeight" defaultSize={14} defaultWeight="600" minSize={10} maxSize={24} />
+
+        <Separator className="bg-zinc-800" />
         <div>
-          <Label className="text-[11px] text-zinc-400">Headline (H1)</Label>
+          <Label className="text-[10px] text-zinc-500">URL do Google Maps</Label>
           <Input
-            value={data.headline1 || ""}
-            onChange={(e) => onChange("headline1", e.target.value)}
-            placeholder="Venha nos visitar"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-          />
-        </div>
-        <div>
-          <Label className="text-[11px] text-zinc-400">Subheadline</Label>
-          <Input
-            value={data.subheadline1 || ""}
-            onChange={(e) => onChange("subheadline1", e.target.value)}
-            placeholder="Estamos esperando por você"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-          />
-        </div>
-        <div>
-          <Label className="text-[11px] text-zinc-400">Headline secundária</Label>
-          <Input
-            value={data.headline2 || ""}
-            onChange={(e) => onChange("headline2", e.target.value)}
-            placeholder="Horário de Funcionamento"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-          />
-        </div>
-        <div>
-          <Label className="text-[11px] text-zinc-400">Subheadline final</Label>
-          <Input
-            value={data.subheadline2 || ""}
-            onChange={(e) => onChange("subheadline2", e.target.value)}
-            placeholder="Confira nossos horários"
-            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
-          />
-        </div>
-        <div>
-          <Label className="text-[11px] text-zinc-400">Texto do Botão</Label>
-          <Input
-            value={data.ctaText || ""}
-            onChange={(e) => onChange("ctaText", e.target.value)}
-            placeholder="Como Chegar"
+            value={data.mapUrl || ""}
+            onChange={(e) => onChange("mapUrl", e.target.value)}
+            placeholder="https://maps.google.com/..."
             className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
         </div>
       </div>
 
-      <Separator className="bg-zinc-800" />
+      {/* ===== 6.3 CARD DE ENDEREÇO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.3 Card de Endereço</Label>
 
-      {/* Background Media */}
-      <div className="space-y-1.5">
-        <Label className="text-[11px] text-zinc-400">Tipo de Fundo</Label>
+        <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor do Ícone" value={data.addressIconColor} defaultVal="" field="addressIconColor" />
+          <ColorRow label="Fundo do Ícone" value={data.addressIconBgColor} defaultVal="" field="addressIconBgColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Texto do Endereço</Label>
+        <Textarea
+          value={data.addressText || ""}
+          onChange={(e) => onChange("addressText", e.target.value)}
+          placeholder="Rua Exemplo, 123 - Bairro, Cidade/UF"
+          className="bg-zinc-800 border-zinc-700 text-xs min-h-[60px]"
+        />
+        <TypoBlock fontField="addressFont" sizeField="addressFontSize" weightField="addressFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
+        <ColorRow label="Cor do Texto" value={data.addressTextColor} defaultVal="" field="addressTextColor" />
+      </div>
+
+      {/* ===== 6.4 CARD DE TELEFONE ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.4 Card de Telefone</Label>
+
+        <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor do Ícone" value={data.phoneIconColor} defaultVal="" field="phoneIconColor" />
+          <ColorRow label="Fundo do Ícone" value={data.phoneIconBgColor} defaultVal="" field="phoneIconBgColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Número de Telefone</Label>
+        <p className="text-[9px] text-zinc-600 italic">Formato: (XX) XXXXX-XXXX — será injetado em &lt;a href=&quot;tel:...&quot;&gt;</p>
+        <Input
+          value={data.phoneText || ""}
+          onChange={(e) => onChange("phoneText", e.target.value)}
+          placeholder="(11) 99999-9999"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+        />
+        <TypoBlock fontField="phoneFont" sizeField="phoneFontSize" weightField="phoneFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
+        <ColorRow label="Cor do Texto" value={data.phoneTextColor} defaultVal="" field="phoneTextColor" />
+      </div>
+
+      {/* ===== 6.5 CARD DE HORÁRIO ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.5 Card de Horário de Funcionamento</Label>
+
+        <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor do Ícone" value={data.hoursIconColor} defaultVal="" field="hoursIconColor" />
+          <ColorRow label="Fundo do Ícone" value={data.hoursIconBgColor} defaultVal="" field="hoursIconBgColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Link &lsquo;Ver horário completo&rsquo;</Label>
+        <Input
+          value={data.hoursLinkUrl || ""}
+          onChange={(e) => onChange("hoursLinkUrl", e.target.value)}
+          placeholder="URL ou âncora (ex: #horarios)"
+          className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+        />
+        <TypoBlock fontField="hoursLinkFont" sizeField="hoursLinkFontSize" weightField="hoursLinkFontWeight" defaultSize={14} defaultWeight="600" minSize={10} maxSize={24} />
+        <ColorRow label="Cor do Link" value={data.hoursLinkColor} defaultVal="" field="hoursLinkColor" />
+      </div>
+
+      {/* ===== 6.6 BOTÕES DE REDES SOCIAIS ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.6 Redes Sociais</Label>
+
+        <Label className="text-[10px] text-zinc-400 font-medium">Estilos Globais</Label>
+        <ColorRow label="Fundo dos Botões" value={data.socialBtnBgColor} defaultVal="" field="socialBtnBgColor" />
+        <ColorRow label="Cor dos Ícones" value={data.socialIconColor} defaultVal="" field="socialIconColor" />
+
+        <Separator className="bg-zinc-800" />
+
+        {/* Instagram */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Instagram className="h-4 w-4 text-pink-500" />
+            <span className="text-xs text-zinc-300">Instagram</span>
+          </div>
+          <Switch
+            checked={data.socialInstagramEnabled ?? true}
+            onCheckedChange={(v) => onChange("socialInstagramEnabled", v)}
+          />
+        </div>
+        {(data.socialInstagramEnabled ?? true) && (
+          <Input
+            value={data.socialInstagramUrl || ""}
+            onChange={(e) => onChange("socialInstagramUrl", e.target.value)}
+            placeholder="https://instagram.com/seurestaurante"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        )}
+
+        <Separator className="bg-zinc-800" />
+
+        {/* Facebook */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Facebook className="h-4 w-4 text-blue-500" />
+            <span className="text-xs text-zinc-300">Facebook</span>
+          </div>
+          <Switch
+            checked={data.socialFacebookEnabled ?? true}
+            onCheckedChange={(v) => onChange("socialFacebookEnabled", v)}
+          />
+        </div>
+        {(data.socialFacebookEnabled ?? true) && (
+          <Input
+            value={data.socialFacebookUrl || ""}
+            onChange={(e) => onChange("socialFacebookUrl", e.target.value)}
+            placeholder="https://facebook.com/seurestaurante"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        )}
+
+        <Separator className="bg-zinc-800" />
+
+        {/* YouTube */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Youtube className="h-4 w-4 text-red-500" />
+            <span className="text-xs text-zinc-300">YouTube</span>
+          </div>
+          <Switch
+            checked={data.socialYoutubeEnabled ?? true}
+            onCheckedChange={(v) => onChange("socialYoutubeEnabled", v)}
+          />
+        </div>
+        {(data.socialYoutubeEnabled ?? true) && (
+          <Input
+            value={data.socialYoutubeUrl || ""}
+            onChange={(e) => onChange("socialYoutubeUrl", e.target.value)}
+            placeholder="https://youtube.com/@seurestaurante"
+            className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+          />
+        )}
+      </div>
+
+      {/* ===== 6.7 FUNDO DA SEÇÃO E CARDS ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">6.7 Fundo da Seção e Cards</Label>
+
+        <ColorRow label="Fundo do Rodapé (Seção)" value={data.sectionBgColor} defaultVal="" field="sectionBgColor" />
+        <ColorRow label="Fundo dos Cards Flutuantes" value={data.cardsBgColor} defaultVal="" field="cardsBgColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Mídia de Fundo</Label>
         <div className="flex gap-1.5">
           <button
             onClick={() => onChange("bgMediaType", "image")}
@@ -3323,77 +3666,43 @@ function InfoSection({
             Vídeo
           </button>
         </div>
+
+        <ImageUploadField
+          label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
+          value={data.bgMediaUrl}
+          onChange={(url) => onChange("bgMediaUrl", url)}
+          onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
+          uploading={uploading}
+          accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
+        />
+
+        {data.bgMediaUrl && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] text-zinc-400">Opacidade do Overlay</Label>
+              <span className="text-[11px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 60}%</span>
+            </div>
+            <Slider
+              value={[data.bgOverlayOpacity ?? 60]}
+              onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
+              min={0}
+              max={100}
+              step={5}
+              className="w-full"
+            />
+          </div>
+        )}
+        <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="rgba(0,0,0,0.5)" field="bgOverlayColor" />
       </div>
 
-      <ImageUploadField
-        label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
-        value={data.bgMediaUrl}
-        onChange={(url) => onChange("bgMediaUrl", url)}
-        onUpload={data.bgMediaType === "video" ? onDirectUpload : onImageUpload}
-        uploading={uploading}
-        accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
-      />
-
-      {/* Overlay Opacity - Background */}
-      {data.bgMediaUrl && (
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label className="text-[11px] text-zinc-400">Opacidade do Escurecimento</Label>
-            <span className="text-[11px] text-zinc-500 font-mono">{data.bgOverlayOpacity ?? 60}%</span>
-          </div>
-          <Slider
-            value={[data.bgOverlayOpacity ?? 60]}
-            onValueChange={([v]) => onChange("bgOverlayOpacity", v)}
-            min={0}
-            max={100}
-            step={5}
-            className="w-full"
-          />
-        </div>
-      )}
-
-      <Separator className="bg-zinc-800" />
-
-      {/* Map Box Image */}
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-amber-500" />
-        Box do Mapa
-      </h3>
-
-      <ImageUploadField
-        label="Imagem do Box (ex: fachada)"
-        value={data.mapImageUrl}
-        onChange={(url) => onChange("mapImageUrl", url)}
-        onUpload={onImageUpload}
-        uploading={uploading}
-      />
-
-      {data.mapImageUrl && (
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label className="text-[11px] text-zinc-400">Opacidade do Overlay (Mapa)</Label>
-            <span className="text-[11px] text-zinc-500 font-mono">{data.mapOverlayOpacity ?? 40}%</span>
-          </div>
-          <Slider
-            value={[data.mapOverlayOpacity ?? 40]}
-            onValueChange={([v]) => onChange("mapOverlayOpacity", v)}
-            min={0}
-            max={100}
-            step={5}
-            className="w-full"
-          />
-        </div>
-      )}
-
-      <Separator className="bg-zinc-800" />
-
-      <div className="space-y-2">
-        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Exibição</Label>
+      {/* ===== EXIBIÇÃO (TOGGLES) ===== */}
+      <div className="space-y-2 rounded-lg bg-zinc-800/30 border border-zinc-700/50 p-3">
+        <Label className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">Visibilidade</Label>
         {[
-          { key: "showMap", label: "Mapa" },
-          { key: "showAddress", label: "Endereço" },
-          { key: "showPhone", label: "Telefone" },
-          { key: "showHours", label: "Horários" },
+          { key: "showMap", label: "Mapa / Localização" },
+          { key: "showAddress", label: "Card de Endereço" },
+          { key: "showPhone", label: "Card de Telefone" },
+          { key: "showHours", label: "Card de Horários" },
           { key: "showSocial", label: "Redes Sociais" },
         ].map(({ key, label }) => (
           <div key={key} className="flex items-center justify-between py-0.5">
