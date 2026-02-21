@@ -1,6 +1,6 @@
 /**
- * Dashboard do Lojista - Painel Operacional
- * Grid moderno com: Switch de funcionamento, QR Code, Feed de Pedidos, Disponibilidade Rápida
+ * Dashboard do Lojista - Cockpit de Comando
+ * KPIs, Drawer de Pedidos avançado, Disponibilidade Rápida lateral
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -11,6 +11,20 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -23,20 +37,21 @@ import { toast } from 'sonner';
 import {
   Power,
   PowerOff,
-  Copy,
-  Download,
-  QrCode,
   ShoppingBag,
   Clock,
   Package,
   CheckCircle2,
   XCircle,
-  ExternalLink,
   Loader2,
   AlertTriangle,
   Search,
+  ChevronRight,
+  PauseCircle,
+  Eye,
+  TrendingUp,
+  Calendar,
+  Filter,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 
 export default function ClientDashboard() {
   const utils = trpc.useUtils();
@@ -83,13 +98,12 @@ export default function ClientDashboard() {
 
   // State
   const [productSearch, setProductSearch] = useState('');
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [ordersDrawerOpen, setOrdersDrawerOpen] = useState(false);
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>('pending');
+  const [orderDateFilter, setOrderDateFilter] = useState('');
 
   // Derived data
-  const storeUrl = tenantSlug
-    ? `${window.location.origin}/${tenantSlug}`
-    : '';
-
   const manualOverride = settingsQuery.data?.manualOverride as 'open' | 'closed' | null;
 
   // Check if store is currently open based on opening hours
@@ -128,16 +142,52 @@ export default function ClientDashboard() {
     return allProducts.filter(p => p.name.toLowerCase().includes(term));
   }, [productsQuery.data, productSearch]);
 
-  // Orders filtered
-  const filteredOrders = useMemo(() => {
-    const allOrders = ordersQuery.data || [];
-    if (showCompleted) return allOrders;
-    return allOrders.filter(o => !o.isCompleted);
-  }, [ordersQuery.data, showCompleted]);
+  // KPI data
+  const allOrders = ordersQuery.data || [];
+  const pendingOrdersCount = useMemo(() => allOrders.filter(o => !o.isCompleted).length, [allOrders]);
+  const todayOrdersCount = useMemo(() => {
+    const today = new Date().toDateString();
+    return allOrders.filter(o => new Date(o.createdAt).toDateString() === today).length;
+  }, [allOrders]);
+  const pausedProductsCount = useMemo(() => {
+    return (productsQuery.data || []).filter(p => !p.isAvailable).length;
+  }, [productsQuery.data]);
 
-  const pendingOrdersCount = useMemo(() => {
-    return (ordersQuery.data || []).filter(o => !o.isCompleted).length;
-  }, [ordersQuery.data]);
+  // Orders filtered for drawer
+  const filteredOrders = useMemo(() => {
+    let orders = [...allOrders];
+
+    // Status filter
+    if (orderStatusFilter === 'pending') {
+      orders = orders.filter(o => !o.isCompleted);
+    } else if (orderStatusFilter === 'completed') {
+      orders = orders.filter(o => o.isCompleted);
+    }
+
+    // Search filter
+    if (orderSearch.trim()) {
+      const term = orderSearch.toLowerCase();
+      orders = orders.filter(o =>
+        o.customerName.toLowerCase().includes(term) ||
+        o.summary.toLowerCase().includes(term)
+      );
+    }
+
+    // Date filter
+    if (orderDateFilter) {
+      orders = orders.filter(o => {
+        const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
+        return orderDate === orderDateFilter;
+      });
+    }
+
+    return orders;
+  }, [allOrders, orderStatusFilter, orderSearch, orderDateFilter]);
+
+  // Last 3 orders for the summary card
+  const recentOrders = useMemo(() => {
+    return allOrders.filter(o => !o.isCompleted).slice(0, 3);
+  }, [allOrders]);
 
   // Handlers
   const handleToggleStore = useCallback(() => {
@@ -168,31 +218,6 @@ export default function ClientDashboard() {
       }
     );
   }, [setOverrideMutation]);
-
-  const handleCopyLink = useCallback(() => {
-    navigator.clipboard.writeText(storeUrl);
-    toast.success('Link copiado!', { description: 'Cole no Instagram, WhatsApp ou onde quiser.' });
-  }, [storeUrl]);
-
-  const handleDownloadQR = useCallback(async () => {
-    if (!storeUrl) return;
-    try {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(storeUrl)}&bgcolor=1a1a1a&color=ffffff&format=png`;
-      const response = await fetch(qrUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `qrcode-${tenantSlug || 'loja'}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success('QR Code baixado!');
-    } catch {
-      toast.error('Erro ao baixar QR Code');
-    }
-  }, [storeUrl, tenantSlug]);
 
   const handleToggleProduct = useCallback((productId: number, currentAvailable: boolean) => {
     toggleProductMutation.mutate(
@@ -252,44 +277,44 @@ export default function ClientDashboard() {
         {/* ============================================ */}
         {/* TOP BAR: CONTROLE DE EXPEDIENTE */}
         {/* ============================================ */}
-        <Card className="border-0 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-800 overflow-hidden">
+        <Card className="border-zinc-800/60 bg-zinc-900/80 overflow-hidden">
           <CardContent className="p-0">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5">
               {/* Left: Store Status */}
               <div className="flex items-center gap-4">
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                     isStoreOpen
-                      ? 'bg-emerald-500/20 ring-2 ring-emerald-500/40'
-                      : 'bg-red-500/20 ring-2 ring-red-500/40'
+                      ? 'bg-emerald-500/15 ring-1 ring-emerald-500/30'
+                      : 'bg-red-500/15 ring-1 ring-red-500/30'
                   }`}
                 >
                   {isStoreOpen ? (
-                    <Power className="w-7 h-7 text-emerald-400" />
+                    <Power className="w-6 h-6 text-emerald-400" />
                   ) : (
-                    <PowerOff className="w-7 h-7 text-red-400" />
+                    <PowerOff className="w-6 h-6 text-red-400" />
                   )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-white">
+                    <h2 className="text-base font-semibold text-white">
                       {tenantName || 'Minha Loja'}
                     </h2>
                     <Badge
                       variant="outline"
-                      className={`text-xs font-semibold ${
+                      className={`text-[10px] font-semibold px-2 py-0 ${
                         isStoreOpen
-                          ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10'
-                          : 'border-red-500/50 text-red-400 bg-red-500/10'
+                          ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+                          : 'border-red-500/40 text-red-400 bg-red-500/10'
                       }`}
                     >
                       {isStoreOpen ? 'Aberta' : 'Fechada'}
                     </Badge>
                   </div>
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-xs text-zinc-500 mt-0.5">
                     {manualOverride
-                      ? `Controle manual: ${manualOverride === 'open' ? 'Forçado aberto' : 'Forçado fechado'}`
-                      : 'Seguindo horário automático'}
+                      ? `Manual: ${manualOverride === 'open' ? 'Forçado aberto' : 'Forçado fechado'}`
+                      : 'Horário automático'}
                   </p>
                 </div>
               </div>
@@ -302,24 +327,24 @@ export default function ClientDashboard() {
                     size="sm"
                     onClick={handleResetOverride}
                     disabled={setOverrideMutation.isPending}
-                    className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 hover:text-white"
+                    className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 hover:text-white text-xs h-8"
                   >
-                    <Clock className="w-4 h-4 mr-1.5" />
+                    <Clock className="w-3.5 h-3.5 mr-1.5" />
                     Restaurar Automático
                   </Button>
                 )}
                 <button
                   onClick={handleToggleStore}
                   disabled={setOverrideMutation.isPending}
-                  className={`relative inline-flex h-10 w-20 shrink-0 cursor-pointer rounded-full border-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  className={`relative inline-flex h-9 w-[72px] shrink-0 cursor-pointer rounded-full border-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                     isStoreOpen
                       ? 'bg-emerald-500 border-emerald-400'
                       : 'bg-red-500/80 border-red-400'
                   }`}
                 >
                   <span
-                    className={`pointer-events-none block h-8 w-8 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${
-                      isStoreOpen ? 'translate-x-10' : 'translate-x-0.5'
+                    className={`pointer-events-none block h-7 w-7 rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ${
+                      isStoreOpen ? 'translate-x-[38px]' : 'translate-x-0.5'
                     } mt-[1px]`}
                   />
                 </button>
@@ -328,12 +353,12 @@ export default function ClientDashboard() {
 
             {/* Override warning bar */}
             {manualOverride && (
-              <div className="px-5 py-2 bg-amber-500/10 border-t border-amber-500/20 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                <p className="text-xs text-amber-300">
-                  O controle manual está ativo. A loja está{' '}
+              <div className="px-5 py-2 bg-amber-500/5 border-t border-amber-500/15 flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <p className="text-[11px] text-amber-300/80">
+                  Controle manual ativo. Loja{' '}
                   <strong>{manualOverride === 'open' ? 'aberta' : 'fechada'}</strong>{' '}
-                  independentemente do horário de funcionamento.
+                  independente do horário.
                 </p>
               </div>
             )}
@@ -341,147 +366,268 @@ export default function ClientDashboard() {
         </Card>
 
         {/* ============================================ */}
-        {/* MAIN GRID: Orders (center) + Side widgets */}
+        {/* KPI CARDS */}
+        {/* ============================================ */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Pedidos Hoje */}
+          <Card className="border-zinc-800/60 bg-zinc-900/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Pedidos Hoje</p>
+                  <p className="text-2xl font-bold text-white mt-1">{todayOrdersCount}</p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-amber-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pendentes */}
+          <Card className="border-zinc-800/60 bg-zinc-900/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Pendentes</p>
+                  <p className={`text-2xl font-bold mt-1 ${pendingOrdersCount > 0 ? 'text-amber-400' : 'text-white'}`}>
+                    {pendingOrdersCount}
+                  </p>
+                </div>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  pendingOrdersCount > 0 ? 'bg-amber-500/10' : 'bg-zinc-800'
+                }`}>
+                  <Clock className={`w-5 h-5 ${pendingOrdersCount > 0 ? 'text-amber-400' : 'text-zinc-500'}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Itens Pausados */}
+          <Card className="border-zinc-800/60 bg-zinc-900/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Itens Pausados</p>
+                  <p className={`text-2xl font-bold mt-1 ${pausedProductsCount > 0 ? 'text-red-400' : 'text-white'}`}>
+                    {pausedProductsCount}
+                  </p>
+                </div>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  pausedProductsCount > 0 ? 'bg-red-500/10' : 'bg-zinc-800'
+                }`}>
+                  <PauseCircle className={`w-5 h-5 ${pausedProductsCount > 0 ? 'text-red-400' : 'text-zinc-500'}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Acessos LP */}
+          <Card className="border-zinc-800/60 bg-zinc-900/60">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Acessos na LP</p>
+                  <p className="text-2xl font-bold text-white mt-1">—</p>
+                  <p className="text-[10px] text-zinc-600 mt-0.5">Em breve</p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
+                  <Eye className="w-5 h-5 text-zinc-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ============================================ */}
+        {/* MAIN GRID: Orders Summary + Quick Availability */}
         {/* ============================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ============================================ */}
-          {/* LEFT COLUMN: QR Code + Quick Availability */}
+          {/* CENTER: SOLICITAÇÕES RECENTES (CARD RESUMO) */}
           {/* ============================================ */}
-          <div className="space-y-6 lg:col-span-1 order-2 lg:order-1">
-            {/* QR Code & Share Card */}
-            <Card className="border-zinc-800 bg-zinc-900/80">
+          <div className="lg:col-span-2">
+            <Card
+              className="border-zinc-800/60 bg-zinc-900/60 cursor-pointer hover:border-zinc-700/60 transition-colors group"
+              onClick={() => setOrdersDrawerOpen(true)}
+            >
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                  <QrCode className="w-5 h-5 text-amber-400" />
-                  Compartilhar Loja
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <ShoppingBag className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-semibold text-white">
+                        Solicitações Recentes
+                      </CardTitle>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        Log de pedidos via WhatsApp
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {pendingOrdersCount > 0 && (
+                      <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/25 text-xs">
+                        {pendingOrdersCount} pendente{pendingOrdersCount > 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                    <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* QR Code Preview */}
-                {storeUrl && (
-                  <div className="flex justify-center">
-                    <div className="bg-zinc-800 rounded-xl p-3 border border-zinc-700">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(storeUrl)}&bgcolor=1a1a1a&color=ffffff&format=svg`}
-                        alt="QR Code da loja"
-                        className="w-40 h-40 rounded-lg"
-                      />
+              <CardContent>
+                {ordersQuery.isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+                  </div>
+                ) : recentOrders.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800/80 flex items-center justify-center mb-3">
+                      <ShoppingBag className="w-6 h-6 text-zinc-600" />
+                    </div>
+                    <p className="text-sm text-zinc-400">Nenhum pedido pendente</p>
+                    <p className="text-xs text-zinc-600 mt-1">
+                      Clique para ver o histórico completo
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {recentOrders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/40 hover:bg-zinc-800/60 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <Checkbox
+                            checked={order.isCompleted}
+                            onCheckedChange={() => handleToggleOrder(order.id, order.isCompleted)}
+                            disabled={toggleOrderMutation.isPending}
+                            className="border-zinc-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-white truncate">
+                                {order.customerName}
+                              </p>
+                              <span className="text-[10px] text-zinc-500 shrink-0">
+                                {formatTime(order.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-xs text-zinc-500 truncate mt-0.5">
+                              {order.summary}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-sm font-semibold text-amber-400 shrink-0 ml-3">
+                          {formatCurrency(order.totalValue)}
+                        </span>
+                      </div>
+                    ))}
+
+                    {pendingOrdersCount > 3 && (
+                      <div className="text-center pt-2">
+                        <p className="text-xs text-zinc-500">
+                          + {pendingOrdersCount - 3} pedido{pendingOrdersCount - 3 > 1 ? 's' : ''} pendente{pendingOrdersCount - 3 > 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="pt-2 border-t border-zinc-800/60">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-zinc-400 hover:text-amber-400 text-xs h-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOrdersDrawerOpen(true);
+                        }}
+                      >
+                        <TrendingUp className="w-3.5 h-3.5 mr-1.5" />
+                        Ver todos os pedidos
+                      </Button>
                     </div>
                   </div>
                 )}
-
-                {/* URL Display */}
-                <div className="bg-zinc-800/60 rounded-lg p-3 border border-zinc-700/50">
-                  <p className="text-xs text-zinc-500 mb-1">Link da sua loja</p>
-                  <p className="text-sm text-amber-400 font-mono break-all">
-                    {storeUrl || 'Configurando...'}
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyLink}
-                    disabled={!storeUrl}
-                    className="border-zinc-700 hover:bg-zinc-800 text-white"
-                  >
-                    <Copy className="w-4 h-4 mr-1.5" />
-                    Copiar Link
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownloadQR}
-                    disabled={!storeUrl}
-                    className="border-zinc-700 hover:bg-zinc-800 text-white"
-                  >
-                    <Download className="w-4 h-4 mr-1.5" />
-                    Baixar QR
-                  </Button>
-                </div>
-
-                {/* Visit Store */}
-                {storeUrl && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-zinc-400 hover:text-amber-400"
-                    onClick={() => window.open(storeUrl, '_blank')}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-1.5" />
-                    Visitar minha loja
-                  </Button>
-                )}
               </CardContent>
             </Card>
+          </div>
 
-            {/* Quick Availability Widget */}
-            <Card className="border-zinc-800 bg-zinc-900/80">
+          {/* ============================================ */}
+          {/* RIGHT COLUMN: DISPONIBILIDADE RÁPIDA */}
+          {/* ============================================ */}
+          <div className="lg:col-span-1">
+            <Card className="border-zinc-800/60 bg-zinc-900/60 h-full">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                  <Package className="w-5 h-5 text-amber-400" />
-                  Disponibilidade Rápida
-                </CardTitle>
-                <p className="text-xs text-zinc-500 mt-1">
-                  Pause ou ative produtos instantaneamente
-                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <Package className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-sm font-semibold text-white">
+                      Disponibilidade
+                    </CardTitle>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">
+                      Pause ou ative produtos
+                    </p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Search */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                   <Input
                     placeholder="Buscar produto..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    className="pl-9 bg-zinc-800/60 border-zinc-700 text-white placeholder:text-zinc-500 h-9 text-sm"
+                    className="pl-8 bg-zinc-800/60 border-zinc-700/60 text-white placeholder:text-zinc-600 h-8 text-xs"
                   />
                 </div>
 
                 {/* Products List */}
-                <div className="max-h-[400px] overflow-y-auto space-y-1 pr-1">
+                <div className="max-h-[420px] overflow-y-auto space-y-1 pr-1 scrollbar-thin">
                   {productsQuery.isLoading ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
                     </div>
                   ) : filteredProducts.length === 0 ? (
                     <div className="text-center py-6">
-                      <Package className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-                      <p className="text-sm text-zinc-500">
-                        {productSearch ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
+                      <Package className="w-7 h-7 text-zinc-700 mx-auto mb-2" />
+                      <p className="text-xs text-zinc-500">
+                        {productSearch ? 'Nenhum encontrado' : 'Nenhum produto'}
                       </p>
                     </div>
                   ) : (
                     filteredProducts.map((product) => (
                       <div
                         key={product.id}
-                        className={`flex items-center justify-between p-2.5 rounded-lg transition-colors ${
+                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
                           product.isAvailable
-                            ? 'bg-zinc-800/40 hover:bg-zinc-800/60'
+                            ? 'bg-zinc-800/30 hover:bg-zinc-800/50'
                             : 'bg-red-500/5 hover:bg-red-500/10'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
                           {product.imageUrl ? (
                             <img
                               src={product.imageUrl}
                               alt={product.name}
-                              className="w-8 h-8 rounded-md object-cover shrink-0"
+                              className="w-7 h-7 rounded-md object-cover shrink-0"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-md bg-zinc-700 flex items-center justify-center shrink-0">
-                              <Package className="w-4 h-4 text-zinc-500" />
+                            <div className="w-7 h-7 rounded-md bg-zinc-700/60 flex items-center justify-center shrink-0">
+                              <Package className="w-3.5 h-3.5 text-zinc-500" />
                             </div>
                           )}
                           <div className="min-w-0">
-                            <p className={`text-sm font-medium truncate ${
+                            <p className={`text-xs font-medium truncate ${
                               product.isAvailable ? 'text-white' : 'text-zinc-500 line-through'
                             }`}>
                               {product.name}
                             </p>
-                            <p className="text-xs text-zinc-500">
+                            <p className="text-[10px] text-zinc-600">
                               {formatCurrency(product.price)}
                             </p>
                           </div>
@@ -490,7 +636,7 @@ export default function ClientDashboard() {
                           checked={product.isAvailable}
                           onCheckedChange={() => handleToggleProduct(product.id, product.isAvailable)}
                           disabled={toggleProductMutation.isPending}
-                          className="shrink-0 data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500/60"
+                          className="shrink-0 scale-90 data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500/60"
                         />
                       </div>
                     ))
@@ -499,16 +645,16 @@ export default function ClientDashboard() {
 
                 {/* Summary */}
                 {productsQuery.data && productsQuery.data.length > 0 && (
-                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
                     <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-xs text-zinc-400">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <span className="text-[10px] text-zinc-400">
                         {productsQuery.data.filter(p => p.isAvailable).length} ativos
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <XCircle className="w-3.5 h-3.5 text-red-400" />
-                      <span className="text-xs text-zinc-400">
+                      <XCircle className="w-3 h-3 text-red-400" />
+                      <span className="text-[10px] text-zinc-400">
                         {productsQuery.data.filter(p => !p.isAvailable).length} pausados
                       </span>
                     </div>
@@ -517,134 +663,196 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
           </div>
-
-          {/* ============================================ */}
-          {/* CENTER/RIGHT: FEED DE PEDIDOS */}
-          {/* ============================================ */}
-          <div className="lg:col-span-2 order-1 lg:order-2">
-            <Card className="border-zinc-800 bg-zinc-900/80 h-full">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                      <ShoppingBag className="w-5 h-5 text-amber-400" />
-                      Solicitações Recentes
-                    </CardTitle>
-                    {pendingOrdersCount > 0 && (
-                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
-                        {pendingOrdersCount} pendente{pendingOrdersCount > 1 ? 's' : ''}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={showCompleted}
-                        onCheckedChange={(checked) => setShowCompleted(checked === true)}
-                        className="border-zinc-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
-                      />
-                      <span className="text-xs text-zinc-400">Mostrar concluídos</span>
-                    </label>
-                  </div>
-                </div>
-                <p className="text-xs text-zinc-500 mt-1">
-                  Log de backup dos pedidos enviados via WhatsApp
-                </p>
-              </CardHeader>
-              <CardContent>
-                {ordersQuery.isLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
-                  </div>
-                ) : filteredOrders.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
-                      <ShoppingBag className="w-8 h-8 text-zinc-600" />
-                    </div>
-                    <h3 className="text-sm font-medium text-zinc-400 mb-1">
-                      {showCompleted ? 'Nenhum pedido registrado' : 'Nenhum pedido pendente'}
-                    </h3>
-                    <p className="text-xs text-zinc-600 max-w-xs">
-                      Os pedidos feitos pelo site aparecerão aqui como log de segurança.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-zinc-800 hover:bg-transparent">
-                          <TableHead className="text-zinc-500 text-xs w-10">Status</TableHead>
-                          <TableHead className="text-zinc-500 text-xs">Hora</TableHead>
-                          <TableHead className="text-zinc-500 text-xs">Cliente</TableHead>
-                          <TableHead className="text-zinc-500 text-xs">Resumo</TableHead>
-                          <TableHead className="text-zinc-500 text-xs text-right">Valor</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredOrders.map((order) => (
-                          <TableRow
-                            key={order.id}
-                            className={`border-zinc-800/50 transition-colors ${
-                              order.isCompleted
-                                ? 'opacity-50 hover:opacity-70'
-                                : 'hover:bg-zinc-800/30'
-                            }`}
-                          >
-                            <TableCell className="py-3">
-                              <Checkbox
-                                checked={order.isCompleted}
-                                onCheckedChange={() => handleToggleOrder(order.id, order.isCompleted)}
-                                disabled={toggleOrderMutation.isPending}
-                                className="border-zinc-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                              />
-                            </TableCell>
-                            <TableCell className="py-3">
-                              <div className="text-xs">
-                                <span className="text-zinc-300 font-medium">
-                                  {formatTime(order.createdAt)}
-                                </span>
-                                <span className="text-zinc-600 ml-1">
-                                  {formatDate(order.createdAt)}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-3">
-                              <div>
-                                <p className={`text-sm font-medium ${
-                                  order.isCompleted ? 'text-zinc-500 line-through' : 'text-white'
-                                }`}>
-                                  {order.customerName}
-                                </p>
-                                {order.customerPhone && (
-                                  <p className="text-xs text-zinc-500">{order.customerPhone}</p>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-3 max-w-[200px]">
-                              <p className={`text-sm truncate ${
-                                order.isCompleted ? 'text-zinc-600' : 'text-zinc-300'
-                              }`}>
-                                {order.summary}
-                              </p>
-                            </TableCell>
-                            <TableCell className="py-3 text-right">
-                              <span className={`text-sm font-semibold ${
-                                order.isCompleted ? 'text-zinc-500' : 'text-amber-400'
-                              }`}>
-                                {formatCurrency(order.totalValue)}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
+
+      {/* ============================================ */}
+      {/* DRAWER: VISÃO AVANÇADA DE PEDIDOS */}
+      {/* ============================================ */}
+      <Sheet open={ordersDrawerOpen} onOpenChange={setOrdersDrawerOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl bg-zinc-950 border-zinc-800 p-0 overflow-hidden">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <SheetHeader className="px-6 py-5 border-b border-zinc-800/60">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <ShoppingBag className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <SheetTitle className="text-white text-base">Solicitações</SheetTitle>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {allOrders.length} pedido{allOrders.length !== 1 ? 's' : ''} no total
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </SheetHeader>
+
+            {/* Filters */}
+            <div className="px-6 py-4 border-b border-zinc-800/40 space-y-3">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Input
+                  placeholder="Buscar por nome do cliente..."
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  className="pl-9 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 h-9 text-sm"
+                />
+              </div>
+
+              {/* Status + Date */}
+              <div className="flex gap-2">
+                <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                  <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white h-8 text-xs w-36">
+                    <Filter className="w-3.5 h-3.5 mr-1.5 text-zinc-500" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                    <SelectItem value="pending">Pendentes</SelectItem>
+                    <SelectItem value="completed">Concluídos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="relative flex-1">
+                  <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
+                  <Input
+                    type="date"
+                    value={orderDateFilter}
+                    onChange={(e) => setOrderDateFilter(e.target.value)}
+                    className="pl-8 bg-zinc-900 border-zinc-800 text-white h-8 text-xs [color-scheme:dark]"
+                  />
+                </div>
+
+                {(orderSearch || orderDateFilter || orderStatusFilter !== 'pending') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setOrderSearch('');
+                      setOrderDateFilter('');
+                      setOrderStatusFilter('pending');
+                    }}
+                    className="text-zinc-500 hover:text-white h-8 px-2 text-xs shrink-0"
+                  >
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Orders Table */}
+            <div className="flex-1 overflow-y-auto px-6">
+              {ordersQuery.isLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+                </div>
+              ) : filteredOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-14 h-14 rounded-xl bg-zinc-900 flex items-center justify-center mb-3">
+                    <ShoppingBag className="w-7 h-7 text-zinc-700" />
+                  </div>
+                  <p className="text-sm text-zinc-400">Nenhum pedido encontrado</p>
+                  <p className="text-xs text-zinc-600 mt-1">
+                    Ajuste os filtros ou aguarde novos pedidos
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-zinc-800/50 hover:bg-transparent">
+                      <TableHead className="text-zinc-500 text-[10px] uppercase tracking-wider w-10">
+                        OK
+                      </TableHead>
+                      <TableHead className="text-zinc-500 text-[10px] uppercase tracking-wider">
+                        Hora
+                      </TableHead>
+                      <TableHead className="text-zinc-500 text-[10px] uppercase tracking-wider">
+                        Cliente
+                      </TableHead>
+                      <TableHead className="text-zinc-500 text-[10px] uppercase tracking-wider">
+                        Resumo
+                      </TableHead>
+                      <TableHead className="text-zinc-500 text-[10px] uppercase tracking-wider text-right">
+                        Valor
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders.map((order) => (
+                      <TableRow
+                        key={order.id}
+                        className={`border-zinc-800/30 transition-colors ${
+                          order.isCompleted
+                            ? 'opacity-50 hover:opacity-70'
+                            : 'hover:bg-zinc-900/50'
+                        }`}
+                      >
+                        <TableCell className="py-3">
+                          <Checkbox
+                            checked={order.isCompleted}
+                            onCheckedChange={() => handleToggleOrder(order.id, order.isCompleted)}
+                            disabled={toggleOrderMutation.isPending}
+                            className="border-zinc-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                          />
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <div className="text-xs">
+                            <span className="text-zinc-300 font-medium">
+                              {formatTime(order.createdAt)}
+                            </span>
+                            <span className="text-zinc-600 ml-1">
+                              {formatDate(order.createdAt)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <div>
+                            <p className={`text-sm font-medium ${
+                              order.isCompleted ? 'text-zinc-500 line-through' : 'text-white'
+                            }`}>
+                              {order.customerName}
+                            </p>
+                            {order.customerPhone && (
+                              <p className="text-[10px] text-zinc-600">{order.customerPhone}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3 max-w-[200px]">
+                          <p className={`text-xs truncate ${
+                            order.isCompleted ? 'text-zinc-600' : 'text-zinc-400'
+                          }`}>
+                            {order.summary}
+                          </p>
+                        </TableCell>
+                        <TableCell className="py-3 text-right">
+                          <span className={`text-sm font-semibold ${
+                            order.isCompleted ? 'text-zinc-500' : 'text-amber-400'
+                          }`}>
+                            {formatCurrency(order.totalValue)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+
+            {/* Footer summary */}
+            <div className="px-6 py-3 border-t border-zinc-800/60 bg-zinc-900/50">
+              <div className="flex items-center justify-between text-xs text-zinc-500">
+                <span>{filteredOrders.length} pedido{filteredOrders.length !== 1 ? 's' : ''} exibido{filteredOrders.length !== 1 ? 's' : ''}</span>
+                <span className="text-amber-400 font-medium">
+                  Total: {formatCurrency(filteredOrders.reduce((sum, o) => sum + (typeof o.totalValue === 'string' ? parseFloat(o.totalValue) : o.totalValue), 0))}
+                </span>
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </ClientAdminLayout>
   );
 }

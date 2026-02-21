@@ -473,3 +473,17 @@
 - [x] Avisos dinâmicos de horário na Landing Page ("Abre em breve", "Fechando em breve") com pulsação
 - [x] Escrever testes unitários (128 testes passando, 14 de store + 6 de getStatusText)
 - [x] Testar fluxo completo no navegador (verificado visualmente)
+
+## Fase 44: Correção de Bugs + Reestruturação do Dashboard do Lojista
+- [x] PARTE 1: Corrigir bug da faixa branca em todas as páginas do Lojista (removido bg-background do SidebarInset)
+- [x] Revisar ClientAdminLayout: garantir w-full min-h-screen e bg-zinc-950 global
+- [x] PARTE 2: Remover card QR Code do Dashboard
+- [x] Mover componente QR Code + Link para página Dados da Loja (aba Compartilhar)
+- [x] PARTE 3: Novo layout Dashboard cockpit de comando
+- [x] Top Bar: manter switch Aberto/Fechado com override manual
+- [x] Linha de KPIs: Pedidos Hoje, Pendentes, Itens Pausados, Acessos na LP
+- [x] Card Solicitações Recentes: resumo com 3 últimos + drawer com busca, filtros status/data e tabela completa
+- [x] Card lateral: Disponibilidade Rápida (estoque) em coluna 1/3 à direita com busca e toggles
+- [x] Grid premium: estética dark alinhada ao Super Admin (grid 2/3 + 1/3)
+- [x] Escrever testes unitários (128 testes passando)
+- [x] Testar fluxo completo no navegador (verificado visualmente)

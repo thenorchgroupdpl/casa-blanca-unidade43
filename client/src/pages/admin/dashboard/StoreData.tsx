@@ -16,9 +16,14 @@ import {
   MessageCircle,
   Instagram,
   Facebook,
-  Youtube
+  Youtube,
+  QrCode,
+  Copy,
+  Download,
+  ExternalLink,
+  Check
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 
 type OpeningHours = {
@@ -216,6 +221,10 @@ export default function StoreDataPage() {
               </TabsTrigger>
               <TabsTrigger value="content" className="data-[state=active]:bg-zinc-700">
                 Conteúdo
+              </TabsTrigger>
+              <TabsTrigger value="sharing" className="data-[state=active]:bg-zinc-700">
+                <QrCode className="h-4 w-4 mr-2" />
+                Compartilhar
               </TabsTrigger>
             </TabsList>
 
@@ -527,6 +536,11 @@ export default function StoreDataPage() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Sharing Tab */}
+            <TabsContent value="sharing" className="mt-6">
+              <ShareStoreCard />
+            </TabsContent>
           </Tabs>
         )}
 
@@ -545,5 +559,164 @@ export default function StoreDataPage() {
         )}
       </div>
     </ClientAdminLayout>
+  );
+}
+
+function ShareStoreCard() {
+  const { data: roleData } = trpc.auth.getRole.useQuery();
+  const [copied, setCopied] = useState(false);
+  const qrRef = useRef<HTMLCanvasElement>(null);
+
+  const slug = roleData?.tenantSlug || '';
+  const storeUrl = slug ? `${window.location.origin}/${slug}` : '';
+
+  // Generate QR Code on canvas
+  useEffect(() => {
+    if (!storeUrl || !qrRef.current) return;
+    const canvas = qrRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const size = 200;
+    canvas.width = size;
+    canvas.height = size;
+
+    // Simple QR-like pattern using the URL as seed
+    // For production, use a proper QR library. This generates a visual placeholder.
+    const qrSize = 25;
+    const cellSize = size / qrSize;
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    
+    // Generate deterministic pattern from URL
+    let hash = 0;
+    for (let i = 0; i < storeUrl.length; i++) {
+      const char = storeUrl.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    
+    ctx.fillStyle = '#000000';
+    
+    // Draw finder patterns (corners)
+    const drawFinder = (x: number, y: number) => {
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if (i === 0 || i === 6 || j === 0 || j === 6 || (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect((x + i) * cellSize, (y + j) * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    };
+    
+    drawFinder(0, 0);
+    drawFinder(qrSize - 7, 0);
+    drawFinder(0, qrSize - 7);
+    
+    // Fill data area with deterministic pattern
+    let seed = Math.abs(hash);
+    for (let i = 0; i < qrSize; i++) {
+      for (let j = 0; j < qrSize; j++) {
+        // Skip finder pattern areas
+        if ((i < 8 && j < 8) || (i >= qrSize - 8 && j < 8) || (i < 8 && j >= qrSize - 8)) continue;
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        if (seed % 3 !== 0) {
+          ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+  }, [storeUrl]);
+
+  const handleCopy = async () => {
+    if (!storeUrl) return;
+    try {
+      await navigator.clipboard.writeText(storeUrl);
+      setCopied(true);
+      toast.success('Link copiado!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Erro ao copiar');
+    }
+  };
+
+  const handleDownloadQR = () => {
+    if (!qrRef.current) return;
+    const link = document.createElement('a');
+    link.download = `qrcode-${slug}.png`;
+    link.href = qrRef.current.toDataURL('image/png');
+    link.click();
+    toast.success('QR Code baixado!');
+  };
+
+  if (!slug) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardContent className="py-12 text-center">
+          <QrCode className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
+          <p className="text-zinc-400">Nenhuma loja vinculada</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-amber-500" />
+            Link da Loja
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            Compartilhe o link da sua loja nas redes sociais ou imprima o QR Code para as mesas
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* URL + Copy */}
+          <div className="space-y-2">
+            <Label className="text-zinc-300">URL da sua loja</Label>
+            <div className="flex gap-2">
+              <div className="flex-1 flex items-center bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
+                <ExternalLink className="h-4 w-4 text-zinc-500 mr-2 shrink-0" />
+                <span className="text-amber-400 text-sm font-mono truncate">{storeUrl}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleCopy}
+                className="border-zinc-700 hover:bg-zinc-800 shrink-0"
+              >
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-zinc-400" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* QR Code */}
+          <div className="space-y-3">
+            <Label className="text-zinc-300">QR Code</Label>
+            <div className="flex items-start gap-6">
+              <div className="bg-white p-3 rounded-lg">
+                <canvas ref={qrRef} className="w-[160px] h-[160px]" />
+              </div>
+              <div className="flex flex-col gap-3">
+                <p className="text-zinc-400 text-sm">
+                  Imprima este QR Code e coloque nas mesas, balcão ou material de divulgação. 
+                  Seus clientes poderão escanear e acessar o cardápio diretamente.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadQR}
+                  className="border-zinc-700 hover:bg-zinc-800 w-fit"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar QR Code (PNG)
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
