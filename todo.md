@@ -325,3 +325,7 @@
 
 ## Fase 33b: Correção de Bug - IntroSection hooks
 - [x] Corrigir erro updateWorkInProgressHook/useMemo no IntroSection.tsx e VitrineSection.tsx (hooks antes de early returns)
+
+## Fase 33c: Correção - Quebra de background entre IntroSection e VitrineSection
+- [x] Unificar background das seções Intro e Vitrine para eliminar quebra visual (IntroSection fundido dentro de VitrineSection)
+- [x] Corrigir color picker que fecha ao primeiro clique (ColorPickerInput com estado local + isPickingRef)

@@ -13,7 +13,6 @@ import Footer from '@/components/Footer';
 
 // Section Components
 import Hero from '@/components/Hero';
-import IntroSection from '@/components/IntroSection';
 import VitrineSection from '@/components/VitrineSection';
 import AboutSection from '@/components/AboutSection';
 import FeedbacksSection from '@/components/FeedbacksSection';
@@ -89,10 +88,7 @@ export default function Home() {
         {/* Hero Section */}
         <Hero />
 
-        {/* Intro Divider */}
-        <IntroSection />
-
-        {/* Product Showcase */}
+        {/* Product Showcase (includes Intro header) */}
         <VitrineSection />
 
         {/* About Section */}

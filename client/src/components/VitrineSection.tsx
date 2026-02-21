@@ -2,7 +2,8 @@
  * Vitrine Section - Casa Blanca
  * Design: Warm Luxury - Horizontal product carousel
  * Features: Category highlights, "Ver Todas" button, smooth scroll
- * Now supports granular style overrides from Design System (Products section)
+ * Includes Intro header (headline/subheadline) inside the same section
+ * to avoid background break between intro and product carousel.
  */
 
 import { useRef, useMemo } from 'react';
@@ -156,6 +157,26 @@ export default function VitrineSection() {
     return style;
   }, [intro?.bg_color, intro?.bg_gradient, intro?.bg_gradient_from, intro?.bg_gradient_to, intro?.bg_gradient_direction]);
 
+  const headlineStyle = useMemo(() => {
+    if (!intro) return {};
+    const style: React.CSSProperties = {};
+    if (intro.headline_font && intro.headline_font !== 'inherit') style.fontFamily = `'${intro.headline_font}', sans-serif`;
+    if (intro.headline_font_size) style.fontSize = `${intro.headline_font_size}px`;
+    if (intro.headline_font_weight) style.fontWeight = intro.headline_font_weight;
+    if (intro.headline_color) style.color = intro.headline_color;
+    return style;
+  }, [intro?.headline_font, intro?.headline_font_size, intro?.headline_font_weight, intro?.headline_color]);
+
+  const subheadlineStyle = useMemo(() => {
+    if (!intro) return {};
+    const style: React.CSSProperties = {};
+    if (intro.subheadline_font && intro.subheadline_font !== 'inherit') style.fontFamily = `'${intro.subheadline_font}', sans-serif`;
+    if (intro.subheadline_font_size) style.fontSize = `${intro.subheadline_font_size}px`;
+    if (intro.subheadline_font_weight) style.fontWeight = intro.subheadline_font_weight;
+    if (intro.subheadline_color) style.color = intro.subheadline_color;
+    return style;
+  }, [intro?.subheadline_font, intro?.subheadline_font_size, intro?.subheadline_font_weight, intro?.subheadline_color]);
+
   const ctaStyle = useMemo(() => {
     if (!intro) return {};
     const style: React.CSSProperties = {};
@@ -183,7 +204,6 @@ export default function VitrineSection() {
 
   // Early returns AFTER all hooks
   if (!data || !intro) return null;
-  if (highlightedCategories.length === 0) return null;
 
   const hasBgMedia = !!intro.bg_media_url;
 
@@ -201,8 +221,12 @@ export default function VitrineSection() {
   };
 
   return (
-    <section id="vitrine" className="relative py-16 bg-lp-bg" style={sectionStyle}>
-      {/* Background media */}
+    <section
+      id="vitrine"
+      className="relative bg-lp-bg section-divider pt-16 pb-16"
+      style={sectionStyle}
+    >
+      {/* Background media (shared across intro header + product carousel) */}
       {hasBgMedia && (
         <>
           {intro.bg_media_type === 'video' ? (
@@ -232,32 +256,65 @@ export default function VitrineSection() {
       )}
 
       <div className="relative z-10">
-        {highlightedCategories.map((category, index) => (
-          <CategoryCarousel key={category.id} category={category} index={index} intro={intro} />
-        ))}
+        {/* Decorative top border */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-lp-highlight-soft rounded-full" />
 
-        {/* Full Menu CTA */}
-        <motion.div
-          className="container mt-8 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <button
-            onClick={handleCtaClick}
-            className={cn(
-              'inline-flex items-center gap-3 px-8 py-4 rounded-full',
-              'bg-lp-text-faint border border-lp-border text-lp-text',
-              'hover:bg-lp-border hover:border-lp-highlight-border transition-all duration-300',
-              'font-medium'
-            )}
-            style={ctaStyle}
+        {/* Intro Header (headline + subheadline) — merged into this section */}
+        <div className="container text-center pb-8">
+          <motion.h2
+            className="font-display text-3xl md:text-4xl lg:text-5xl text-lp-text"
+            style={headlineStyle}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.6 }}
           >
-            <span>{intro.cta_text || 'Ver Cardápio Completo'}</span>
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        </motion.div>
+            {intro.headline}
+          </motion.h2>
+
+          <motion.p
+            className="mt-4 text-lg text-lp-text-muted max-w-2xl mx-auto"
+            style={subheadlineStyle}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            {intro.subheadline}
+          </motion.p>
+        </div>
+
+        {/* Product Carousels */}
+        {highlightedCategories.length > 0 && (
+          <>
+            {highlightedCategories.map((category, index) => (
+              <CategoryCarousel key={category.id} category={category} index={index} intro={intro} />
+            ))}
+
+            {/* Full Menu CTA */}
+            <motion.div
+              className="container mt-8 text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <button
+                onClick={handleCtaClick}
+                className={cn(
+                  'inline-flex items-center gap-3 px-8 py-4 rounded-full',
+                  'bg-lp-text-faint border border-lp-border text-lp-text',
+                  'hover:bg-lp-border hover:border-lp-highlight-border transition-all duration-300',
+                  'font-medium'
+                )}
+                style={ctaStyle}
+              >
+                <span>{intro.cta_text || 'Ver Cardápio Completo'}</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </motion.div>
+          </>
+        )}
       </div>
     </section>
   );

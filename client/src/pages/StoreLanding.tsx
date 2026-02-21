@@ -17,7 +17,6 @@ import Footer from '@/components/Footer';
 
 // Section Components
 import Hero from '@/components/Hero';
-import IntroSection from '@/components/IntroSection';
 import VitrineSection from '@/components/VitrineSection';
 import AboutSection from '@/components/AboutSection';
 import FeedbacksSection from '@/components/FeedbacksSection';
@@ -437,12 +436,7 @@ export default function StoreLanding() {
           <Hero />
         </div>
 
-        {/* Intro Divider */}
-        <div style={getSectionStyle(sectionColors.intro)}>
-          <IntroSection />
-        </div>
-
-        {/* Product Showcase */}
+        {/* Product Showcase (includes Intro header) */}
         <div style={getSectionStyle(sectionColors.vitrine)}>
           <VitrineSection />
         </div>

@@ -56,6 +56,50 @@ import {
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
 // ============================================
+// COLOR PICKER WITH LOCAL STATE
+// ============================================
+// This component maintains its own local state so that parent re-renders
+// (caused by design state updates) don't unmount the native color picker dialog.
+function ColorPickerInput({
+  value,
+  onChange,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  const [localValue, setLocalValue] = useState(value);
+  const isPickingRef = useRef(false);
+
+  // Sync from parent when not actively picking
+  useEffect(() => {
+    if (!isPickingRef.current) {
+      setLocalValue(value);
+    }
+  }, [value]);
+
+  return (
+    <input
+      type="color"
+      value={localValue}
+      onFocus={() => { isPickingRef.current = true; }}
+      onBlur={() => {
+        isPickingRef.current = false;
+        // Ensure final value is sent
+        onChange(localValue);
+      }}
+      onInput={(e) => {
+        const newVal = (e.target as HTMLInputElement).value;
+        setLocalValue(newVal);
+        onChange(newVal);
+      }}
+      className={className}
+    />
+  );
+}
+
+// ============================================
 // TYPES
 // ============================================
 
@@ -1100,10 +1144,9 @@ function GlobalStylesPanel({
             {ACTION_COLOR_GROUPS.map(({ key, label, description, icon }) => (
               <div key={key} className="rounded-lg bg-zinc-800/50 border border-zinc-700/50 p-2.5">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
+                  <ColorPickerInput
                     value={colors[key]}
-                    onChange={(e) => onColorChange(key, e.target.value)}
+                    onChange={(v) => onColorChange(key, v)}
                     className="w-7 h-7 rounded cursor-pointer border border-zinc-600 shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -1157,10 +1200,9 @@ function GlobalStylesPanel({
             {STRUCTURE_COLOR_GROUPS.map(({ key, label, description, icon }) => (
               <div key={key} className="rounded-lg bg-zinc-800/50 border border-zinc-700/50 p-2.5">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="color"
+                  <ColorPickerInput
                     value={colors[key]}
-                    onChange={(e) => onColorChange(key, e.target.value)}
+                    onChange={(v) => onColorChange(key, v)}
                     className="w-7 h-7 rounded cursor-pointer border border-zinc-600 shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -1348,10 +1390,9 @@ function HomeSection({
     <div>
       <Label className="text-[10px] text-zinc-500">{label}</Label>
       <div className="flex items-center gap-2">
-        <input
-          type="color"
+        <ColorPickerInput
           value={value || defaultVal}
-          onChange={(e) => onChange(field, e.target.value)}
+          onChange={(v) => onChange(field, v)}
           className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
         />
         <Input
@@ -1753,10 +1794,9 @@ function ProductsSection({
     <div>
       <Label className="text-[10px] text-zinc-500">{label}</Label>
       <div className="flex items-center gap-2">
-        <input
-          type="color"
+        <ColorPickerInput
           value={value || defaultVal}
-          onChange={(e) => onChange(field, e.target.value)}
+          onChange={(v) => onChange(field, v)}
           className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
         />
         <Input
@@ -2186,10 +2226,9 @@ function AboutSection({
     <div>
       <Label className="text-[10px] text-zinc-500">{label}</Label>
       <div className="flex items-center gap-2">
-        <input
-          type="color"
+        <ColorPickerInput
           value={value || defaultVal}
-          onChange={(e) => onChange(field, e.target.value)}
+          onChange={(v) => onChange(field, v)}
           className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
         />
         <Input
@@ -2626,10 +2665,9 @@ function ReviewsSection({
           <div className="space-y-1">
             <Label className="text-[11px] text-zinc-500 uppercase tracking-wider">Cor das Estrelas</Label>
             <div className="flex items-center gap-2">
-              <input
-                type="color"
+              <ColorPickerInput
                 value={data.starColor || "#facc15"}
-                onChange={(e) => onChange("starColor", e.target.value)}
+                onChange={(v) => onChange("starColor", v)}
                 className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer"
               />
               <Input
@@ -2913,10 +2951,9 @@ function SectionColorsPanel({
         <div className="space-y-2 pl-1">
           {/* Background */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.background || defaults.background}
-              onChange={(e) => updateField("background", e.target.value)}
+              onChange={(v) => updateField("background", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Fundo</span>
@@ -2929,10 +2966,9 @@ function SectionColorsPanel({
 
           {/* Text */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.text || defaults.text}
-              onChange={(e) => updateField("text", e.target.value)}
+              onChange={(v) => updateField("text", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Texto</span>
@@ -2945,10 +2981,9 @@ function SectionColorsPanel({
 
           {/* Text Muted */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.textMuted || defaults.textMuted}
-              onChange={(e) => updateField("textMuted", e.target.value)}
+              onChange={(v) => updateField("textMuted", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Texto Secundário</span>
@@ -2961,10 +2996,9 @@ function SectionColorsPanel({
 
           {/* Highlight */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.highlight || defaults.highlight}
-              onChange={(e) => updateField("highlight", e.target.value)}
+              onChange={(v) => updateField("highlight", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Destaque</span>
@@ -2977,10 +3011,9 @@ function SectionColorsPanel({
 
           {/* Surface */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.surface || defaults.surface}
-              onChange={(e) => updateField("surface", e.target.value)}
+              onChange={(v) => updateField("surface", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Superfície</span>
@@ -2993,10 +3026,9 @@ function SectionColorsPanel({
 
           {/* Button BG */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.buttonBg || defaults.buttonBg}
-              onChange={(e) => updateField("buttonBg", e.target.value)}
+              onChange={(v) => updateField("buttonBg", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Botão (Fundo)</span>
@@ -3009,10 +3041,9 @@ function SectionColorsPanel({
 
           {/* Button FG */}
           <div className="flex items-center gap-2">
-            <input
-              type="color"
+            <ColorPickerInput
               value={colors.buttonFg || defaults.buttonFg}
-              onChange={(e) => updateField("buttonFg", e.target.value)}
+              onChange={(v) => updateField("buttonFg", v)}
               className="w-6 h-6 rounded border border-zinc-700 cursor-pointer bg-transparent p-0"
             />
             <span className="text-[11px] text-zinc-400 flex-1">Botão (Texto)</span>
