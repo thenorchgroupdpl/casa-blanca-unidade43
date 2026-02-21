@@ -425,3 +425,7 @@
 - [x] Atualizar tabela em tempo real após criação (invalidate query)
 - [x] Escrever testes unitários (94 testes passando, 23 de users)
 - [x] Testar fluxo completo no navegador (verificado visualmente)
+
+## Fase 39b: Melhorias no formulário de criação de usuários
+- [x] Trocar Select de Empresa/Tenant por Combobox com campo de busca (filtro, drawer criação, modal edição)
+- [x] Corrigir cor das letras em TODOS os dropdowns/selects (letras brancas em fundo escuro) - Users, Design, Catalog, Vitrine, ComponentShowcase

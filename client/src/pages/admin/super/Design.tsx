@@ -1448,7 +1448,7 @@ function GlobalStylesPanel({
                   <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs w-full">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-zinc-700">
+                  <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
                     {FONT_OPTIONS.map((f) => (
                       <SelectItem key={f} value={f} className="text-zinc-300 text-xs">
                         <span style={{ fontFamily: f }}>{f}</span>
@@ -1463,7 +1463,7 @@ function GlobalStylesPanel({
                   <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs w-full">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-zinc-700">
+                  <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
                     {DISPLAY_FONT_OPTIONS.map((f) => (
                       <SelectItem key={f} value={f} className="text-zinc-300 text-xs">
                         <span style={{ fontFamily: f }}>{f}</span>
@@ -1640,7 +1640,7 @@ function HomeSection({
         <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
-        <SelectContent className="max-h-60">
+        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
           <SelectItem value="inherit">Herdar Global</SelectItem>
           {ALL_FONTS.map((f) => (
             <SelectItem key={f} value={f}>
@@ -1807,7 +1807,7 @@ function HomeSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -1851,7 +1851,7 @@ function HomeSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -1894,7 +1894,7 @@ function HomeSection({
             <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
               <SelectItem value="#cardapio">Abrir Cardápio</SelectItem>
               <SelectItem value="#contato">Ir para Contato</SelectItem>
               <SelectItem value="#sobre">Ir para Sobre</SelectItem>
@@ -2039,7 +2039,7 @@ function ProductsSection({
         <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
-        <SelectContent className="max-h-60">
+        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
           <SelectItem value="inherit">Herdar Global</SelectItem>
           {ALL_FONTS.map((f) => (
             <SelectItem key={f} value={f}>
@@ -2098,7 +2098,7 @@ function ProductsSection({
             <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs w-full">
               <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-700">
+            <SelectContent className="bg-zinc-900 border-zinc-700 text-white">
               <SelectItem value="none" className="text-zinc-300 text-xs">Nenhuma</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id.toString()} className="text-zinc-300 text-xs">
@@ -2143,7 +2143,7 @@ function ProductsSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2187,7 +2187,7 @@ function ProductsSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2269,7 +2269,7 @@ function ProductsSection({
                 <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                   {GRADIENT_DIRECTIONS.map((d) => (
                     <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                   ))}
@@ -2342,7 +2342,7 @@ function ProductsSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2399,7 +2399,7 @@ function ProductsSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2458,7 +2458,7 @@ function MenuSection({
         <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
-        <SelectContent className="max-h-60">
+        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
           <SelectItem value="inherit">Herdar Global</SelectItem>
           {ALL_FONTS.map((f) => (
             <SelectItem key={f} value={f}>
@@ -2575,7 +2575,7 @@ function MenuSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2614,7 +2614,7 @@ function MenuSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2679,7 +2679,7 @@ function AboutSection({
         <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
-        <SelectContent className="max-h-60">
+        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
           <SelectItem value="inherit">Herdar Global</SelectItem>
           {ALL_FONTS.map((f) => (
             <SelectItem key={f} value={f}>
@@ -2733,7 +2733,7 @@ function AboutSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2777,7 +2777,7 @@ function AboutSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2847,7 +2847,7 @@ function AboutSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -2904,7 +2904,7 @@ function AboutSection({
               <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                 {FONT_WEIGHT_OPTIONS.map((w) => (
                   <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                 ))}
@@ -3088,7 +3088,7 @@ function ReviewsSection({
         <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
-        <SelectContent className="max-h-60">
+        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
           <SelectItem value="inherit">Herdar Global</SelectItem>
           {ALL_FONTS.map((f) => (
             <SelectItem key={f} value={f}>
@@ -3155,7 +3155,7 @@ function ReviewsSection({
                     <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                       {FONT_WEIGHT_OPTIONS.map((w) => (
                         <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                       ))}
@@ -3197,7 +3197,7 @@ function ReviewsSection({
                     <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                       {FONT_WEIGHT_OPTIONS.map((w) => (
                         <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                       ))}
@@ -3255,7 +3255,7 @@ function ReviewsSection({
                   <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                     {FONT_WEIGHT_OPTIONS.map((w) => (
                       <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
                     ))}
@@ -3396,7 +3396,7 @@ function InfoSection({
         <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
           <SelectValue placeholder="Herdar Global" />
         </SelectTrigger>
-        <SelectContent className="max-h-60">
+        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
           <SelectItem value="inherit">Herdar Global</SelectItem>
           {ALL_FONTS.map((f) => (
             <SelectItem key={f} value={f}>
@@ -3437,7 +3437,7 @@ function InfoSection({
             <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
               {FONT_WEIGHT_OPTIONS.map((w) => (
                 <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
               ))}

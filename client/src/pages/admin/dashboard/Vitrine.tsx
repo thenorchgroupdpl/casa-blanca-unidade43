@@ -183,7 +183,7 @@ export default function VitrinePage() {
                         <SelectTrigger className="bg-zinc-800 border-zinc-700">
                           <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-800 border-zinc-700">
+                        <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
                           <SelectItem value="none">Nenhuma (ocultar fileira)</SelectItem>
                           {categories.map((cat) => (
                             <SelectItem key={cat.id} value={cat.id.toString()}>

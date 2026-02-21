@@ -599,7 +599,7 @@ export default function CatalogPage() {
                   <SelectTrigger className="bg-zinc-800 border-zinc-700">
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                  <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
                     {categories?.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id.toString()}>
                         {cat.name}

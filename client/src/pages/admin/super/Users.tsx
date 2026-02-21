@@ -26,6 +26,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { trpc } from "@/lib/trpc";
 import {
   Users,
@@ -43,6 +52,7 @@ import {
   UserX,
   ChevronDown,
   ChevronUp,
+  ChevronsUpDown,
   Mail,
   KeyRound,
   UserPlus,
@@ -52,7 +62,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
@@ -170,6 +180,11 @@ export default function UsersPage() {
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [editPasswordVisible, setEditPasswordVisible] = useState(false);
+
+  // Combobox popover states
+  const [filterTenantOpen, setFilterTenantOpen] = useState(false);
+  const [createTenantOpen, setCreateTenantOpen] = useState(false);
+  const [editTenantOpen, setEditTenantOpen] = useState(false);
 
   const utils = trpc.useUtils();
   const { data: usersList, isLoading } = trpc.users.list.useQuery();
@@ -395,18 +410,37 @@ export default function UsersPage() {
                 </button>
               )}
             </div>
-            <Select value={filters.tenantId} onValueChange={(v) => updateFilter("tenantId", v)}>
-              <SelectTrigger className="w-full sm:w-[220px] bg-zinc-900/80 border-zinc-800/60 h-10">
-                <Building2 className="h-4 w-4 text-zinc-500 mr-2 shrink-0" />
-                <SelectValue placeholder="Todas as lojas" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-zinc-800">
-                <SelectItem value="all">Todas as lojas</SelectItem>
-                {tenants?.map((t) => (
-                  <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={filterTenantOpen} onOpenChange={setFilterTenantOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={filterTenantOpen} className="w-full sm:w-[220px] bg-zinc-900/80 border-zinc-800/60 h-10 justify-between text-sm font-normal text-white hover:bg-zinc-800/80 hover:text-white">
+                  <div className="flex items-center gap-2 truncate">
+                    <Building2 className="h-4 w-4 text-zinc-500 shrink-0" />
+                    <span className="truncate">{filters.tenantId === "all" ? "Todas as lojas" : tenants?.find(t => t.id.toString() === filters.tenantId)?.name || "Todas as lojas"}</span>
+                  </div>
+                  <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-0 bg-zinc-900 border-zinc-800" align="start">
+                <Command className="bg-zinc-900">
+                  <CommandInput placeholder="Buscar empresa..." className="text-white" />
+                  <CommandList>
+                    <CommandEmpty className="text-zinc-400">Nenhuma empresa encontrada.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem value="all" onSelect={() => { updateFilter("tenantId", "all"); setFilterTenantOpen(false); }} className="text-white cursor-pointer">
+                        <Check className={`mr-2 h-4 w-4 ${filters.tenantId === "all" ? "opacity-100 text-amber-500" : "opacity-0"}`} />
+                        Todas as lojas
+                      </CommandItem>
+                      {tenants?.map((t) => (
+                        <CommandItem key={t.id} value={t.name} onSelect={() => { updateFilter("tenantId", t.id.toString()); setFilterTenantOpen(false); }} className="text-white cursor-pointer">
+                          <Check className={`mr-2 h-4 w-4 ${filters.tenantId === t.id.toString() ? "opacity-100 text-amber-500" : "opacity-0"}`} />
+                          {t.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <Button
               variant="outline"
               onClick={() => setShowAdvanced(!showAdvanced)}
@@ -440,7 +474,7 @@ export default function UsersPage() {
                   <Label className="text-[11px] text-zinc-500 uppercase tracking-wider flex items-center gap-1.5"><Shield className="h-3 w-3" />Nível de Acesso</Label>
                   <Select value={filters.role} onValueChange={(v) => updateFilter("role", v)}>
                     <SelectTrigger className="bg-zinc-900/80 border-zinc-800/60 h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800">
+                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                       <SelectItem value="all">Todos os papéis</SelectItem>
                       <SelectItem value="super_admin">Super Admin</SelectItem>
                       <SelectItem value="client_admin">Lojista</SelectItem>
@@ -453,7 +487,7 @@ export default function UsersPage() {
                   <Label className="text-[11px] text-zinc-500 uppercase tracking-wider flex items-center gap-1.5"><UserCheck className="h-3 w-3" />Status</Label>
                   <Select value={filters.status} onValueChange={(v) => updateFilter("status", v)}>
                     <SelectTrigger className="bg-zinc-900/80 border-zinc-800/60 h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800">
+                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="active">Ativos</SelectItem>
                       <SelectItem value="inactive">Inativos</SelectItem>
@@ -464,7 +498,7 @@ export default function UsersPage() {
                   <Label className="text-[11px] text-zinc-500 uppercase tracking-wider flex items-center gap-1.5"><KeyRound className="h-3 w-3" />Autenticação</Label>
                   <Select value={filters.authMethod} onValueChange={(v) => updateFilter("authMethod", v)}>
                     <SelectTrigger className="bg-zinc-900/80 border-zinc-800/60 h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800">
+                    <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                       <SelectItem value="all">Todos os métodos</SelectItem>
                       <SelectItem value="email">E-mail/Senha</SelectItem>
                       <SelectItem value="google">Google</SelectItem>
@@ -651,19 +685,40 @@ export default function UsersPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-zinc-400 text-xs">Empresa / Tenant</Label>
-                <Select value={createForm.tenantId} onValueChange={(v) => setCreateForm({ ...createForm, tenantId: v })}>
-                  <SelectTrigger className="bg-zinc-900/80 border-zinc-800/60"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-zinc-800">
-                    <SelectItem value="none">Nenhuma / Administração</SelectItem>
-                    {tenants?.map((t) => <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Popover open={createTenantOpen} onOpenChange={setCreateTenantOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" aria-expanded={createTenantOpen} className="w-full bg-zinc-900/80 border-zinc-800/60 justify-between text-sm font-normal text-white hover:bg-zinc-800/80 hover:text-white">
+                      <span className="truncate">{createForm.tenantId === "none" ? "Nenhuma / Administração" : tenants?.find(t => t.id.toString() === createForm.tenantId)?.name || "Selecione..."}</span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-zinc-900 border-zinc-800" align="start">
+                    <Command className="bg-zinc-900">
+                      <CommandInput placeholder="Buscar empresa..." className="text-white" />
+                      <CommandList>
+                        <CommandEmpty className="text-zinc-400">Nenhuma empresa encontrada.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem value="Nenhuma / Administração" onSelect={() => { setCreateForm({ ...createForm, tenantId: "none" }); setCreateTenantOpen(false); }} className="text-white cursor-pointer">
+                            <Check className={`mr-2 h-4 w-4 ${createForm.tenantId === "none" ? "opacity-100 text-amber-500" : "opacity-0"}`} />
+                            Nenhuma / Administração
+                          </CommandItem>
+                          {tenants?.map((t) => (
+                            <CommandItem key={t.id} value={t.name} onSelect={() => { setCreateForm({ ...createForm, tenantId: t.id.toString() }); setCreateTenantOpen(false); }} className="text-white cursor-pointer">
+                              <Check className={`mr-2 h-4 w-4 ${createForm.tenantId === t.id.toString() ? "opacity-100 text-amber-500" : "opacity-0"}`} />
+                              {t.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-2">
                 <Label className="text-zinc-400 text-xs">Nível Hierárquico</Label>
                 <Select value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })}>
                   <SelectTrigger className="bg-zinc-900/80 border-zinc-800/60"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-zinc-800">
+                  <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
                     <SelectItem value="super_admin">Super Admin</SelectItem>
                     <SelectItem value="client_admin">Lojista</SelectItem>
                     <SelectItem value="user">Funcionário</SelectItem>
@@ -711,7 +766,7 @@ export default function UsersPage() {
                 <Label className="text-zinc-300 text-xs uppercase tracking-wider">Papel</Label>
                 <Select value={editingUser.role} onValueChange={(value) => setEditingUser({ ...editingUser, role: value })}>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                  <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
                     <SelectItem value="user">Funcionário</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="client_admin">Lojista</SelectItem>
@@ -723,13 +778,34 @@ export default function UsersPage() {
               {(editingUser.role === "client_admin" || editingUser.role === "user") && (
                 <div className="space-y-2">
                   <Label className="text-zinc-300 text-xs uppercase tracking-wider">Loja Associada</Label>
-                  <Select value={editingUser.tenantId?.toString() || "none"} onValueChange={(value) => setEditingUser({ ...editingUser, tenantId: value === "none" ? null : parseInt(value) })}>
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700"><SelectValue placeholder="Selecione uma loja" /></SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700">
-                      <SelectItem value="none">Nenhuma</SelectItem>
-                      {tenants?.map((t) => <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={editTenantOpen} onOpenChange={setEditTenantOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" aria-expanded={editTenantOpen} className="w-full bg-zinc-800 border-zinc-700 justify-between text-sm font-normal text-white hover:bg-zinc-700 hover:text-white">
+                        <span className="truncate">{!editingUser.tenantId ? "Nenhuma" : tenants?.find(t => t.id === editingUser.tenantId)?.name || "Selecione uma loja"}</span>
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-zinc-800 border-zinc-700" align="start">
+                      <Command className="bg-zinc-800">
+                        <CommandInput placeholder="Buscar empresa..." className="text-white" />
+                        <CommandList>
+                          <CommandEmpty className="text-zinc-400">Nenhuma empresa encontrada.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem value="Nenhuma" onSelect={() => { setEditingUser({ ...editingUser, tenantId: null }); setEditTenantOpen(false); }} className="text-white cursor-pointer">
+                              <Check className={`mr-2 h-4 w-4 ${!editingUser.tenantId ? "opacity-100 text-amber-500" : "opacity-0"}`} />
+                              Nenhuma
+                            </CommandItem>
+                            {tenants?.map((t) => (
+                              <CommandItem key={t.id} value={t.name} onSelect={() => { setEditingUser({ ...editingUser, tenantId: t.id }); setEditTenantOpen(false); }} className="text-white cursor-pointer">
+                                <Check className={`mr-2 h-4 w-4 ${editingUser.tenantId === t.id ? "opacity-100 text-amber-500" : "opacity-0"}`} />
+                                {t.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
 
