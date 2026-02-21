@@ -169,6 +169,7 @@ export default function ClientAdminLayout({
           "--sidebar-width": `${sidebarWidth}px`,
         } as CSSProperties
       }
+      className="!bg-zinc-950"
     >
       <ClientAdminLayoutContent setSidebarWidth={setSidebarWidth}>
         {children}
@@ -250,7 +251,7 @@ function ClientAdminLayoutContent({
   }, [isResizing, setSidebarWidth]);
 
   return (
-    <div className="flex min-h-screen bg-zinc-950">
+    <div className="flex min-h-screen w-full bg-[#0A0A0A] overflow-x-hidden">
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
@@ -390,7 +391,7 @@ function ClientAdminLayoutContent({
         />
       </div>
 
-      <SidebarInset className="bg-zinc-950 w-full min-w-0">
+      <SidebarInset className="!bg-[#0A0A0A] flex-1 w-full min-w-0">
         {isMobile && (
           <div className="flex border-b border-zinc-800 h-14 items-center justify-between bg-zinc-900/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex items-center gap-2">
@@ -405,7 +406,7 @@ function ClientAdminLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4 overflow-auto bg-zinc-950 min-h-screen w-full">{children}</main>
+        <main className="flex-1 p-4 overflow-auto bg-[#0A0A0A] min-h-screen w-full">{children}</main>
       </SidebarInset>
     </div>
   );

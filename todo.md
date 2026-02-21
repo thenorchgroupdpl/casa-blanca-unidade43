@@ -487,3 +487,10 @@
 - [x] Grid premium: estética dark alinhada ao Super Admin (grid 2/3 + 1/3)
 - [x] Escrever testes unitários (128 testes passando)
 - [x] Testar fluxo completo no navegador (verificado visualmente)
+
+## Fase 44b: Correção Definitiva da Faixa Branca no Layout do Lojista
+- [x] Garantir wrapper global com min-h-screen w-full flex bg-[#0A0A0A] overflow-x-hidden
+- [x] Container de conteúdo (SidebarInset + main) com flex-1 w-full bg-[#0A0A0A]
+- [x] Verificado: nenhum max-w limitador no container raiz
+- [x] SidebarProvider com !bg-zinc-950, SidebarInset com !bg-[#0A0A0A], bg-background removido do sidebar.tsx
+- [x] Testado: Dashboard, Catálogo, Vitrine, Dados da Loja - todos sem faixa branca
