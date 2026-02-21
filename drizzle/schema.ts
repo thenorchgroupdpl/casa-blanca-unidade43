@@ -249,6 +249,13 @@ export const products = mysqlTable("products", {
   isAvailable: boolean("isAvailable").default(true).notNull(),
   servesQuantity: varchar("servesQuantity", { length: 50 }), // e.g., "Serve 2 pessoas"
   
+  // Unit of Measure (e.g., 350ml, 1kg, 2un)
+  unitValue: decimal("unitValue", { precision: 10, scale: 2 }),
+  unit: varchar("unit", { length: 10 }), // un, g, kg, ml, L
+  
+  // Highlight Tag (badge on product card)
+  highlightTag: varchar("highlightTag", { length: 30 }), // 'mais_vendido', 'novidade', 'vegano'
+  
   // Ordering
   sortOrder: int("sortOrder").default(0).notNull(),
   

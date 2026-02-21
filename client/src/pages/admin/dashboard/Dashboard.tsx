@@ -51,7 +51,14 @@ import {
   TrendingUp,
   Calendar,
   Filter,
+  LayoutGrid,
 } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 export default function ClientDashboard() {
   const utils = trpc.useUtils();
@@ -67,10 +74,16 @@ export default function ClientDashboard() {
     enabled: !!tenantId,
   });
 
-  // Get products for quick availability toggle
-  const productsQuery = trpc.products.list.useQuery(undefined, {
+  // Get products grouped by category for quick availability toggle
+  const groupedQuery = trpc.products.grouped.useQuery(undefined, {
     enabled: !!tenantId,
   });
+
+  // Backward compat: flat products list derived from grouped
+  const productsQuery = {
+    data: groupedQuery.data?.products || [],
+    isLoading: groupedQuery.isLoading,
+  };
 
   // Get orders
   const ordersQuery = trpc.store.getOrders.useQuery(undefined, {
@@ -86,6 +99,7 @@ export default function ClientDashboard() {
 
   const toggleProductMutation = trpc.store.toggleProductAvailability.useMutation({
     onSuccess: () => {
+      utils.products.grouped.invalidate();
       utils.products.list.invalidate();
     },
   });
@@ -134,13 +148,38 @@ export default function ClientDashboard() {
       ? false
       : isStoreOpenBySchedule;
 
-  // Products filtered by search
+  // Categories from grouped data
+  const groupedCategories = groupedQuery.data?.categories || [];
+
+  // Products filtered by search (flat list for KPIs)
   const filteredProducts = useMemo(() => {
     const allProducts = productsQuery.data || [];
     if (!productSearch.trim()) return allProducts;
     const term = productSearch.toLowerCase();
-    return allProducts.filter(p => p.name.toLowerCase().includes(term));
-  }, [productsQuery.data, productSearch]);
+    // Search by product name or category name
+    return allProducts.filter(p => {
+      const cat = groupedCategories.find(c => c.id === p.categoryId);
+      return p.name.toLowerCase().includes(term) || (cat?.name.toLowerCase().includes(term) ?? false);
+    });
+  }, [productsQuery.data, productSearch, groupedCategories]);
+
+  // Products grouped by category for accordion
+  const productsByCategory = useMemo(() => {
+    const allProducts = productsQuery.data || [];
+    const term = productSearch.trim().toLowerCase();
+    return groupedCategories
+      .filter(cat => cat.isActive)
+      .map(cat => {
+        let catProducts = allProducts.filter(p => p.categoryId === cat.id);
+        if (term) {
+          catProducts = catProducts.filter(p =>
+            p.name.toLowerCase().includes(term) || cat.name.toLowerCase().includes(term)
+          );
+        }
+        return { category: cat, products: catProducts };
+      })
+      .filter(group => group.products.length > 0);
+  }, [productsQuery.data, groupedCategories, productSearch]);
 
   // KPI data
   const allOrders = ordersQuery.data || [];
@@ -555,7 +594,7 @@ export default function ClientDashboard() {
           </div>
 
           {/* ============================================ */}
-          {/* RIGHT COLUMN: DISPONIBILIDADE RÁPIDA */}
+          {/* RIGHT COLUMN: DISPONIBILIDADE RÁPIDA (ACCORDION) */}
           {/* ============================================ */}
           <div className="lg:col-span-1">
             <Card className="border-zinc-800/60 bg-zinc-900/60 h-full">
@@ -569,7 +608,7 @@ export default function ClientDashboard() {
                       Disponibilidade
                     </CardTitle>
                     <p className="text-[10px] text-zinc-500 mt-0.5">
-                      Pause ou ative produtos
+                      Pause ou ative produtos por categoria
                     </p>
                   </div>
                 </div>
@@ -579,20 +618,20 @@ export default function ClientDashboard() {
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                   <Input
-                    placeholder="Buscar produto..."
+                    placeholder="Buscar produto ou categoria..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
                     className="pl-8 bg-zinc-800/60 border-zinc-700/60 text-white placeholder:text-zinc-600 h-8 text-xs"
                   />
                 </div>
 
-                {/* Products List */}
-                <div className="max-h-[420px] overflow-y-auto space-y-1 pr-1 scrollbar-thin">
+                {/* Accordion by Category */}
+                <div className="max-h-[420px] overflow-y-auto pr-1 scrollbar-thin">
                   {productsQuery.isLoading ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
                     </div>
-                  ) : filteredProducts.length === 0 ? (
+                  ) : productsByCategory.length === 0 ? (
                     <div className="text-center py-6">
                       <Package className="w-7 h-7 text-zinc-700 mx-auto mb-2" />
                       <p className="text-xs text-zinc-500">
@@ -600,46 +639,81 @@ export default function ClientDashboard() {
                       </p>
                     </div>
                   ) : (
-                    filteredProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                          product.isAvailable
-                            ? 'bg-zinc-800/30 hover:bg-zinc-800/50'
-                            : 'bg-red-500/5 hover:bg-red-500/10'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {product.imageUrl ? (
-                            <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              className="w-7 h-7 rounded-md object-cover shrink-0"
-                            />
-                          ) : (
-                            <div className="w-7 h-7 rounded-md bg-zinc-700/60 flex items-center justify-center shrink-0">
-                              <Package className="w-3.5 h-3.5 text-zinc-500" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className={`text-xs font-medium truncate ${
-                              product.isAvailable ? 'text-white' : 'text-zinc-500 line-through'
-                            }`}>
-                              {product.name}
-                            </p>
-                            <p className="text-[10px] text-zinc-600">
-                              {formatCurrency(product.price)}
-                            </p>
-                          </div>
-                        </div>
-                        <Switch
-                          checked={product.isAvailable}
-                          onCheckedChange={() => handleToggleProduct(product.id, product.isAvailable)}
-                          disabled={toggleProductMutation.isPending}
-                          className="shrink-0 scale-90 data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500/60"
-                        />
-                      </div>
-                    ))
+                    <Accordion type="multiple" defaultValue={productsByCategory.map(g => String(g.category.id))} className="space-y-1">
+                      {productsByCategory.map((group) => {
+                        const activeCount = group.products.filter(p => p.isAvailable).length;
+                        const totalCount = group.products.length;
+                        return (
+                          <AccordionItem
+                            key={group.category.id}
+                            value={String(group.category.id)}
+                            className="border-zinc-800/40 rounded-lg overflow-hidden bg-zinc-800/20"
+                          >
+                            <AccordionTrigger className="px-3 py-2.5 hover:no-underline hover:bg-zinc-800/40 transition-colors text-white">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className="w-6 h-6 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
+                                  <LayoutGrid className="w-3 h-3 text-amber-400" />
+                                </div>
+                                <span className="text-xs font-semibold truncate">{group.category.name}</span>
+                                <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ml-auto mr-2 shrink-0 ${
+                                  activeCount === totalCount
+                                    ? 'border-emerald-500/40 text-emerald-400'
+                                    : activeCount === 0
+                                      ? 'border-red-500/40 text-red-400'
+                                      : 'border-amber-500/40 text-amber-400'
+                                }`}>
+                                  {activeCount}/{totalCount}
+                                </Badge>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-1 pb-1">
+                              <div className="space-y-0.5">
+                                {group.products.map((product) => (
+                                  <div
+                                    key={product.id}
+                                    className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                                      product.isAvailable
+                                        ? 'bg-zinc-800/30 hover:bg-zinc-800/50'
+                                        : 'bg-red-500/5 hover:bg-red-500/10'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                      {product.imageUrl ? (
+                                        <img
+                                          src={product.imageUrl}
+                                          alt={product.name}
+                                          className="w-7 h-7 rounded-md object-cover shrink-0"
+                                        />
+                                      ) : (
+                                        <div className="w-7 h-7 rounded-md bg-zinc-700/60 flex items-center justify-center shrink-0">
+                                          <Package className="w-3.5 h-3.5 text-zinc-500" />
+                                        </div>
+                                      )}
+                                      <div className="min-w-0">
+                                        <p className={`text-xs font-medium truncate ${
+                                          product.isAvailable ? 'text-white' : 'text-zinc-500 line-through'
+                                        }`}>
+                                          {product.name}
+                                        </p>
+                                        <p className="text-[10px] text-zinc-600">
+                                          {formatCurrency(product.price)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Switch
+                                      checked={product.isAvailable}
+                                      onCheckedChange={() => handleToggleProduct(product.id, product.isAvailable)}
+                                      disabled={toggleProductMutation.isPending}
+                                      className="shrink-0 scale-90 data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500/60"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
                   )}
                 </div>
 

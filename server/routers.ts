@@ -122,11 +122,15 @@ export const appRouter = router({
         // Remove sensitive data before returning
         const { googleApiKey, ...tenantPublic } = data.tenant;
 
+        // Cascade: inactive categories hide all their products
+        const activeCategories = data.categories.filter(c => c.isActive);
+        const activeCategoryIds = new Set(activeCategories.map(c => c.id));
+
         return {
           tenant: tenantPublic,
           settings: data.settings,
-          categories: data.categories.filter(c => c.isActive),
-          products: data.products.filter(p => p.isAvailable),
+          categories: activeCategories,
+          products: data.products.filter(p => p.isAvailable && activeCategoryIds.has(p.categoryId)),
           homeRows: data.homeRows,
           reviews: data.reviews,
         };

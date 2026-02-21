@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -29,12 +30,23 @@ import {
   Package,
   LayoutGrid,
   Search,
-  ImagePlus
+  ImagePlus,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+  Copy,
+  Upload,
+  X,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { toast } from "sonner";
 
-// Category Form
+// ============================================
+// TYPES
+// ============================================
+
 type CategoryFormData = {
   name: string;
   slug: string;
@@ -55,7 +67,6 @@ const defaultCategoryForm: CategoryFormData = {
   isActive: true,
 };
 
-// Product Form
 type ProductFormData = {
   categoryId: number | null;
   name: string;
@@ -67,6 +78,9 @@ type ProductFormData = {
   servesQuantity: string;
   sortOrder: number;
   isFeatured: boolean;
+  unitValue: string;
+  unit: string;
+  highlightTag: string;
 };
 
 const defaultProductForm: ProductFormData = {
@@ -80,7 +94,33 @@ const defaultProductForm: ProductFormData = {
   servesQuantity: "",
   sortOrder: 0,
   isFeatured: false,
+  unitValue: "",
+  unit: "",
+  highlightTag: "",
 };
+
+const HIGHLIGHT_OPTIONS = [
+  { value: "", label: "Nenhuma" },
+  { value: "mais_vendido", label: "🔥 Mais Vendido" },
+  { value: "novidade", label: "✨ Novidade" },
+  { value: "vegano", label: "🌱 Vegano" },
+];
+
+const UNIT_OPTIONS = [
+  { value: "un", label: "un" },
+  { value: "g", label: "g" },
+  { value: "kg", label: "kg" },
+  { value: "ml", label: "ml" },
+  { value: "L", label: "L" },
+];
+
+const getHighlightLabel = (value: string) => {
+  return HIGHLIGHT_OPTIONS.find(o => o.value === value)?.label || "";
+};
+
+// ============================================
+// COMPONENT
+// ============================================
 
 export default function CatalogPage() {
   const [activeTab, setActiveTab] = useState("categories");
@@ -97,6 +137,9 @@ export default function CatalogPage() {
   const [editingProduct, setEditingProduct] = useState<number | null>(null);
   const [productForm, setProductForm] = useState<ProductFormData>(defaultProductForm);
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const utils = trpc.useUtils();
   
@@ -135,11 +178,19 @@ export default function CatalogPage() {
     onError: (error) => toast.error(error.message),
   });
 
+  const reorderCategories = trpc.categories.reorder.useMutation({
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
   // Product mutations
   const createProduct = trpc.products.create.useMutation({
     onSuccess: () => {
       toast.success("Produto criado com sucesso!");
       utils.products.list.invalidate();
+      utils.products.grouped.invalidate();
       setProductDialogOpen(false);
       resetProductForm();
     },
@@ -150,6 +201,7 @@ export default function CatalogPage() {
     onSuccess: () => {
       toast.success("Produto atualizado!");
       utils.products.list.invalidate();
+      utils.products.grouped.invalidate();
       setProductDialogOpen(false);
       resetProductForm();
     },
@@ -160,8 +212,22 @@ export default function CatalogPage() {
     onSuccess: () => {
       toast.success("Produto excluído!");
       utils.products.list.invalidate();
+      utils.products.grouped.invalidate();
       setDeleteProductId(null);
     },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const duplicateProduct = trpc.products.duplicate.useMutation({
+    onSuccess: () => {
+      toast.success("Produto duplicado! Edite os dados da cópia.");
+      utils.products.list.invalidate();
+      utils.products.grouped.invalidate();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const uploadImage = trpc.products.uploadImage.useMutation({
     onError: (error) => toast.error(error.message),
   });
 
@@ -183,6 +249,7 @@ export default function CatalogPage() {
   const resetProductForm = () => {
     setProductForm(defaultProductForm);
     setEditingProduct(null);
+    setImagePreview(null);
   };
 
   const openEditCategory = (category: NonNullable<typeof categories>[number]) => {
@@ -212,7 +279,32 @@ export default function CatalogPage() {
       servesQuantity: product.servesQuantity || "",
       sortOrder: product.sortOrder,
       isFeatured: product.isFeatured,
+      unitValue: product.unitValue ? String(product.unitValue) : "",
+      unit: product.unit || "",
+      highlightTag: product.highlightTag || "",
     });
+    setImagePreview(product.imageUrl || null);
+    setProductDialogOpen(true);
+  };
+
+  const openDuplicateProduct = (product: NonNullable<typeof products>[number]) => {
+    setEditingProduct(null);
+    setProductForm({
+      categoryId: product.categoryId,
+      name: `${product.name} (cópia)`,
+      description: product.description || "",
+      price: String(product.price),
+      originalPrice: product.originalPrice ? String(product.originalPrice) : "",
+      imageUrl: product.imageUrl || "",
+      isAvailable: true,
+      servesQuantity: product.servesQuantity || "",
+      sortOrder: product.sortOrder,
+      isFeatured: false,
+      unitValue: product.unitValue ? String(product.unitValue) : "",
+      unit: product.unit || "",
+      highlightTag: product.highlightTag || "",
+    });
+    setImagePreview(product.imageUrl || null);
     setProductDialogOpen(true);
   };
 
@@ -229,21 +321,108 @@ export default function CatalogPage() {
       toast.error("Selecione uma categoria");
       return;
     }
+    const payload = {
+      ...productForm,
+      categoryId: productForm.categoryId,
+      unitValue: productForm.unitValue || undefined,
+      unit: productForm.unit || undefined,
+      highlightTag: productForm.highlightTag || undefined,
+    };
     if (editingProduct) {
-      updateProduct.mutate({ id: editingProduct, data: { ...productForm, categoryId: productForm.categoryId } });
+      updateProduct.mutate({ id: editingProduct, data: payload });
     } else {
-      createProduct.mutate({ ...productForm, categoryId: productForm.categoryId });
+      createProduct.mutate(payload);
     }
   };
 
-  // Filtered data
-  const filteredCategories = categories?.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Image upload handler
+  const handleImageUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error("Arquivo deve ser uma imagem");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 10MB");
+      return;
+    }
 
-  const filteredProducts = products?.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    setImageUploading(true);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      // Convert to base64
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      const result = await uploadImage.mutateAsync({
+        imageData: base64,
+        fileName: file.name,
+        contentType: file.type,
+      });
+
+      setProductForm(prev => ({ ...prev, imageUrl: result.url }));
+      toast.success("Imagem enviada e processada (800x800 WebP)");
+    } catch {
+      setImagePreview(null);
+    } finally {
+      setImageUploading(false);
+    }
+  }, [uploadImage]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageUpload(file);
+  }, [handleImageUpload]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageUpload(file);
+  }, [handleImageUpload]);
+
+  // Category reorder
+  const handleMoveCategory = useCallback((categoryId: number, direction: 'up' | 'down') => {
+    if (!categories) return;
+    const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex(c => c.id === categoryId);
+    if (idx === -1) return;
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === sorted.length - 1) return;
+
+    const newSorted = [...sorted];
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    [newSorted[idx], newSorted[swapIdx]] = [newSorted[swapIdx], newSorted[idx]];
+
+    const orderedIds = newSorted.map(c => c.id);
+    reorderCategories.mutate({ orderedIds });
+  }, [categories, reorderCategories]);
+
+  // Filtered data with integrated search
+  const filteredCategories = useMemo(() => {
+    if (!categories) return [];
+    const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
+    if (!searchQuery.trim()) return sorted;
+    const term = searchQuery.toLowerCase();
+    return sorted.filter(c => c.name.toLowerCase().includes(term));
+  }, [categories, searchQuery]);
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    if (!searchQuery.trim()) return products;
+    const term = searchQuery.toLowerCase();
+    return products.filter(p => {
+      const cat = categories?.find(c => c.id === p.categoryId);
+      return p.name.toLowerCase().includes(term) || (cat?.name.toLowerCase().includes(term) ?? false);
+    });
+  }, [products, categories, searchQuery]);
 
   return (
     <ClientAdminLayout>
@@ -276,10 +455,10 @@ export default function CatalogPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
                 <Input
-                  placeholder="Buscar..."
+                  placeholder={activeTab === "products" ? "Buscar por nome ou categoria..." : "Buscar..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-64 bg-zinc-900 border-zinc-800 text-white"
+                  className="pl-10 w-72 bg-zinc-900 border-zinc-800 text-white"
                 />
               </div>
               
@@ -304,73 +483,115 @@ export default function CatalogPage() {
             </div>
           </div>
 
-          {/* Categories Tab */}
+          {/* ============================================ */}
+          {/* CATEGORIES TAB (with reorder arrows) */}
+          {/* ============================================ */}
           <TabsContent value="categories" className="mt-6">
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
                 <CardTitle className="text-white">Categorias</CardTitle>
                 <CardDescription className="text-zinc-400">
-                  {filteredCategories?.length ?? 0} categoria(s)
+                  {filteredCategories?.length ?? 0} categoria(s) — A ordem aqui define a exibição na Landing Page
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingCategories ? (
                   <div className="text-zinc-500 text-center py-8">Carregando...</div>
-                ) : filteredCategories && filteredCategories.length > 0 ? (
-                  <div className="space-y-3">
-                    {filteredCategories.map((category) => (
-                      <div
-                        key={category.id}
-                        className="flex items-center justify-between p-4 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          {category.imageUrl ? (
-                            <img
-                              src={category.imageUrl}
-                              alt={category.name}
-                              className="w-12 h-12 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-lg bg-zinc-700 flex items-center justify-center">
-                              <LayoutGrid className="h-6 w-6 text-zinc-500" />
+                ) : filteredCategories.length > 0 ? (
+                  <div className="space-y-2">
+                    {filteredCategories.map((category, idx) => {
+                      const productCount = products?.filter(p => p.categoryId === category.id).length ?? 0;
+                      return (
+                        <div
+                          key={category.id}
+                          className="flex items-center gap-3 p-4 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 transition-colors group"
+                        >
+                          {/* Reorder Arrows */}
+                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-zinc-600 hover:text-amber-400 disabled:opacity-30"
+                              disabled={idx === 0 || reorderCategories.isPending}
+                              onClick={() => handleMoveCategory(category.id, 'up')}
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-zinc-600 hover:text-amber-400 disabled:opacity-30"
+                              disabled={idx === filteredCategories.length - 1 || reorderCategories.isPending}
+                              onClick={() => handleMoveCategory(category.id, 'down')}
+                            >
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+
+                          {/* Grip indicator */}
+                          <GripVertical className="h-4 w-4 text-zinc-700 shrink-0" />
+
+                          {/* Image */}
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            {category.imageUrl ? (
+                              <img
+                                src={category.imageUrl}
+                                alt={category.name}
+                                className="w-12 h-12 rounded-lg object-cover shrink-0"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-zinc-700 flex items-center justify-center shrink-0">
+                                <LayoutGrid className="h-6 w-6 text-zinc-500" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-white truncate">{category.name}</p>
+                                <span className="text-[10px] text-zinc-600 font-mono">/{category.slug}</span>
+                              </div>
+                              <p className="text-sm text-zinc-500">
+                                {productCount} produto{productCount !== 1 ? 's' : ''}
+                              </p>
                             </div>
-                          )}
-                          <div>
-                            <p className="font-semibold text-white">{category.name}</p>
-                            <p className="text-sm text-zinc-500">
-                              {products?.filter(p => p.categoryId === category.id).length ?? 0} produtos
-                            </p>
+                          </div>
+
+                          {/* Status + Actions */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {!category.isActive && (
+                              <Badge variant="outline" className="border-red-500/40 text-red-400 text-[10px]">
+                                <AlertTriangle className="w-3 h-3 mr-1" />
+                                Inativa (cascata)
+                              </Badge>
+                            )}
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                category.isActive
+                                  ? "bg-green-500/20 text-green-400"
+                                  : "bg-zinc-700 text-zinc-400"
+                              }`}
+                            >
+                              {category.isActive ? "Ativa" : "Inativa"}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-zinc-400 hover:text-amber-500"
+                              onClick={() => openEditCategory(category)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-zinc-400 hover:text-red-500"
+                              onClick={() => setDeleteCategoryId(category.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              category.isActive
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-zinc-700 text-zinc-400"
-                            }`}
-                          >
-                            {category.isActive ? "Ativa" : "Inativa"}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-zinc-400 hover:text-amber-500"
-                            onClick={() => openEditCategory(category)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-zinc-400 hover:text-red-500"
-                            onClick={() => setDeleteCategoryId(category.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -385,7 +606,9 @@ export default function CatalogPage() {
             </Card>
           </TabsContent>
 
-          {/* Products Tab */}
+          {/* ============================================ */}
+          {/* PRODUCTS TAB (with duplicate button + badges) */}
+          {/* ============================================ */}
           <TabsContent value="products" className="mt-6">
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
@@ -410,8 +633,22 @@ export default function CatalogPage() {
                     {filteredProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="p-4 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+                        className="p-4 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 transition-colors relative"
                       >
+                        {/* Highlight Tag Badge */}
+                        {product.highlightTag && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <Badge className={`text-xs font-semibold shadow-lg ${
+                              product.highlightTag === 'mais_vendido' ? 'bg-orange-500/90 text-white' :
+                              product.highlightTag === 'novidade' ? 'bg-blue-500/90 text-white' :
+                              product.highlightTag === 'vegano' ? 'bg-green-500/90 text-white' :
+                              'bg-zinc-600 text-white'
+                            }`}>
+                              {getHighlightLabel(product.highlightTag)}
+                            </Badge>
+                          </div>
+                        )}
+
                         <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-zinc-700">
                           {product.imageUrl ? (
                             <img
@@ -426,35 +663,51 @@ export default function CatalogPage() {
                           )}
                         </div>
                         <div className="flex items-start justify-between">
-                          <div>
-                            <p className="font-semibold text-white">{product.name}</p>
-                            <p className="text-amber-500 font-bold mt-1">
-                              R$ {Number(product.price).toFixed(2)}
-                            </p>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-white truncate">{product.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-amber-500 font-bold">
+                                R$ {Number(product.price).toFixed(2)}
+                              </p>
+                              {product.unitValue && product.unit && (
+                                <span className="text-xs text-zinc-500">
+                                  {product.unitValue}{product.unit}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-zinc-500 mt-1">
                               {categories?.find(c => c.id === product.categoryId)?.name}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5 shrink-0">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-zinc-400 hover:text-amber-500"
-                              onClick={() => openEditProduct(product)}
+                              className="h-7 w-7 text-zinc-400 hover:text-blue-400"
+                              onClick={() => openDuplicateProduct(product)}
+                              title="Duplicar produto"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-zinc-400 hover:text-red-500"
+                              className="h-7 w-7 text-zinc-400 hover:text-amber-500"
+                              onClick={() => openEditProduct(product)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-zinc-400 hover:text-red-500"
                               onClick={() => setDeleteProductId(product.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
                           <span
                             className={`px-2 py-1 rounded-full text-xs font-medium ${
                               product.isAvailable
@@ -487,7 +740,9 @@ export default function CatalogPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Category Dialog */}
+        {/* ============================================ */}
+        {/* CATEGORY DIALOG (with auto-slug) */}
+        {/* ============================================ */}
         <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
           <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
             <DialogHeader>
@@ -504,23 +759,26 @@ export default function CatalogPage() {
                 <Label>Nome</Label>
                 <Input
                   value={categoryForm.name}
-                  onChange={(e) => setCategoryForm({
-                    ...categoryForm,
-                    name: e.target.value,
-                    slug: editingCategory ? categoryForm.slug : generateSlug(e.target.value),
-                  })}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setCategoryForm({
+                      ...categoryForm,
+                      name,
+                      slug: generateSlug(name),
+                    });
+                  }}
                   placeholder="Ex: Pizzas"
                   className="bg-zinc-800 border-zinc-700"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Slug</Label>
+                <Label>Slug <span className="text-zinc-500 text-xs">(gerado automaticamente)</span></Label>
                 <Input
                   value={categoryForm.slug}
-                  onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value })}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, slug: generateSlug(e.target.value) })}
                   placeholder="pizzas"
-                  className="bg-zinc-800 border-zinc-700"
+                  className="bg-zinc-800 border-zinc-700 font-mono text-sm"
                 />
               </div>
 
@@ -548,7 +806,7 @@ export default function CatalogPage() {
                 <div>
                   <Label>Status</Label>
                   <p className="text-sm text-zinc-500">
-                    {categoryForm.isActive ? "Categoria visível" : "Categoria oculta"}
+                    {categoryForm.isActive ? "Categoria visível na loja" : "Categoria oculta (todos os produtos ficam indisponíveis)"}
                   </p>
                 </div>
                 <Switch
@@ -556,6 +814,15 @@ export default function CatalogPage() {
                   onCheckedChange={(checked) => setCategoryForm({ ...categoryForm, isActive: checked })}
                 />
               </div>
+
+              {!categoryForm.isActive && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-300">
+                    Ao inativar esta categoria, <strong>todos os produtos</strong> vinculados a ela ficarão automaticamente indisponíveis na Landing Page (cascata).
+                  </p>
+                </div>
+              )}
             </div>
 
             <DialogFooter className="mt-6">
@@ -577,8 +844,13 @@ export default function CatalogPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Product Dialog */}
-        <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
+        {/* ============================================ */}
+        {/* PRODUCT DIALOG (with upload, unit, tags) */}
+        {/* ============================================ */}
+        <Dialog open={productDialogOpen} onOpenChange={(open) => {
+          setProductDialogOpen(open);
+          if (!open) resetProductForm();
+        }}>
           <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-lg">
             <DialogHeader>
               <DialogTitle>
@@ -590,6 +862,7 @@ export default function CatalogPage() {
             </DialogHeader>
 
             <div className="space-y-4 mt-4 max-h-[60vh] overflow-y-auto pr-2">
+              {/* Category */}
               <div className="space-y-2">
                 <Label>Categoria</Label>
                 <Select
@@ -609,6 +882,7 @@ export default function CatalogPage() {
                 </Select>
               </div>
 
+              {/* Name */}
               <div className="space-y-2">
                 <Label>Nome do Produto</Label>
                 <Input
@@ -619,6 +893,7 @@ export default function CatalogPage() {
                 />
               </div>
 
+              {/* Description */}
               <div className="space-y-2">
                 <Label>Descrição</Label>
                 <Textarea
@@ -629,6 +904,7 @@ export default function CatalogPage() {
                 />
               </div>
 
+              {/* Price + Original Price */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Preço (R$)</Label>
@@ -654,16 +930,116 @@ export default function CatalogPage() {
                 </div>
               </div>
 
+              {/* Unit of Measure */}
               <div className="space-y-2">
-                <Label>URL da Imagem</Label>
-                <Input
-                  value={productForm.imageUrl}
-                  onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="bg-zinc-800 border-zinc-700"
-                />
+                <Label>Unidade de Medida (opcional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={productForm.unitValue}
+                    onChange={(e) => setProductForm({ ...productForm, unitValue: e.target.value })}
+                    placeholder="Ex: 350"
+                    className="bg-zinc-800 border-zinc-700 flex-1"
+                  />
+                  <Select
+                    value={productForm.unit || "none"}
+                    onValueChange={(value) => setProductForm({ ...productForm, unit: value === "none" ? "" : value })}
+                  >
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 w-24">
+                      <SelectValue placeholder="un" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                      <SelectItem value="none">—</SelectItem>
+                      {UNIT_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
+              {/* Image Upload (Drag & Drop) */}
+              <div className="space-y-2">
+                <Label>Imagem do Produto</Label>
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={(e) => e.preventDefault()}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                    imageUploading
+                      ? 'border-amber-500/40 bg-amber-500/5'
+                      : imagePreview
+                        ? 'border-zinc-700 bg-zinc-800/50'
+                        : 'border-zinc-700 hover:border-amber-500/40 bg-zinc-800/30 hover:bg-zinc-800/50'
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  
+                  {imageUploading ? (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+                      <p className="text-xs text-amber-400">Processando imagem (800x800 WebP)...</p>
+                    </div>
+                  ) : imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full max-h-48 object-contain rounded-lg"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-1 right-1 h-7 w-7 bg-zinc-900/80 hover:bg-red-500/80 text-white rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImagePreview(null);
+                          setProductForm(prev => ({ ...prev, imageUrl: "" }));
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <p className="text-[10px] text-zinc-500 mt-2">Clique ou arraste para substituir</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <Upload className="w-8 h-8 text-zinc-500" />
+                      <p className="text-sm text-zinc-400">Arraste uma imagem ou clique para selecionar</p>
+                      <p className="text-[10px] text-zinc-600">Será convertida para 800x800 WebP automaticamente</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Highlight Tag */}
+              <div className="space-y-2">
+                <Label>Etiqueta de Destaque</Label>
+                <Select
+                  value={productForm.highlightTag || "none"}
+                  onValueChange={(value) => setProductForm({ ...productForm, highlightTag: value === "none" ? "" : value })}
+                >
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700">
+                    <SelectValue placeholder="Nenhuma" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    <SelectItem value="mais_vendido">🔥 Mais Vendido</SelectItem>
+                    <SelectItem value="novidade">✨ Novidade</SelectItem>
+                    <SelectItem value="vegano">🌱 Vegano</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Serves Quantity */}
               <div className="space-y-2">
                 <Label>Serve quantas pessoas? (opcional)</Label>
                 <Input
@@ -674,6 +1050,7 @@ export default function CatalogPage() {
                 />
               </div>
 
+              {/* Available Toggle */}
               <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-800">
                 <div>
                   <Label>Disponível</Label>
@@ -687,6 +1064,7 @@ export default function CatalogPage() {
                 />
               </div>
 
+              {/* Featured Toggle */}
               <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-800">
                 <div>
                   <Label>Destaque</Label>
@@ -711,7 +1089,7 @@ export default function CatalogPage() {
               </Button>
               <Button
                 onClick={handleProductSubmit}
-                disabled={createProduct.isPending || updateProduct.isPending}
+                disabled={createProduct.isPending || updateProduct.isPending || imageUploading}
                 className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
               >
                 {createProduct.isPending || updateProduct.isPending ? "Salvando..." : "Salvar"}

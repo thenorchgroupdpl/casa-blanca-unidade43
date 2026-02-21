@@ -666,3 +666,70 @@ export async function setManualOverride(tenantId: number, override: 'open' | 'cl
   if (!db) throw new Error("Database not available");
   await db.update(storeSettings).set({ manualOverride: override }).where(eq(storeSettings.tenantId, tenantId));
 }
+
+
+// ============================================
+// CATEGORY REORDER
+// ============================================
+
+export async function reorderCategories(tenantId: number, orderedIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Update sortOrder for each category based on array position
+  for (let i = 0; i < orderedIds.length; i++) {
+    await db.update(categories)
+      .set({ sortOrder: i })
+      .where(and(eq(categories.id, orderedIds[i]), eq(categories.tenantId, tenantId)));
+  }
+}
+
+// ============================================
+// PRODUCTS GROUPED BY CATEGORY (for Dashboard)
+// ============================================
+
+export async function getProductsGroupedByCategory(tenantId: number) {
+  const db = await getDb();
+  if (!db) return { categories: [], products: [] };
+
+  const cats = await db.select().from(categories)
+    .where(eq(categories.tenantId, tenantId))
+    .orderBy(asc(categories.sortOrder));
+
+  const prods = await db.select().from(products)
+    .where(eq(products.tenantId, tenantId))
+    .orderBy(asc(products.sortOrder));
+
+  return { categories: cats, products: prods };
+}
+
+// ============================================
+// DUPLICATE PRODUCT
+// ============================================
+
+export async function duplicateProduct(productId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const original = await getProductById(productId);
+  if (!original) throw new Error("Product not found");
+
+  const result = await db.insert(products).values({
+    tenantId: original.tenantId,
+    categoryId: original.categoryId,
+    name: `${original.name} (cópia)`,
+    description: original.description,
+    price: original.price,
+    originalPrice: original.originalPrice,
+    imageUrl: original.imageUrl,
+    isAvailable: false, // Start as unavailable
+    servesQuantity: original.servesQuantity,
+    unitValue: original.unitValue,
+    unit: original.unit,
+    highlightTag: original.highlightTag,
+    sortOrder: original.sortOrder + 1,
+    isFeatured: false,
+  });
+
+  return Number(result[0].insertId);
+}

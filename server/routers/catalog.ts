@@ -2,6 +2,8 @@ import { z } from "zod";
 import { router, clientAdminProcedure, protectedProcedure } from "../_core/trpc";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { storagePut } from "../storage";
+import sharp from "sharp";
 
 // Helper to get tenant ID from user context
 function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
@@ -108,6 +110,17 @@ export const categoriesRouter = router({
       return { success: true };
     }),
 
+  // Reorder categories
+  reorder: clientAdminProcedure
+    .input(z.object({
+      orderedIds: z.array(z.number()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      await db.reorderCategories(tenantId, input.orderedIds);
+      return { success: true };
+    }),
+
   // Delete category
   delete: clientAdminProcedure
     .input(z.object({ id: z.number() }))
@@ -188,6 +201,9 @@ export const productsRouter = router({
       servesQuantity: z.string().optional(),
       sortOrder: z.number().optional(),
       isFeatured: z.boolean().optional(),
+      unitValue: z.string().optional(),
+      unit: z.string().optional(),
+      highlightTag: z.string().optional(),
       tenantId: z.number().optional(), // For super_admin
     }))
     .mutation(async ({ ctx, input }) => {
@@ -217,6 +233,9 @@ export const productsRouter = router({
         servesQuantity: input.servesQuantity || null,
         sortOrder: input.sortOrder ?? 0,
         isFeatured: input.isFeatured ?? false,
+        unitValue: input.unitValue && input.unitValue.trim() !== '' ? input.unitValue : null,
+        unit: input.unit && input.unit.trim() !== '' ? input.unit : null,
+        highlightTag: input.highlightTag && input.highlightTag.trim() !== '' ? input.highlightTag : null,
       });
 
       return { id };
@@ -237,6 +256,9 @@ export const productsRouter = router({
         servesQuantity: z.string().optional(),
         sortOrder: z.number().optional(),
         isFeatured: z.boolean().optional(),
+        unitValue: z.string().nullable().optional(),
+        unit: z.string().nullable().optional(),
+        highlightTag: z.string().nullable().optional(),
       }),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -259,6 +281,62 @@ export const productsRouter = router({
       await db.updateProduct(input.id, input.data);
       return { success: true };
     }),
+
+  // Duplicate product
+  duplicate: clientAdminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const product = await db.getProductById(input.id);
+      if (!product) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Produto não encontrado" });
+      }
+      if (ctx.user.role !== 'super_admin' && ctx.user.tenantId !== product.tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const newId = await db.duplicateProduct(input.id);
+      return { id: newId };
+    }),
+
+  // Upload product image (base64 -> webp -> S3)
+  uploadImage: clientAdminProcedure
+    .input(z.object({
+      imageData: z.string(), // base64
+      fileName: z.string(),
+      contentType: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+
+      // Decode base64
+      const buffer = Buffer.from(input.imageData, 'base64');
+
+      // Process with sharp: resize to 800x800 square crop, convert to webp
+      let processedBuffer: Buffer;
+      try {
+        processedBuffer = await sharp(buffer)
+          .resize(800, 800, {
+            fit: 'cover',
+            position: 'centre',
+          })
+          .webp({ quality: 85 })
+          .toBuffer();
+      } catch (err) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Erro ao processar imagem. Verifique o formato." });
+      }
+
+      // Upload to S3
+      const fileKey = `products/${tenantId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
+      const { url } = await storagePut(fileKey, processedBuffer, 'image/webp');
+
+      return { url };
+    }),
+
+  // Get products grouped by category (for Dashboard widget)
+  grouped: clientAdminProcedure.query(async ({ ctx }) => {
+    const tenantId = getTenantIdFromUser(ctx.user);
+    return db.getProductsGroupedByCategory(tenantId);
+  }),
 
   // Delete product
   delete: clientAdminProcedure

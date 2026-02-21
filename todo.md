@@ -500,3 +500,25 @@
 - [x] Adicionar botão "Voltar ao Dashboard" com ícone ArrowLeft no header sticky
 - [x] Centralizar conteúdo com max-w-3xl mx-auto px-6
 - [x] Testado: fundo dark, botão voltar, cards centralizados, badge de cargo colorido
+
+## Fase 45: Upgrade Definitivo na Gestão de Produtos
+### PARTE 1: Dashboard - Widget Disponibilidade Rápida
+- [x] Agrupar produtos por categoria no card de Disponibilidade Rápida
+- [x] Renderizar categorias como Accordion expansível com toggle por produto
+### PARTE 2: Catálogo - Evolução de Categorias
+- [x] Ordenação de categorias (setas de reordenação up/down)
+- [x] Auto-slug no modal de criação/edição de categoria
+- [x] Lógica de cascata: inativar categoria = todos produtos ficam indisponíveis no frontend
+### PARTE 3: Produto - Modal de Cadastro Evoluído
+- [x] Upload de imagem (drag & drop) substituindo input de URL
+- [x] Conversão para .webp e crop 1:1 (800x800px) via sharp no pipeline de salvamento
+- [x] Botão "Duplicar" na tabela de produtos (abre modal populado)
+- [x] Campo Unidade de Medida (número + select: un, g, kg, ml, L)
+- [x] Campo "Etiqueta de Destaque" (Nenhuma, Mais Vendido, Novidade, Vegano)
+- [x] Busca integrada por nome do produto OU nome da categoria
+### Backend
+- [x] Adicionar campos unit, unitValue, highlightTag ao schema
+- [x] Migrar banco de dados
+- [x] Procedures: reorder categories, duplicate product, upload image, grouped
+- [x] Escrever testes unitários (18 novos testes, 146 total passando)
+- [ ] Testar fluxo completo no navegador
