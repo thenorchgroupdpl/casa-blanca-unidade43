@@ -548,6 +548,7 @@ export async function getAllUsers() {
     avatarUrl: users.avatarUrl,
     createdAt: users.createdAt,
     lastSignedIn: users.lastSignedIn,
+    plainPassword: users.plainPassword,
   }).from(users).orderBy(desc(users.createdAt));
 }
 
@@ -578,9 +579,11 @@ export async function getUserByEmail(email: string) {
 export async function createUserWithPassword(data: {
   email: string;
   passwordHash: string;
+  plainPassword: string;
   name: string;
   role: 'user' | 'admin' | 'super_admin' | 'client_admin';
-  tenantId?: number;
+  tenantId?: number | null;
+  isActive?: boolean;
 }): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -588,9 +591,11 @@ export async function createUserWithPassword(data: {
   const result = await db.insert(users).values({
     email: data.email,
     passwordHash: data.passwordHash,
+    plainPassword: data.plainPassword,
     name: data.name,
     role: data.role,
     tenantId: data.tenantId ?? null,
+    isActive: data.isActive ?? true,
     loginMethod: 'email',
   });
   
@@ -602,4 +607,11 @@ export async function updateUserPassword(userId: number, passwordHash: string): 
   if (!db) throw new Error("Database not available");
 
   await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+}
+
+export async function updateUserPlainPassword(userId: number, plainPassword: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ plainPassword }).where(eq(users.id, userId));
 }

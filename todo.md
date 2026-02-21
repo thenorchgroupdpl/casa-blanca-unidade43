@@ -404,3 +404,24 @@
 - [x] Atualização da tabela em tempo real (filtragem client-side instantânea)
 - [x] Escrever testes unitários (83 testes passando, 12 testes de users)
 - [x] Testar fluxo completo no navegador (verificado visualmente)
+
+## Fase 39: Criação de Usuários pelo Super Admin
+- [x] Adicionar campo plainPassword ao schema de users
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Criar procedure createUser no router de users (nome, email, senha, tenant, role, status)
+- [x] Validação de email duplicado no backend (rejeitar se já existe)
+- [x] Atualizar createUserWithPassword e adicionar updateUserPlainPassword no db.ts
+- [x] Botão "Novo Usuário" no canto superior direito da tela de Usuários
+- [x] Drawer lateral (Sheet) com formulário de cadastro completo
+- [x] Campo Nome Completo (obrigatório)
+- [x] Campo E-mail/Login (obrigatório, validação email)
+- [x] Campo Senha (texto visível, resgatável pelo admin)
+- [x] Select Empresa/Tenant (com opção Nenhuma/Administração)
+- [x] Select Nível Hierárquico (Super Admin, Lojista, Funcionário)
+- [x] Toggle Status (Ativo/Inativo, default Ativo)
+- [x] Botão "Salvar Usuário" com feedback de sucesso/erro
+- [x] Coluna "Senha" com botão revelar/copiar na tabela de usuários
+- [x] Campo de senha visível no modal de edição com revelar/copiar e alteração
+- [x] Atualizar tabela em tempo real após criação (invalidate query)
+- [x] Escrever testes unitários (94 testes passando, 23 de users)
+- [x] Testar fluxo completo no navegador (verificado visualmente)

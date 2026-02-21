@@ -92,6 +92,7 @@ export const emailAuthRouter = router({
       const userId = await db.createUserWithPassword({
         email: input.email,
         passwordHash,
+        plainPassword: input.password,
         name: input.name,
         role: input.role,
         tenantId: input.tenantId,

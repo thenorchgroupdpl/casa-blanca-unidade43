@@ -57,6 +57,13 @@
       "when": 1771647836191,
       "tag": "0007_elite_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1771649057244,
+      "tag": "0008_magenta_proudstar",
+      "breakpoints": true
     }
   ]
 }
