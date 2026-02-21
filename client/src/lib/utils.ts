@@ -114,29 +114,57 @@ export function isRestaurantOpen(businessHours: BusinessHours): boolean {
   return currentTime >= openTime && currentTime < closeTime;
 }
 
-// Get status text
-export function getStatusText(businessHours: BusinessHours): { text: string; isOpen: boolean } {
+// Get status text with dynamic warnings ("Abre em breve" / "Fechando em breve")
+export function getStatusText(businessHours: BusinessHours): { text: string; isOpen: boolean; warning?: 'opening_soon' | 'closing_soon' } {
   const isOpen = isRestaurantOpen(businessHours);
   const todaySchedule = getCurrentDaySchedule(businessHours);
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const SOON_THRESHOLD = 30; // 30 minutes
   
-  if (isOpen) {
+  if (isOpen && todaySchedule) {
+    // Check if closing soon (within 30 minutes)
+    const [closeHour, closeMin] = todaySchedule.close.split(':').map(Number);
+    let closeTime = closeHour * 60 + closeMin;
+    if (closeTime === 0) closeTime = 24 * 60;
+    
+    const minutesUntilClose = closeTime > currentTime 
+      ? closeTime - currentTime 
+      : (closeTime < currentTime ? (24 * 60 - currentTime + closeTime) : 0);
+    
+    if (minutesUntilClose > 0 && minutesUntilClose <= SOON_THRESHOLD) {
+      return {
+        text: 'Fechando em breve',
+        isOpen: true,
+        warning: 'closing_soon',
+      };
+    }
+    
     return {
-      text: `Aberto até ${todaySchedule?.close || ''}`,
+      text: `Aberto até ${todaySchedule.close}`,
       isOpen: true,
     };
   }
   
-  // Find next opening time
-  const now = new Date();
+  // Store is closed - find next opening time
   const currentDay = now.getDay();
   
   // Check if opens later today
   if (todaySchedule && !todaySchedule.closed) {
-    const currentTime = now.getHours() * 60 + now.getMinutes();
     const [openHour, openMin] = todaySchedule.open.split(':').map(Number);
     const openTime = openHour * 60 + openMin;
     
     if (currentTime < openTime) {
+      const minutesUntilOpen = openTime - currentTime;
+      
+      if (minutesUntilOpen <= SOON_THRESHOLD) {
+        return {
+          text: 'Abre em breve',
+          isOpen: false,
+          warning: 'opening_soon',
+        };
+      }
+      
       return {
         text: `Abre às ${todaySchedule.open}`,
         isOpen: false,

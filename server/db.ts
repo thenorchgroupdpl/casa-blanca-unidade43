@@ -7,7 +7,8 @@ import {
   InsertCategory, categories, Category,
   InsertProduct, products, Product,
   InsertHomeRow, homeRows, HomeRow,
-  InsertReview, reviews, Review
+  InsertReview, reviews, Review,
+  orders, Order, InsertOrder
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -614,4 +615,54 @@ export async function updateUserPlainPassword(userId: number, plainPassword: str
   if (!db) throw new Error("Database not available");
 
   await db.update(users).set({ plainPassword }).where(eq(users.id, userId));
+}
+
+
+// ============================================
+// ORDERS HELPERS
+// ============================================
+
+export async function getOrdersByTenant(tenantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(orders).where(eq(orders.tenantId, tenantId)).orderBy(desc(orders.createdAt));
+}
+
+export async function createOrder(data: {
+  tenantId: number;
+  customerName: string;
+  customerPhone?: string;
+  summary: string;
+  totalValue: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(orders).values(data);
+  return Number(result[0].insertId);
+}
+
+export async function toggleOrderCompleted(orderId: number, isCompleted: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(orders).set({ isCompleted }).where(eq(orders.id, orderId));
+}
+
+// ============================================
+// PRODUCT AVAILABILITY QUICK TOGGLE
+// ============================================
+
+export async function toggleProductAvailability(productId: number, isAvailable: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(products).set({ isAvailable }).where(eq(products.id, productId));
+}
+
+// ============================================
+// STORE MANUAL OVERRIDE
+// ============================================
+
+export async function setManualOverride(tenantId: number, override: 'open' | 'closed' | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(storeSettings).set({ manualOverride: override }).where(eq(storeSettings.tenantId, tenantId));
 }

@@ -150,11 +150,18 @@ export default function Hero() {
             onClick={openScheduleModal}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all',
-              !scheduleBg && (status.isOpen ? 'badge-open' : 'badge-closed')
+              !scheduleBg && (status.isOpen ? 'badge-open' : 'badge-closed'),
+              status.warning && 'animate-pulse'
             )}
             style={scheduleBg ? {
               backgroundColor: scheduleBg,
               color: scheduleText || undefined,
+            } : !scheduleBg && status.warning === 'opening_soon' ? {
+              backgroundColor: 'rgba(234, 179, 8, 0.25)',
+              color: '#facc15',
+            } : !scheduleBg && status.warning === 'closing_soon' ? {
+              backgroundColor: 'rgba(239, 68, 68, 0.25)',
+              color: '#fca5a5',
             } : undefined}
           >
             <Clock

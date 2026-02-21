@@ -461,3 +461,15 @@
 - [x] Loading state no botão "Entrar" (desabilitado + spinner "Autenticando...")
 - [x] Background premium (gradientes orbs, grid pattern sutil, vignette, backdrop blur)
 - [x] Testar fluxo completo no navegador (114 testes passando, 8 de auth login)
+
+## Fase 43: Reconstrução do Dashboard do Lojista (Operacional MVP)
+- [x] Top Bar: Switch Loja Aberta/Fechada (override manual, verde/vermelho)
+- [x] Card de Compartilhamento: URL da loja + Copiar Link + Baixar QR Code (SVG/PNG)
+- [x] Feed de Pedidos (Solicitações Recentes): tabela com Hora, Nome, Resumo, Valor + checkbox Concluído
+- [x] Widget Disponibilidade Rápida: listagem de produtos com toggle on/off instantâneo
+- [x] Schema: tabela orders para log de pedidos, campo manualOverride no store_settings
+- [x] Procedures: CRUD de orders, toggle manual override, toggle disponibilidade produto
+- [x] Grid moderno: Log de Pedidos central (2/3), ferramentas laterais (1/3)
+- [x] Avisos dinâmicos de horário na Landing Page ("Abre em breve", "Fechando em breve") com pulsação
+- [x] Escrever testes unitários (128 testes passando, 14 de store + 6 de getStatusText)
+- [x] Testar fluxo completo no navegador (verificado visualmente)

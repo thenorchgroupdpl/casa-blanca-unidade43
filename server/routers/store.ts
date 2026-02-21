@@ -153,6 +153,69 @@ export const storeRouter = router({
       await db.deleteHomeRow(tenantId, input.rowNumber);
       return { success: true };
     }),
+
+  // ============================================
+  // MANUAL OVERRIDE (Loja Aberta/Fechada)
+  // ============================================
+  setManualOverride: clientAdminProcedure
+    .input(z.object({
+      override: z.enum(['open', 'closed']).nullable(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      await db.setManualOverride(tenantId, input.override);
+      return { success: true };
+    }),
+
+  // ============================================
+  // ORDERS LOG
+  // ============================================
+  getOrders: clientAdminProcedure.query(async ({ ctx }) => {
+    const tenantId = getTenantIdFromUser(ctx.user);
+    return db.getOrdersByTenant(tenantId);
+  }),
+
+  createOrder: clientAdminProcedure
+    .input(z.object({
+      customerName: z.string().min(1),
+      customerPhone: z.string().optional(),
+      summary: z.string().min(1),
+      totalValue: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      const id = await db.createOrder({
+        tenantId,
+        customerName: input.customerName,
+        customerPhone: input.customerPhone,
+        summary: input.summary,
+        totalValue: input.totalValue,
+      });
+      return { success: true, id };
+    }),
+
+  toggleOrderCompleted: clientAdminProcedure
+    .input(z.object({
+      orderId: z.number(),
+      isCompleted: z.boolean(),
+    }))
+    .mutation(async ({ input }) => {
+      await db.toggleOrderCompleted(input.orderId, input.isCompleted);
+      return { success: true };
+    }),
+
+  // ============================================
+  // QUICK PRODUCT AVAILABILITY TOGGLE
+  // ============================================
+  toggleProductAvailability: clientAdminProcedure
+    .input(z.object({
+      productId: z.number(),
+      isAvailable: z.boolean(),
+    }))
+    .mutation(async ({ input }) => {
+      await db.toggleProductAvailability(input.productId, input.isAvailable);
+      return { success: true };
+    }),
 });
 
 // ============================================

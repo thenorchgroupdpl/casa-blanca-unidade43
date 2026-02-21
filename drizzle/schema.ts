@@ -188,6 +188,9 @@ export const storeSettings = mysqlTable("store_settings", {
     };
   }>(),
   
+  // Manual Override (Lojista can force open/closed)
+  manualOverride: varchar("manualOverride", { length: 20 }).$type<'open' | 'closed' | null>(),
+  
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -315,3 +318,29 @@ export const reviews = mysqlTable("reviews", {
 
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = typeof reviews.$inferInsert;
+
+// ============================================
+// ORDERS TABLE - Order Log for WhatsApp Backup
+// ============================================
+export const orders = mysqlTable("orders", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  
+  // Customer Info
+  customerName: varchar("customerName", { length: 255 }).notNull(),
+  customerPhone: varchar("customerPhone", { length: 20 }),
+  
+  // Order Details
+  summary: text("summary").notNull(),
+  totalValue: decimal("totalValue", { precision: 10, scale: 2 }).notNull(),
+  
+  // Status
+  isCompleted: boolean("isCompleted").default(false).notNull(),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = typeof orders.$inferInsert;
