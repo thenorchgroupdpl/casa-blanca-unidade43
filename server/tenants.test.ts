@@ -327,3 +327,160 @@ describe("tenants.updateIntegrations", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("tenants.update (name and slug)", () => {
+  it("updates tenant name via update procedure", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenant = tenants[0];
+    const result = await caller.tenants.update({
+      id: tenant.id,
+      data: { name: "Loja Atualizada Teste" },
+    });
+    expect(result).toEqual({ success: true });
+
+    // Verify the name was updated
+    const updated = await caller.tenants.list();
+    const found = updated.find((t: any) => t.id === tenant.id);
+    expect(found?.name).toBe("Loja Atualizada Teste");
+
+    // Restore original name
+    await caller.tenants.update({
+      id: tenant.id,
+      data: { name: tenant.name },
+    });
+  });
+
+  it("updates slug and validates uniqueness", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length < 2) return;
+
+    const tenant1 = tenants[0];
+    const tenant2 = tenants[1];
+
+    // Try to set tenant2's slug to tenant1's slug - should fail
+    await expect(
+      caller.tenants.update({
+        id: tenant2.id,
+        data: { slug: tenant1.slug },
+      })
+    ).rejects.toThrow("Slug já está em uso");
+  });
+
+  it("allows updating slug to a new unique value", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenant = tenants[0];
+    const originalSlug = tenant.slug;
+    const testSlug = `test-slug-${Date.now()}`;
+
+    const result = await caller.tenants.update({
+      id: tenant.id,
+      data: { slug: testSlug },
+    });
+    expect(result).toEqual({ success: true });
+
+    // Restore original slug
+    await caller.tenants.update({
+      id: tenant.id,
+      data: { slug: originalSlug },
+    });
+  });
+});
+
+describe("tenants.updateContractual (clientStatus)", () => {
+  it("updates clientStatus to active", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenant = tenants[0];
+    const result = await caller.tenants.updateContractual({
+      id: tenant.id,
+      clientStatus: "active",
+    });
+    expect(result).toEqual({ success: true });
+
+    const updated = await caller.tenants.list();
+    const found = updated.find((t: any) => t.id === tenant.id);
+    expect(found?.clientStatus).toBe("active");
+  });
+
+  it("updates clientStatus to disabled", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenant = tenants[0];
+    const originalStatus = tenant.clientStatus;
+
+    const result = await caller.tenants.updateContractual({
+      id: tenant.id,
+      clientStatus: "disabled",
+    });
+    expect(result).toEqual({ success: true });
+
+    // Restore original status
+    await caller.tenants.updateContractual({
+      id: tenant.id,
+      clientStatus: originalStatus as "active" | "disabled" | "implementing",
+    });
+  });
+
+  it("updates clientStatus to implementing (maintenance)", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenant = tenants[0];
+    const originalStatus = tenant.clientStatus;
+
+    const result = await caller.tenants.updateContractual({
+      id: tenant.id,
+      clientStatus: "implementing",
+    });
+    expect(result).toEqual({ success: true });
+
+    // Restore original status
+    await caller.tenants.updateContractual({
+      id: tenant.id,
+      clientStatus: originalStatus as "active" | "disabled" | "implementing",
+    });
+  });
+
+  it("validates slug uniqueness via updateContractual", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length < 2) return;
+
+    const tenant1 = tenants[0];
+    const tenant2 = tenants[1];
+
+    // Try to set tenant2's slug to tenant1's slug
+    await expect(
+      caller.tenants.updateContractual({
+        id: tenant2.id,
+        slug: tenant1.slug,
+      })
+    ).rejects.toThrow();
+  });
+});

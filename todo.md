@@ -441,3 +441,13 @@
 - [x] Remover seção "Mais Integrações" com cards "Em breve" (Stripe, WhatsApp, iFood)
 - [x] Escrever testes unitários para as novas procedures de tracking (99 testes passando)
 - [x] Testar fluxo completo no navegador (verificado visualmente)
+
+## Fase 41: Tela de Configurações do Super Admin (MVP)
+- [x] Bloco 1: Informações Principais (Nome da Loja, WhatsApp com máscara, CNPJ com máscara)
+- [x] Bloco 2: Roteamento/URL (Slug com sanitização, preview dinâmico da URL com botão copiar)
+- [x] Bloco 3: Status de Operação (Ativa, Em Manutenção, Inativa/Bloqueada) com radio cards
+- [x] Combobox de seleção de loja com busca (mesmo padrão das outras telas)
+- [x] Validação de slug único no backend (rejeitar duplicatas)
+- [x] Botão "Salvar Configurações" com dirty tracking e toast de sucesso/erro
+- [x] Escrever testes unitários (106 testes passando, 25 de tenants)
+- [x] Testar fluxo completo no navegador (verificado visualmente)
