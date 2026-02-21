@@ -13,6 +13,7 @@ export const emailAuthRouter = router({
     .input(z.object({
       email: z.string().email("Email inválido"),
       password: z.string().min(1, "Senha é obrigatória"),
+      rememberMe: z.boolean().optional().default(false),
     }))
     .mutation(async ({ input, ctx }) => {
       const user = await db.getUserByEmail(input.email);
@@ -36,16 +37,20 @@ export const emailAuthRouter = router({
       // Create session token using the SDK (same format as OAuth)
       // Use email as openId for email-based auth (email is unique identifier)
       const openId = user.openId || `email:${user.email}`;
+      const sessionDuration = input.rememberMe
+        ? 30 * 24 * 60 * 60 * 1000 // 30 days
+        : 7 * 24 * 60 * 60 * 1000;  // 7 days
+
       const token = await sdk.createSessionToken(openId, {
         name: user.name || user.email || "User",
-        expiresInMs: 7 * 24 * 60 * 60 * 1000, // 7 days
+        expiresInMs: sessionDuration,
       });
 
       // Set cookie
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, {
         ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: sessionDuration,
       });
 
       // Update last signed in

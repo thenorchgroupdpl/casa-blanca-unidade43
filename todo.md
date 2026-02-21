@@ -451,3 +451,13 @@
 - [x] Botão "Salvar Configurações" com dirty tracking e toast de sucesso/erro
 - [x] Escrever testes unitários (106 testes passando, 25 de tenants)
 - [x] Testar fluxo completo no navegador (verificado visualmente)
+
+## Fase 42: Refinamento da Tela de Login para Produção (MVP)
+- [x] Remover bloco de credenciais de teste (card cinza inferior)
+- [x] Adicionar checkbox "Lembrar-me" (alinhado à esquerda, salvar sessão por 30 dias no backend)
+- [x] Adicionar link "Esqueci a senha" (alinhado à direita, com modal + link WhatsApp + nota segurança)
+- [x] Focus states nos inputs (borda dourada + ring glow ao focar)
+- [x] Error states nos inputs (bordas vermelhas + ring ao falhar login, limpa ao digitar)
+- [x] Loading state no botão "Entrar" (desabilitado + spinner "Autenticando...")
+- [x] Background premium (gradientes orbs, grid pattern sutil, vignette, backdrop blur)
+- [x] Testar fluxo completo no navegador (114 testes passando, 8 de auth login)
