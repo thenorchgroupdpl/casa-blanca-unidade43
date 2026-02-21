@@ -21,6 +21,9 @@ export interface CardStyleOverrides {
   borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
+  font?: string;
+  fontSize?: number;
+  fontWeight?: string;
 }
 
 interface ProductCardProps {
@@ -69,8 +72,11 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     if (cardStyle?.borderRadius !== undefined) style.borderRadius = `${cardStyle.borderRadius}px`;
     if (cardStyle?.borderColor) style.borderColor = cardStyle.borderColor;
     if (cardStyle?.borderWidth !== undefined) style.borderWidth = `${cardStyle.borderWidth}px`;
+    if (cardStyle?.font && cardStyle.font !== 'inherit') style.fontFamily = cardStyle.font;
+    if (cardStyle?.fontSize) style.fontSize = `${cardStyle.fontSize}px`;
+    if (cardStyle?.fontWeight) style.fontWeight = cardStyle.fontWeight;
     return style;
-  }, [cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth]);
+  }, [cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
 
   if (variant === 'grid') {
     return (

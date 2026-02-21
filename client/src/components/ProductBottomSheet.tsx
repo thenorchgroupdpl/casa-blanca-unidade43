@@ -2,20 +2,24 @@
  * Product Bottom Sheet - Casa Blanca
  * Design: Warm Luxury - Drawer for product details and quantity selection
  * Features: Large image, description, quantity controls, add to cart
+ * Consumes menu_style from SiteData for Design System customization
  */
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
-import { useUI, useCart, useToast } from '@/store/useStore';
+import { useUI, useCart, useToast, useSiteData } from '@/store/useStore';
 
 export default function ProductBottomSheet() {
+  const { data } = useSiteData();
   const { selectedProduct, isBottomSheetOpen, closeProductSheet } = useUI();
   const { addItem } = useCart();
   const { showToast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const ms = data?.menu_style;
 
   // Reset quantity when product changes
   useEffect(() => {
@@ -40,7 +44,6 @@ export default function ProductBottomSheet() {
     
     addItem(selectedProduct, quantity);
     
-    // Show success toast notification
     showToast(
       'Produto adicionado!',
       `${quantity}x ${selectedProduct.name} adicionado à sacola.`
@@ -56,6 +59,17 @@ export default function ProductBottomSheet() {
 
   const totalPrice = selectedProduct.price * quantity;
 
+  // Menu style overrides
+  const modalBg = ms?.modalBgColor;
+  const ctaBg = ms?.modalCtaBgColor;
+  const ctaText = ms?.modalCtaTextColor;
+  const ctaFont = ms?.modalCtaFont;
+  const ctaFontSize = ms?.modalCtaFontSize;
+  const ctaFontWeight = ms?.modalCtaFontWeight;
+  const qtyBtnBg = ms?.qtyBtnBgColor;
+  const qtyBtnText = ms?.qtyBtnTextColor;
+  const qtyNumColor = ms?.qtyNumberColor;
+
   return (
     <AnimatePresence>
       {isBottomSheetOpen && (
@@ -67,6 +81,9 @@ export default function ProductBottomSheet() {
             exit={{ opacity: 0 }}
             onClick={closeProductSheet}
             className="fixed inset-0 z-50 bg-lp-overlay backdrop-blur-sm"
+            style={ms?.panelOverlayColor ? {
+              backgroundColor: `${ms.panelOverlayColor}${Math.round((ms.panelOverlayOpacity ?? 50) * 2.55).toString(16).padStart(2, '0')}`,
+            } : undefined}
           />
 
           {/* Bottom Sheet */}
@@ -76,6 +93,7 @@ export default function ProductBottomSheet() {
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-lp-surface rounded-t-3xl overflow-hidden"
+            style={modalBg ? { backgroundColor: modalBg } : undefined}
           >
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-2">
@@ -92,13 +110,18 @@ export default function ProductBottomSheet() {
 
             {/* Content */}
             <div className="overflow-y-auto max-h-[calc(90vh-60px)]">
-              {/* Product Image */}
+              {/* Product Image - Enforced aspect-ratio and object-fit */}
               <div className="relative aspect-square max-h-[300px] bg-lp-surface">
                 {selectedProduct.images?.[currentImageIndex] ? (
                   <img
                     src={selectedProduct.images[currentImageIndex]}
                     alt={selectedProduct.name}
-                    className="w-full h-full object-cover object-center"
+                    className="w-full h-full"
+                    style={{
+                      aspectRatio: '1 / 1',
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                    }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-lp-surface">
@@ -157,15 +180,26 @@ export default function ProductBottomSheet() {
                           ? 'bg-lp-surface text-lp-text-muted cursor-not-allowed'
                           : 'bg-lp-surface hover:bg-lp-surface-hover text-lp-text'
                       )}
+                      style={quantity > 1 ? {
+                        ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
+                        ...(qtyBtnText ? { color: qtyBtnText } : {}),
+                      } : undefined}
                     >
                       <Minus className="w-5 h-5" />
                     </button>
-                    <span className="text-lp-text text-xl font-semibold w-8 text-center">
+                    <span
+                      className="text-lp-text text-xl font-semibold w-8 text-center"
+                      style={qtyNumColor ? { color: qtyNumColor } : undefined}
+                    >
                       {quantity}
                     </span>
                     <button
                       onClick={incrementQuantity}
                       className="w-10 h-10 rounded-full bg-lp-btn text-lp-btn-fg flex items-center justify-center hover:bg-lp-btn-hover transition-colors"
+                      style={{
+                        ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
+                        ...(qtyBtnText ? { color: qtyBtnText } : {}),
+                      }}
                     >
                       <Plus className="w-5 h-5" />
                     </button>
@@ -176,6 +210,13 @@ export default function ProductBottomSheet() {
                 <button
                   onClick={handleAddToCart}
                   className="w-full py-4 rounded-full bg-lp-btn text-lp-btn-fg font-semibold text-lg flex items-center justify-center gap-3 hover:bg-lp-btn-hover transition-colors"
+                  style={{
+                    ...(ctaBg ? { backgroundColor: ctaBg } : {}),
+                    ...(ctaText ? { color: ctaText } : {}),
+                    ...(ctaFont && ctaFont !== 'inherit' ? { fontFamily: ctaFont } : {}),
+                    ...(ctaFontSize ? { fontSize: `${ctaFontSize}px` } : {}),
+                    ...(ctaFontWeight ? { fontWeight: ctaFontWeight } : {}),
+                  }}
                 >
                   <ShoppingBag className="w-5 h-5" />
                   Adicionar ({quantity}) - {formatPrice(totalPrice)}

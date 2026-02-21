@@ -329,3 +329,18 @@
 ## Fase 33c: Correção - Quebra de background entre IntroSection e VitrineSection
 - [x] Unificar background das seções Intro e Vitrine para eliminar quebra visual (IntroSection fundido dentro de VitrineSection)
 - [x] Corrigir color picker que fecha ao primeiro clique (ColorPickerInput com estado local + isPickingRef)
+
+## Fase 34: Controles Granulares da Seção 3 (Cardápio/Modais)
+- [x] Analisar OrderOverlay, ProductBottomSheet, CartDrawer e tipos
+- [x] Expandir tipo LandingDesign com campos menu (painel, filtros, cards, modal)
+- [x] 3.1 PAINEL DO CARDÁPIO: cor fundo painel, opacidade overlay, cor texto header, busca (borda, fundo, ícone)
+- [x] 3.2 FILTROS DE CATEGORIA: cor fundo ativo, cor fundo inativo, cor texto ativo, cor texto inativo
+- [x] 3.3 CARDS DE PRODUTO: cor fundo card, borda (cor, espessura, radius), tipografia, cor preço destaque
+- [x] 3.3b Imagens responsivas: aspect-ratio 1/1, width 100%, object-fit cover
+- [x] 3.4 MODAL DE DETALHES: cor fundo modal, imagem object-fit cover, botão CTA (cor fundo, cor texto, tipografia), controles quantidade (cor botões, cor número)
+- [x] Implementar MenuSection no Design.tsx com 4 sub-painéis
+- [x] Atualizar postMessage handler no StoreLanding para campos menu
+- [x] Atualizar transformTenantDataToSiteData para carregar campos menu do banco
+- [x] Atualizar OrderOverlay.tsx para consumir novos estilos
+- [x] Atualizar ProductBottomSheet.tsx para consumir novos estilos
+- [x] Testar persistência e preview em tempo real

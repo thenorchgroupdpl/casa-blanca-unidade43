@@ -258,6 +258,42 @@ type LandingDesign = {
     // Legacy
     textColor?: string;
   };
+  menu?: {
+    // 3.1 Painel do Cardápio (Drawer/Overlay)
+    panelBgColor?: string;
+    panelOverlayOpacity?: number; // 0-100
+    panelOverlayColor?: string;
+    headerTextColor?: string;
+    searchBorderColor?: string;
+    searchBgColor?: string;
+    searchIconColor?: string;
+    // 3.2 Filtros de Categoria (Pills)
+    filterActiveBgColor?: string;
+    filterActiveTextColor?: string;
+    filterInactiveBgColor?: string;
+    filterInactiveTextColor?: string;
+    // 3.3 Cards de Produto no Cardápio
+    cardBgColor?: string;
+    cardBorderColor?: string;
+    cardBorderWidth?: number;
+    cardBorderRadius?: number;
+    cardNameColor?: string;
+    cardPriceColor?: string;
+    cardDescColor?: string;
+    cardFont?: string;
+    cardFontSize?: number;
+    cardFontWeight?: string;
+    // 3.4 Modal de Detalhes do Produto
+    modalBgColor?: string;
+    modalCtaBgColor?: string;
+    modalCtaTextColor?: string;
+    modalCtaFont?: string;
+    modalCtaFontSize?: number;
+    modalCtaFontWeight?: string;
+    qtyBtnBgColor?: string;
+    qtyBtnTextColor?: string;
+    qtyNumberColor?: string;
+  };
   reviews?: {
     headline?: string;
     isVisible?: boolean;
@@ -307,7 +343,7 @@ type ThemeColors = {
   success: string;        // Notificações/Sucesso (toasts, badges)
 };
 
-type SectionTab = "home" | "products" | "about" | "reviews" | "info";
+type SectionTab = "home" | "products" | "menu" | "about" | "reviews" | "info";
 
 const FONT_OPTIONS = [
   "DM Sans", "Inter", "Poppins", "Roboto", "Open Sans", "Lato",
@@ -335,6 +371,7 @@ const ALL_FONTS = [...FONT_OPTIONS, ...DISPLAY_FONT_OPTIONS];
 const SECTION_TABS: { id: SectionTab; label: string; icon: typeof Home }[] = [
   { id: "home", label: "HOME", icon: Home },
   { id: "products", label: "PRODUTOS", icon: ShoppingBag },
+  { id: "menu", label: "CARDÁPIO", icon: AlignLeft },
   { id: "about", label: "SOBRE NÓS", icon: Users2 },
   { id: "reviews", label: "AVALIAÇÕES", icon: Star },
   { id: "info", label: "INFORMAÇÕES", icon: Info },
@@ -619,6 +656,7 @@ export default function DesignPage() {
     const sectionIdMap: Record<SectionTab, string> = {
       home: "hero",
       products: "vitrine",
+      menu: "cardapio",
       about: "sobre",
       reviews: "feedbacks",
       info: "contato",
@@ -915,6 +953,14 @@ export default function DesignPage() {
                           setDesign(prev => ({ ...prev, sectionColors: { ...prev.sectionColors, vitrine: sc } }));
                           setIsDirty(true);
                         }}
+                      />
+                    </>
+                  )}
+                  {activeTab === "menu" && (
+                    <>
+                      <MenuSection
+                        data={design.menu || {}}
+                        onChange={(field, value) => updateDesign("menu", field, value)}
                       />
                     </>
                   )}
@@ -2198,6 +2244,219 @@ function ProductsSection({
             placeholder="#cardapio ou https://..."
             className="h-7 bg-zinc-800 border-zinc-700 text-xs"
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MENU SECTION (Cardápio / Modais)
+// ============================================
+
+function MenuSection({
+  data,
+  onChange,
+}: {
+  data: NonNullable<LandingDesign["menu"]>;
+  onChange: (field: string, value: unknown) => void;
+}) {
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPickerInput
+          value={value || defaultVal}
+          onChange={(v) => onChange(field, v)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-800 border-zinc-700 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-500">{label}</Label>
+      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
+        <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+          <SelectValue placeholder="Herdar Global" />
+        </SelectTrigger>
+        <SelectContent className="max-h-60">
+          <SelectItem value="inherit">Herdar Global</SelectItem>
+          {ALL_FONTS.map((f) => (
+            <SelectItem key={f} value={f}>
+              <span style={{ fontFamily: f }}>{f}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[10px] text-zinc-500 bg-zinc-800/50 rounded p-2">
+        Estilize os modais dinâmicos do Cardápio (Drawer, Filtros, Cards e Modal de Detalhes). Os dados dos produtos vêm do Catálogo e não são editáveis aqui.
+      </p>
+
+      {/* 3.1 PAINEL DO CARDÁPIO */}
+      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
+        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.1 PAINEL DO CARDÁPIO (DRAWER)</h4>
+
+        <ColorRow label="Cor de Fundo do Painel" value={data.panelBgColor} defaultVal="#0a0a0a" field="panelBgColor" />
+
+        <div>
+          <Label className="text-[10px] text-zinc-500">Opacidade do Overlay (fundo escuro)</Label>
+          <div className="flex items-center gap-3">
+            <Slider
+              value={[data.panelOverlayOpacity ?? 50]}
+              onValueChange={([v]) => onChange("panelOverlayOpacity", v)}
+              min={0}
+              max={100}
+              step={5}
+              className="flex-1"
+            />
+            <span className="text-[10px] text-zinc-400 w-8 text-right">{data.panelOverlayOpacity ?? 50}%</span>
+          </div>
+        </div>
+
+        <ColorRow label="Cor do Overlay" value={data.panelOverlayColor} defaultVal="#000000" field="panelOverlayColor" />
+        <ColorRow label="Cor do Texto do Header" value={data.headerTextColor} defaultVal="#ffffff" field="headerTextColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Campo de Busca</Label>
+        <ColorRow label="Cor da Borda" value={data.searchBorderColor} defaultVal="#333333" field="searchBorderColor" />
+        <ColorRow label="Cor de Fundo" value={data.searchBgColor} defaultVal="#1a1a1a" field="searchBgColor" />
+        <ColorRow label="Cor do Ícone (Lupa)" value={data.searchIconColor} defaultVal="#888888" field="searchIconColor" />
+      </div>
+
+      {/* 3.2 FILTROS DE CATEGORIA */}
+      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
+        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.2 FILTROS DE CATEGORIA (PILLS)</h4>
+
+        <div className="grid grid-cols-2 gap-3">
+          <ColorRow label="Fundo (Ativo)" value={data.filterActiveBgColor} defaultVal="#d4a574" field="filterActiveBgColor" />
+          <ColorRow label="Texto (Ativo)" value={data.filterActiveTextColor} defaultVal="#000000" field="filterActiveTextColor" />
+          <ColorRow label="Fundo (Inativo)" value={data.filterInactiveBgColor} defaultVal="#1a1a1a" field="filterInactiveBgColor" />
+          <ColorRow label="Texto (Inativo)" value={data.filterInactiveTextColor} defaultVal="#888888" field="filterInactiveTextColor" />
+        </div>
+      </div>
+
+      {/* 3.3 CARDS DE PRODUTO NO CARDÁPIO */}
+      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
+        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.3 CARDS DE PRODUTO NO CARDÁPIO</h4>
+        <p className="text-[9px] text-zinc-600">Dados dos produtos (nome, preço, foto) vem do Catálogo — somente o design visual é editável.</p>
+
+        <ColorRow label="Cor de Fundo do Card" value={data.cardBgColor} defaultVal="#111111" field="cardBgColor" />
+
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Nome" value={data.cardNameColor} defaultVal="#ffffff" field="cardNameColor" />
+          <ColorRow label="Preço" value={data.cardPriceColor} defaultVal="#d4a574" field="cardPriceColor" />
+          <ColorRow label="Descrição" value={data.cardDescColor} defaultVal="#888888" field="cardDescColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Borda do Card</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <Label className="text-[10px] text-zinc-500">Raio (px)</Label>
+            <Input
+              type="number"
+              value={data.cardBorderRadius ?? 12}
+              onChange={(e) => onChange("cardBorderRadius", Number(e.target.value))}
+              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            />
+          </div>
+          <ColorRow label="Cor" value={data.cardBorderColor} defaultVal="#222222" field="cardBorderColor" />
+          <div>
+            <Label className="text-[10px] text-zinc-500">Espessura (px)</Label>
+            <Input
+              type="number"
+              value={data.cardBorderWidth ?? 1}
+              onChange={(e) => onChange("cardBorderWidth", Number(e.target.value))}
+              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            />
+          </div>
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Tipografia dos Cards</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <FontSelect label="Fonte" value={data.cardFont} field="cardFont" />
+          <div>
+            <Label className="text-[10px] text-zinc-500">Tamanho (px)</Label>
+            <Input
+              type="number"
+              value={data.cardFontSize ?? 14}
+              onChange={(e) => onChange("cardFontSize", Number(e.target.value))}
+              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.cardFontWeight || "400"} onValueChange={(v) => onChange("cardFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* 3.4 MODAL DE DETALHES DO PRODUTO */}
+      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
+        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.4 MODAL DE DETALHES DO PRODUTO</h4>
+
+        <ColorRow label="Cor de Fundo do Modal" value={data.modalBgColor} defaultVal="#111111" field="modalBgColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão ‘Adicionar ao Carrinho’ (CTA)</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor de Fundo" value={data.modalCtaBgColor} defaultVal="#d4a574" field="modalCtaBgColor" />
+          <ColorRow label="Cor do Texto" value={data.modalCtaTextColor} defaultVal="#000000" field="modalCtaTextColor" />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <FontSelect label="Fonte" value={data.modalCtaFont} field="modalCtaFont" />
+          <div>
+            <Label className="text-[10px] text-zinc-500">Tamanho (px)</Label>
+            <Input
+              type="number"
+              value={data.modalCtaFontSize ?? 18}
+              onChange={(e) => onChange("modalCtaFontSize", Number(e.target.value))}
+              className="h-7 bg-zinc-800 border-zinc-700 text-xs"
+            />
+          </div>
+          <div>
+            <Label className="text-[10px] text-zinc-500">Peso</Label>
+            <Select value={data.modalCtaFontWeight || "600"} onValueChange={(v) => onChange("modalCtaFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-800 border-zinc-700 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Controles de Quantidade (+/-)</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Fundo Botões" value={data.qtyBtnBgColor} defaultVal="#d4a574" field="qtyBtnBgColor" />
+          <ColorRow label="Texto Botões" value={data.qtyBtnTextColor} defaultVal="#000000" field="qtyBtnTextColor" />
+          <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
         </div>
       </div>
     </div>

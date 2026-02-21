@@ -231,6 +231,43 @@ export interface SectionColors {
   buttonFg?: string;
 }
 
+export interface MenuStyleOverrides {
+  // 3.1 Painel do Cardápio
+  panelBgColor?: string;
+  panelOverlayOpacity?: number;
+  panelOverlayColor?: string;
+  headerTextColor?: string;
+  searchBorderColor?: string;
+  searchBgColor?: string;
+  searchIconColor?: string;
+  // 3.2 Filtros de Categoria
+  filterActiveBgColor?: string;
+  filterActiveTextColor?: string;
+  filterInactiveBgColor?: string;
+  filterInactiveTextColor?: string;
+  // 3.3 Cards de Produto no Cardápio
+  cardBgColor?: string;
+  cardBorderColor?: string;
+  cardBorderWidth?: number;
+  cardBorderRadius?: number;
+  cardNameColor?: string;
+  cardPriceColor?: string;
+  cardDescColor?: string;
+  cardFont?: string;
+  cardFontSize?: number;
+  cardFontWeight?: string;
+  // 3.4 Modal de Detalhes
+  modalBgColor?: string;
+  modalCtaBgColor?: string;
+  modalCtaTextColor?: string;
+  modalCtaFont?: string;
+  modalCtaFontSize?: number;
+  modalCtaFontWeight?: string;
+  qtyBtnBgColor?: string;
+  qtyBtnTextColor?: string;
+  qtyNumberColor?: string;
+}
+
 export interface SiteData {
   project_name: string;
   logo_url?: string;
@@ -241,6 +278,7 @@ export interface SiteData {
   sections_content: SectionsContent;
   feedbacks: Feedback[];
   catalog: Category[];
+  menu_style?: MenuStyleOverrides;
   section_colors?: {
     hero?: SectionColors;
     intro?: SectionColors;

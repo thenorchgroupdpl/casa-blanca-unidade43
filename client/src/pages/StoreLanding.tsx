@@ -316,6 +316,44 @@ export default function StoreLanding() {
           };
         }
         
+        // Update menu style overrides
+        if (design?.menu) {
+          const m = design.menu;
+          updatedData.menu_style = {
+            ...updatedData.menu_style,
+            panelBgColor: m.panelBgColor,
+            panelOverlayOpacity: m.panelOverlayOpacity,
+            panelOverlayColor: m.panelOverlayColor,
+            headerTextColor: m.headerTextColor,
+            searchBorderColor: m.searchBorderColor,
+            searchBgColor: m.searchBgColor,
+            searchIconColor: m.searchIconColor,
+            filterActiveBgColor: m.filterActiveBgColor,
+            filterActiveTextColor: m.filterActiveTextColor,
+            filterInactiveBgColor: m.filterInactiveBgColor,
+            filterInactiveTextColor: m.filterInactiveTextColor,
+            cardBgColor: m.cardBgColor,
+            cardBorderColor: m.cardBorderColor,
+            cardBorderWidth: m.cardBorderWidth,
+            cardBorderRadius: m.cardBorderRadius,
+            cardNameColor: m.cardNameColor,
+            cardPriceColor: m.cardPriceColor,
+            cardDescColor: m.cardDescColor,
+            cardFont: m.cardFont,
+            cardFontSize: m.cardFontSize,
+            cardFontWeight: m.cardFontWeight,
+            modalBgColor: m.modalBgColor,
+            modalCtaBgColor: m.modalCtaBgColor,
+            modalCtaTextColor: m.modalCtaTextColor,
+            modalCtaFont: m.modalCtaFont,
+            modalCtaFontSize: m.modalCtaFontSize,
+            modalCtaFontWeight: m.modalCtaFontWeight,
+            qtyBtnBgColor: m.qtyBtnBgColor,
+            qtyBtnTextColor: m.qtyBtnTextColor,
+            qtyNumberColor: m.qtyNumberColor,
+          };
+        }
+
         // Update section colors
         if (sectionColors || design?.sectionColors) {
           updatedData.section_colors = sectionColors || design?.sectionColors || {};
@@ -717,6 +755,38 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     },
     feedbacks: transformedFeedbacks,
     catalog: transformedCatalog,
+    menu_style: ld?.menu ? {
+      panelBgColor: ld.menu.panelBgColor,
+      panelOverlayOpacity: ld.menu.panelOverlayOpacity,
+      panelOverlayColor: ld.menu.panelOverlayColor,
+      headerTextColor: ld.menu.headerTextColor,
+      searchBorderColor: ld.menu.searchBorderColor,
+      searchBgColor: ld.menu.searchBgColor,
+      searchIconColor: ld.menu.searchIconColor,
+      filterActiveBgColor: ld.menu.filterActiveBgColor,
+      filterActiveTextColor: ld.menu.filterActiveTextColor,
+      filterInactiveBgColor: ld.menu.filterInactiveBgColor,
+      filterInactiveTextColor: ld.menu.filterInactiveTextColor,
+      cardBgColor: ld.menu.cardBgColor,
+      cardBorderColor: ld.menu.cardBorderColor,
+      cardBorderWidth: ld.menu.cardBorderWidth,
+      cardBorderRadius: ld.menu.cardBorderRadius,
+      cardNameColor: ld.menu.cardNameColor,
+      cardPriceColor: ld.menu.cardPriceColor,
+      cardDescColor: ld.menu.cardDescColor,
+      cardFont: ld.menu.cardFont,
+      cardFontSize: ld.menu.cardFontSize,
+      cardFontWeight: ld.menu.cardFontWeight,
+      modalBgColor: ld.menu.modalBgColor,
+      modalCtaBgColor: ld.menu.modalCtaBgColor,
+      modalCtaTextColor: ld.menu.modalCtaTextColor,
+      modalCtaFont: ld.menu.modalCtaFont,
+      modalCtaFontSize: ld.menu.modalCtaFontSize,
+      modalCtaFontWeight: ld.menu.modalCtaFontWeight,
+      qtyBtnBgColor: ld.menu.qtyBtnBgColor,
+      qtyBtnTextColor: ld.menu.qtyBtnTextColor,
+      qtyNumberColor: ld.menu.qtyNumberColor,
+    } : undefined,
     section_colors: ld?.sectionColors || {},
   };
 }

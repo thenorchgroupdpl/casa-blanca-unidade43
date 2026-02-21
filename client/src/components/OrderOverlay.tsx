@@ -2,6 +2,7 @@
  * Order Overlay - Casa Blanca (App-Mode)
  * Design: Warm Luxury - Full-screen overlay like Zé Delivery
  * Features: Search, category pills, product grid, floating cart bar
+ * Consumes menu_style from SiteData for Design System customization
  */
 
 import { useMemo, useEffect, useRef } from 'react';
@@ -24,6 +25,8 @@ export default function OrderOverlay() {
   const { getTotalItems, getTotalPrice } = useCart();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  const ms = data?.menu_style;
 
   // Lock body scroll when overlay is open
   useEffect(() => {
@@ -79,11 +82,9 @@ export default function OrderOverlay() {
     if (!data) return [];
 
     if (selectedCategory || searchQuery.trim()) {
-      // When filtering, show flat list
       return [{ id: 'results', name: 'Resultados', products: filteredProducts }];
     }
 
-    // Show all categories
     return data.catalog
       .filter((cat) => cat.products.length > 0)
       .map((cat) => ({
@@ -93,10 +94,31 @@ export default function OrderOverlay() {
       }));
   }, [data, selectedCategory, searchQuery, filteredProducts]);
 
+  // Card style from menu_style (passed to ProductCard)
+  const cardStyle = useMemo(() => {
+    if (!ms) return undefined;
+    return {
+      bgColor: ms.cardBgColor,
+      nameColor: ms.cardNameColor,
+      priceColor: ms.cardPriceColor,
+      descColor: ms.cardDescColor,
+      borderRadius: ms.cardBorderRadius,
+      borderColor: ms.cardBorderColor,
+      borderWidth: ms.cardBorderWidth,
+      font: ms.cardFont,
+      fontSize: ms.cardFontSize,
+      fontWeight: ms.cardFontWeight,
+    };
+  }, [ms]);
+
   if (!data) return null;
 
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
+
+  // Overlay background with customizable opacity
+  const overlayBg = ms?.panelBgColor || undefined;
+  const headerTextColor = ms?.headerTextColor || undefined;
 
   return (
     <AnimatePresence>
@@ -107,27 +129,38 @@ export default function OrderOverlay() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-50 bg-background"
+          style={overlayBg ? { backgroundColor: overlayBg } : undefined}
         >
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-background border-b border-border/50">
+          <div
+            className="sticky top-0 z-10 bg-background border-b border-border/50"
+            style={overlayBg ? { backgroundColor: overlayBg } : undefined}
+          >
             <div className="container py-4">
               {/* Top Row */}
               <div className="flex items-center gap-4 mb-4">
                 <button
                   onClick={closeOrderOverlay}
                   className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
+                  style={headerTextColor ? { color: headerTextColor } : undefined}
                 >
                   <X className="w-6 h-6" />
                 </button>
                 
-                <h1 className="font-display text-xl text-foreground flex-1">
+                <h1
+                  className="font-display text-xl text-foreground flex-1"
+                  style={headerTextColor ? { color: headerTextColor } : undefined}
+                >
                   Cardápio
                 </h1>
               </div>
 
               {/* Search Bar */}
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
+                  style={ms?.searchIconColor ? { color: ms.searchIconColor } : undefined}
+                />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -141,6 +174,10 @@ export default function OrderOverlay() {
                     'focus:outline-none focus:border-lp-highlight/50 focus:ring-1 focus:ring-lp-highlight/20',
                     'transition-all'
                   )}
+                  style={{
+                    ...(ms?.searchBgColor ? { backgroundColor: ms.searchBgColor } : {}),
+                    ...(ms?.searchBorderColor ? { borderColor: ms.searchBorderColor } : {}),
+                  }}
                 />
                 {searchQuery && (
                   <button
@@ -165,6 +202,17 @@ export default function OrderOverlay() {
                       ? 'bg-lp-highlight text-lp-highlight-fg'
                       : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                   )}
+                  style={
+                    !selectedCategory
+                      ? {
+                          ...(ms?.filterActiveBgColor ? { backgroundColor: ms.filterActiveBgColor } : {}),
+                          ...(ms?.filterActiveTextColor ? { color: ms.filterActiveTextColor } : {}),
+                        }
+                      : {
+                          ...(ms?.filterInactiveBgColor ? { backgroundColor: ms.filterInactiveBgColor } : {}),
+                          ...(ms?.filterInactiveTextColor ? { color: ms.filterInactiveTextColor } : {}),
+                        }
+                  }
                 >
                   Todos
                 </button>
@@ -179,6 +227,17 @@ export default function OrderOverlay() {
                         ? 'bg-lp-highlight text-lp-highlight-fg'
                         : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                     )}
+                    style={
+                      selectedCategory === cat.id
+                        ? {
+                            ...(ms?.filterActiveBgColor ? { backgroundColor: ms.filterActiveBgColor } : {}),
+                            ...(ms?.filterActiveTextColor ? { color: ms.filterActiveTextColor } : {}),
+                          }
+                        : {
+                            ...(ms?.filterInactiveBgColor ? { backgroundColor: ms.filterInactiveBgColor } : {}),
+                            ...(ms?.filterInactiveTextColor ? { color: ms.filterInactiveTextColor } : {}),
+                          }
+                    }
                   >
                     {cat.category_name}
                   </button>
@@ -222,7 +281,10 @@ export default function OrderOverlay() {
                   <div key={group.id}>
                     {/* Category Header */}
                     {!searchQuery.trim() && !selectedCategory && (
-                      <h2 className="font-display text-2xl text-foreground mb-6">
+                      <h2
+                        className="font-display text-2xl text-foreground mb-6"
+                        style={headerTextColor ? { color: headerTextColor } : undefined}
+                      >
                         {group.name}
                       </h2>
                     )}
@@ -235,6 +297,7 @@ export default function OrderOverlay() {
                           product={product}
                           index={index}
                           variant="grid"
+                          cardStyle={cardStyle}
                         />
                       ))}
                     </div>
@@ -271,9 +334,7 @@ function FloatingCartBar({ totalItems, totalPrice }: FloatingCartBarProps) {
     }).format(price);
   };
 
-  // We'll implement the cart view later - for now just show the bar
   const handleViewCart = () => {
-    // This will be connected to the checkout flow
     const event = new CustomEvent('openCart');
     window.dispatchEvent(event);
   };
