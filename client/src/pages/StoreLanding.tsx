@@ -8,6 +8,7 @@ import { useParams, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { useSiteData, useCartStore } from '@/store/useStore';
 import { applyLandingTheme, removeLandingTheme, type LandingThemeColors } from '@/lib/landingTheme';
+import { useTrackingScripts } from '@/hooks/useTrackingScripts';
 import type { SiteData, Category, Product, Feedback, DaySchedule } from '@/types';
 import { getSectionStyle } from '@/lib/sectionColors';
 
@@ -473,6 +474,13 @@ export default function StoreLanding() {
     { slug: slug || '' },
     { enabled: !!slug }
   );
+
+  // Inject marketing tracking scripts (Meta Pixel, GA4, GTM)
+  useTrackingScripts({
+    metaPixelId: tenantData?.tenant?.metaPixelId,
+    ga4MeasurementId: tenantData?.tenant?.ga4MeasurementId,
+    gtmContainerId: tenantData?.tenant?.gtmContainerId,
+  });
 
   // Apply tenant theme colors + fonts via Design Tokens system
   useEffect(() => {

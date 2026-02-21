@@ -143,11 +143,17 @@ export const tenantsRouter = router({
       id: z.number(),
       googleApiKey: z.string().optional(),
       googlePlaceId: z.string().optional(),
+      metaPixelId: z.string().optional(),
+      ga4MeasurementId: z.string().optional(),
+      gtmContainerId: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       await db.updateTenant(input.id, {
         googleApiKey: input.googleApiKey,
         googlePlaceId: input.googlePlaceId,
+        metaPixelId: input.metaPixelId || null,
+        ga4MeasurementId: input.ga4MeasurementId || null,
+        gtmContainerId: input.gtmContainerId || null,
       });
       return { success: true };
     }),

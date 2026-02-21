@@ -227,3 +227,103 @@ describe("tenants.assumeTenant", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("tenants.updateIntegrations", () => {
+  it("updates Google Places fields for super admin", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    // First get a tenant to update
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return; // skip if no tenants
+
+    const tenantId = tenants[0].id;
+    const result = await caller.tenants.updateIntegrations({
+      id: tenantId,
+      googleApiKey: "AIzaTestKey123",
+      googlePlaceId: "ChIJTestPlaceId",
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("updates marketing tracking fields for super admin", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenantId = tenants[0].id;
+    const result = await caller.tenants.updateIntegrations({
+      id: tenantId,
+      metaPixelId: "1234567890",
+      ga4MeasurementId: "G-XXXXXXXXXX",
+      gtmContainerId: "GTM-XXXXXXX",
+    });
+    expect(result).toEqual({ success: true });
+
+    // Verify the data was saved
+    const updatedTenants = await caller.tenants.list();
+    const updated = updatedTenants.find((t: any) => t.id === tenantId);
+    expect(updated?.metaPixelId).toBe("1234567890");
+    expect(updated?.ga4MeasurementId).toBe("G-XXXXXXXXXX");
+    expect(updated?.gtmContainerId).toBe("GTM-XXXXXXX");
+  });
+
+  it("clears tracking fields when empty strings are passed", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenantId = tenants[0].id;
+    
+    // First set values
+    await caller.tenants.updateIntegrations({
+      id: tenantId,
+      metaPixelId: "9999999999",
+    });
+
+    // Then clear them
+    const result = await caller.tenants.updateIntegrations({
+      id: tenantId,
+      metaPixelId: "",
+    });
+    expect(result).toEqual({ success: true });
+
+    // Verify cleared
+    const updatedTenants = await caller.tenants.list();
+    const updated = updatedTenants.find((t: any) => t.id === tenantId);
+    expect(updated?.metaPixelId).toBeNull();
+  });
+
+  it("allows partial updates (only some fields)", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const tenants = await caller.tenants.list();
+    if (tenants.length === 0) return;
+
+    const tenantId = tenants[0].id;
+    
+    // Update only Meta Pixel
+    const result = await caller.tenants.updateIntegrations({
+      id: tenantId,
+      metaPixelId: "111222333",
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("rejects non-super-admin users", async () => {
+    const ctx = createRegularUserContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.tenants.updateIntegrations({
+        id: 1,
+        metaPixelId: "1234567890",
+      })
+    ).rejects.toThrow();
+  });
+});

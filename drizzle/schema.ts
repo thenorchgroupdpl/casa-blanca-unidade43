@@ -67,6 +67,11 @@ export const tenants = mysqlTable("tenants", {
   googleApiKey: varchar("googleApiKey", { length: 255 }), // Google Maps/Places API Key
   googlePlaceId: varchar("googlePlaceId", { length: 255 }), // Google Place ID for reviews
   
+  // Marketing Tracking (managed by Super Admin only)
+  metaPixelId: varchar("metaPixelId", { length: 50 }), // Meta/Facebook Pixel ID (e.g., 1234567890)
+  ga4MeasurementId: varchar("ga4MeasurementId", { length: 50 }), // Google Analytics 4 Measurement ID (e.g., G-XXXXXXXXXX)
+  gtmContainerId: varchar("gtmContainerId", { length: 50 }), // Google Tag Manager Container ID (e.g., GTM-XXXXXXX)
+  
   // Design System (managed by Super Admin only)
   themeColors: json("themeColors").$type<{
     primary: string;      // Main brand color (e.g., #D4AF37)

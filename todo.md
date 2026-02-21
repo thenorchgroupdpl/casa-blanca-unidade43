@@ -429,3 +429,15 @@
 ## Fase 39b: Melhorias no formulário de criação de usuários
 - [x] Trocar Select de Empresa/Tenant por Combobox com campo de busca (filtro, drawer criação, modal edição)
 - [x] Corrigir cor das letras em TODOS os dropdowns/selects (letras brancas em fundo escuro) - Users, Design, Catalog, Vitrine, ComponentShowcase
+
+## Fase 40: Refatoração da aba Integrações + Rastreamento de Marketing
+- [x] Substituir pills de seleção de loja por Combobox com busca (mesmo padrão do Design System)
+- [x] Redesign dos inputs do Google Places API para novo padrão Dark Mode (grid 2 colunas, ícones, badges)
+- [x] Nova seção "Rastreamento de Marketing (Pixels e Analytics)" com campos: Meta Pixel, GA4, GTM
+- [x] Adicionar campos metaPixelId, ga4MeasurementId, gtmContainerId ao schema do banco
+- [x] Migrar banco de dados com pnpm db:push
+- [x] Criar/atualizar procedures no router para salvar/ler campos de tracking
+- [x] Injeção automática de scripts (Meta Pixel, GA4, GTM) no <head>/<body> da Landing Page (hook useTrackingScripts)
+- [x] Remover seção "Mais Integrações" com cards "Em breve" (Stripe, WhatsApp, iFood)
+- [x] Escrever testes unitários para as novas procedures de tracking (99 testes passando)
+- [x] Testar fluxo completo no navegador (verificado visualmente)
