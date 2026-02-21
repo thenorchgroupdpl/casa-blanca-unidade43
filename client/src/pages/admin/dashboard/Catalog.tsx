@@ -331,17 +331,49 @@ export default function CatalogPage() {
       toast.error("Selecione uma categoria");
       return;
     }
+    if (!productForm.name.trim()) {
+      toast.error("Nome do produto é obrigatório");
+      return;
+    }
+    if (!productForm.price || isNaN(parseFloat(productForm.price))) {
+      toast.error("Preço é obrigatório e deve ser um número válido");
+      return;
+    }
+
+    // Sanitize: convert empty strings to null/undefined for decimal fields
     const payload = {
-      ...productForm,
       categoryId: productForm.categoryId,
-      unitValue: productForm.unitValue || undefined,
-      unit: productForm.unit || undefined,
-      highlightTag: productForm.highlightTag || undefined,
+      name: productForm.name.trim(),
+      description: productForm.description.trim() || undefined,
+      price: productForm.price,
+      originalPrice: productForm.originalPrice && productForm.originalPrice.trim() !== '' ? productForm.originalPrice.trim() : undefined,
+      imageUrl: productForm.imageUrl || undefined,
+      isAvailable: productForm.isAvailable,
+      servesQuantity: productForm.servesQuantity.trim() || undefined,
+      sortOrder: productForm.sortOrder,
+      isFeatured: productForm.isFeatured,
+      unitValue: productForm.unitValue && productForm.unitValue.trim() !== '' ? productForm.unitValue.trim() : undefined,
+      unit: productForm.unit && productForm.unit.trim() !== '' ? productForm.unit : undefined,
+      highlightTag: productForm.highlightTag && productForm.highlightTag.trim() !== '' ? productForm.highlightTag : undefined,
     };
-    if (editingProduct) {
-      updateProduct.mutate({ id: editingProduct, data: payload });
-    } else {
-      createProduct.mutate(payload);
+
+    try {
+      if (editingProduct) {
+        updateProduct.mutate({ id: editingProduct, data: payload }, {
+          onError: (error) => {
+            toast.error(`Erro ao atualizar produto: ${error.message}`);
+          },
+        });
+      } else {
+        createProduct.mutate(payload, {
+          onError: (error) => {
+            toast.error(`Erro ao criar produto: ${error.message}`);
+          },
+        });
+      }
+    } catch (err) {
+      toast.error("Erro inesperado ao salvar produto. Tente novamente.");
+      console.error("Product submit error:", err);
     }
   };
 
@@ -887,35 +919,47 @@ export default function CatalogPage() {
                 </div>
               </div>
 
-              {/* Unit of Measure */}
+              {/* Unit of Measure - Two distinct fields side by side */}
               <div className="space-y-2">
                 <Label>Unidade de Medida (opcional)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={productForm.unitValue}
-                    onChange={(e) => setProductForm({ ...productForm, unitValue: e.target.value })}
-                    placeholder="Ex: 350"
-                    className="bg-zinc-800 border-zinc-700 flex-1"
-                  />
-                  <Select
-                    value={productForm.unit || "none"}
-                    onValueChange={(value) => setProductForm({ ...productForm, unit: value === "none" ? "" : value })}
-                  >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700 w-24">
-                      <SelectValue placeholder="un" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
-                      <SelectItem value="none">—</SelectItem>
-                      {UNIT_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex gap-4">
+                  <div className="flex-1 space-y-1">
+                    <span className="text-xs text-zinc-500">Quantidade</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={productForm.unitValue}
+                      onChange={(e) => setProductForm({ ...productForm, unitValue: e.target.value })}
+                      placeholder="Ex: 700"
+                      className="bg-zinc-800 border-zinc-700"
+                    />
+                  </div>
+                  <div className="w-28 space-y-1">
+                    <span className="text-xs text-zinc-500">Unidade</span>
+                    <Select
+                      value={productForm.unit || "none"}
+                      onValueChange={(value) => setProductForm({ ...productForm, unit: value === "none" ? "" : value })}
+                    >
+                      <SelectTrigger className="bg-zinc-800 border-zinc-700 w-full">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-800 border-zinc-700 text-white">
+                        <SelectItem value="none">—</SelectItem>
+                        {UNIT_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                {productForm.unitValue && productForm.unit && (
+                  <p className="text-xs text-zinc-500 mt-1">
+                    Exibirá como: <span className="text-amber-400 font-medium">{productForm.unitValue}{productForm.unit}</span>
+                  </p>
+                )}
               </div>
 
               {/* Image Upload (via ImageUploader global component) */}

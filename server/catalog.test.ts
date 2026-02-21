@@ -202,7 +202,120 @@ describe("Integrated product search", () => {
 });
 
 // ============================================
-// 6. CATEGORY REORDER LOGIC
+// 6. DECIMAL FIELD SANITIZATION (bug fix tests)
+// ============================================
+
+function sanitizeDecimalField(value: string | null | undefined): string | null {
+  if (value === undefined || value === null) return null;
+  if (String(value).trim() === '') return null;
+  return String(value).trim();
+}
+
+function sanitizeProductPayload(form: {
+  categoryId: number | null;
+  name: string;
+  price: string;
+  originalPrice: string;
+  unitValue: string;
+  unit: string;
+  highlightTag: string;
+}) {
+  return {
+    categoryId: form.categoryId,
+    name: form.name.trim(),
+    price: form.price,
+    originalPrice: sanitizeDecimalField(form.originalPrice) ?? undefined,
+    unitValue: sanitizeDecimalField(form.unitValue) ?? undefined,
+    unit: form.unit && form.unit.trim() !== '' ? form.unit : undefined,
+    highlightTag: form.highlightTag && form.highlightTag.trim() !== '' ? form.highlightTag : undefined,
+  };
+}
+
+describe("Decimal field sanitization (bug fix)", () => {
+  it("converts empty string originalPrice to undefined (not empty string)", () => {
+    const result = sanitizeProductPayload({
+      categoryId: 1,
+      name: "Test Product",
+      price: "24.00",
+      originalPrice: "",
+      unitValue: "",
+      unit: "",
+      highlightTag: "",
+    });
+    expect(result.originalPrice).toBeUndefined();
+    expect(result.unitValue).toBeUndefined();
+    expect(result.unit).toBeUndefined();
+    expect(result.highlightTag).toBeUndefined();
+  });
+
+  it("preserves valid decimal values", () => {
+    const result = sanitizeProductPayload({
+      categoryId: 1,
+      name: "Test Product",
+      price: "24.00",
+      originalPrice: "29.90",
+      unitValue: "700",
+      unit: "ml",
+      highlightTag: "novidade",
+    });
+    expect(result.originalPrice).toBe("29.90");
+    expect(result.unitValue).toBe("700");
+    expect(result.unit).toBe("ml");
+    expect(result.highlightTag).toBe("novidade");
+  });
+
+  it("converts whitespace-only strings to undefined", () => {
+    const result = sanitizeProductPayload({
+      categoryId: 1,
+      name: "Test Product",
+      price: "10.00",
+      originalPrice: "   ",
+      unitValue: "  ",
+      unit: "",
+      highlightTag: "",
+    });
+    expect(result.originalPrice).toBeUndefined();
+    expect(result.unitValue).toBeUndefined();
+  });
+
+  it("trims product name", () => {
+    const result = sanitizeProductPayload({
+      categoryId: 1,
+      name: "  P\u00e3o Fermenta\u00e7\u00e3o Natural  ",
+      price: "24.00",
+      originalPrice: "",
+      unitValue: "",
+      unit: "",
+      highlightTag: "",
+    });
+    expect(result.name).toBe("P\u00e3o Fermenta\u00e7\u00e3o Natural");
+  });
+});
+
+describe("sanitizeDecimalField helper", () => {
+  it("returns null for empty string", () => {
+    expect(sanitizeDecimalField("")).toBeNull();
+  });
+
+  it("returns null for undefined", () => {
+    expect(sanitizeDecimalField(undefined)).toBeNull();
+  });
+
+  it("returns null for null", () => {
+    expect(sanitizeDecimalField(null)).toBeNull();
+  });
+
+  it("returns trimmed value for valid input", () => {
+    expect(sanitizeDecimalField("  29.90  ")).toBe("29.90");
+  });
+
+  it("returns value for zero", () => {
+    expect(sanitizeDecimalField("0")).toBe("0");
+  });
+});
+
+// ============================================
+// 7. CATEGORY REORDER LOGIC
 // ============================================
 
 describe("Category reorder logic", () => {

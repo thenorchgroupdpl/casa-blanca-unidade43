@@ -534,3 +534,11 @@
 - [x] Integrar ImageUploader no Design System (logo, backgrounds, about, reviews, info)
 - [x] Escrever testes unitários (13 novos testes, 159 total passando)
 - [ ] Testar fluxo completo no navegador
+
+## Fase 47: Correção de Bugs no Modal de Produto
+- [x] Corrigir bug de salvamento: causa raiz era originalPrice/unitValue enviados como string vazia para campo DECIMAL no MySQL
+- [x] Garantir que imagem do ImageUploader seja incluída no payload de salvamento
+- [x] Adicionar try/catch com Toast de erro claro no submit handler + validações de nome e preço
+- [x] Refatorar campos de Unidade de Medida: input number + select separados (flex gap-4) com preview
+- [x] Sanitização no backend (router) para converter strings vazias em null antes do SQL
+- [x] Testes unitários: 9 novos testes de sanitização (168 total passando)

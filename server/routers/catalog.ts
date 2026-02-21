@@ -250,7 +250,7 @@ export const productsRouter = router({
         name: z.string().optional(),
         description: z.string().optional(),
         price: z.string().optional(),
-        originalPrice: z.string().optional(),
+        originalPrice: z.string().nullable().optional(),
         imageUrl: z.string().optional(),
         isAvailable: z.boolean().optional(),
         servesQuantity: z.string().optional(),
@@ -278,7 +278,22 @@ export const productsRouter = router({
         }
       }
 
-      await db.updateProduct(input.id, input.data);
+      // Sanitize decimal fields: convert empty strings to null
+      const sanitized = { ...input.data };
+      if (sanitized.originalPrice !== undefined) {
+        sanitized.originalPrice = sanitized.originalPrice && String(sanitized.originalPrice).trim() !== '' ? sanitized.originalPrice : null;
+      }
+      if (sanitized.unitValue !== undefined) {
+        sanitized.unitValue = sanitized.unitValue && String(sanitized.unitValue).trim() !== '' ? sanitized.unitValue : null;
+      }
+      if (sanitized.unit !== undefined) {
+        sanitized.unit = sanitized.unit && String(sanitized.unit).trim() !== '' ? sanitized.unit : null;
+      }
+      if (sanitized.highlightTag !== undefined) {
+        sanitized.highlightTag = sanitized.highlightTag && String(sanitized.highlightTag).trim() !== '' ? sanitized.highlightTag : null;
+      }
+
+      await db.updateProduct(input.id, sanitized);
       return { success: true };
     }),
 
