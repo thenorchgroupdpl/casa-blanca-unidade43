@@ -85,6 +85,13 @@
       "when": 1771679229966,
       "tag": "0011_freezing_lilandra",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1771870201137,
+      "tag": "0012_massive_silverclaw",
+      "breakpoints": true
     }
   ]
 }

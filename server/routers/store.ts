@@ -70,6 +70,9 @@ export const storeRouter = router({
       aboutText: z.string().optional(),
       ownerName: z.string().optional(),
       ownerPhoto: z.string().optional(),
+      deliveryFee: z.string().optional().nullable(),
+      attendantName: z.string().optional(),
+      attendantPhoto: z.string().optional(),
       tenantId: z.number().optional(), // For super_admin
     }))
     .mutation(async ({ ctx, input }) => {
@@ -95,6 +98,9 @@ export const storeRouter = router({
         aboutText: input.aboutText,
         ownerName: input.ownerName,
         ownerPhoto: input.ownerPhoto,
+        deliveryFee: input.deliveryFee === '' ? null : input.deliveryFee,
+        attendantName: input.attendantName,
+        attendantPhoto: input.attendantPhoto,
       });
 
       return { success: true };

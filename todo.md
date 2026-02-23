@@ -574,3 +574,20 @@
 - [x] Nunca renderizar seção vazia (filtro triplo: backend + transformação + VitrineSection)
 ### Backend/Testes
 - [x] Testes unitários: 14 novos testes de vitrine (197 total passando)
+
+## Fase 51: Correções na Tela Dados da Loja
+### Bug Global de CSS
+- [x] Corrigir cor de texto dos inputs no dark mode: texto branco (#ffffff), placeholder cinza claro (#9ca3af)
+- [x] Aplicar globalmente via CSS a todos os formulários do painel Lojista (seletores bg-zinc-*)
+### Reestruturação de Abas
+- [x] Remover aba 'Conteúdo' (personalização visual é função do Super Admin)
+- [x] Migrar campos WhatsApp (Foto e Nome do Atendente) para aba 'Informações'
+- [x] Criar seção 'Configuração do Atendimento (Popup WhatsApp)' na aba Informações
+- [x] Nova estrutura: 4 abas (Informações, Endereço, Horários, Compartilhar) - Redes Sociais integradas em Informações
+### Novos Campos e Uploads
+- [x] Foto do Atendente com ImageUploader (crop 1:1 / context=profile)
+- [x] Adicionar campo 'Taxa Fixa de Entrega (R$)' com prefixo R$ e sanitização de valor vazio para null
+### Backend
+- [x] Adicionar campo deliveryFee, attendantName, attendantPhoto ao schema storeSettings
+- [x] Atualizar router store.updateSettings para aceitar novos campos
+- [x] Testes unitários: 11 novos testes (208 total passando)

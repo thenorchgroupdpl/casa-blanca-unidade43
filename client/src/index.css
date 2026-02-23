@@ -335,6 +335,35 @@
     color: var(--lp-text, #1a1a1a);
   }
   
+  /* Admin panel dark inputs - force white text on dark backgrounds */
+  /* Applies to all inputs/selects/textareas with bg-zinc-* backgrounds */
+  [class*="bg-zinc-"] input,
+  [class*="bg-zinc-"] textarea,
+  [class*="bg-zinc-"] select,
+  input[class*="bg-zinc-"],
+  textarea[class*="bg-zinc-"],
+  select[class*="bg-zinc-"] {
+    color: #ffffff !important;
+  }
+  
+  [class*="bg-zinc-"] input::placeholder,
+  [class*="bg-zinc-"] textarea::placeholder,
+  input[class*="bg-zinc-"]::placeholder,
+  textarea[class*="bg-zinc-"]::placeholder {
+    color: #9ca3af !important; /* gray-400 */
+  }
+  
+  /* Also fix time inputs and select triggers in admin */
+  [class*="bg-zinc-"] [data-slot="input"],
+  [class*="bg-zinc-"] [role="combobox"] {
+    color: #ffffff !important;
+  }
+  
+  /* Fix label text in admin panels */
+  [class*="bg-zinc-"] label {
+    color: #d4d4d8; /* zinc-300 */
+  }
+  
   /* Pill button style */
   .pill {
     @apply rounded-full px-4 py-2 text-sm font-medium transition-all duration-200;

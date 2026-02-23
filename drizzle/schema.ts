@@ -188,6 +188,13 @@ export const storeSettings = mysqlTable("store_settings", {
     };
   }>(),
   
+  // Delivery Fee (optional fixed delivery fee)
+  deliveryFee: decimal("deliveryFee", { precision: 10, scale: 2 }),
+  
+  // WhatsApp Popup Config (attendant info)
+  attendantName: varchar("attendantName", { length: 255 }),
+  attendantPhoto: varchar("attendantPhoto", { length: 500 }),
+  
   // Manual Override (Lojista can force open/closed)
   manualOverride: varchar("manualOverride", { length: 20 }).$type<'open' | 'closed' | null>(),
   

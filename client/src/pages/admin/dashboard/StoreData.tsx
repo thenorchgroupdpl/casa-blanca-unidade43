@@ -3,16 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ImageUploader from "@/components/ImageUploader";
 import { trpc } from "@/lib/trpc";
-import { 
-  Save, 
-  Phone, 
-  Clock, 
-  MapPin, 
-  Share2,
+import {
+  Save,
+  Store,
+  Clock,
+  MapPin,
   MessageCircle,
   Instagram,
   Facebook,
@@ -21,7 +20,10 @@ import {
   Copy,
   Download,
   ExternalLink,
-  Check
+  Check,
+  Truck,
+  Headset,
+  Share2,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -59,6 +61,9 @@ type FormData = {
   aboutText: string;
   ownerName: string;
   ownerPhoto: string;
+  deliveryFee: string;
+  attendantName: string;
+  attendantPhoto: string;
 };
 
 const defaultOpeningHours: OpeningHours = {
@@ -97,6 +102,9 @@ const defaultFormData: FormData = {
   aboutText: "",
   ownerName: "",
   ownerPhoto: "",
+  deliveryFee: "",
+  attendantName: "",
+  attendantPhoto: "",
 };
 
 export default function StoreDataPage() {
@@ -112,8 +120,20 @@ export default function StoreDataPage() {
       utils.store.getSettings.invalidate();
       setHasChanges(false);
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error: any) => toast.error(error.message),
   });
+
+  // Upload image via catalog.uploadImage (reuse existing pipeline)
+  const uploadImage = trpc.products.uploadImage.useMutation();
+
+  const handleImageUpload = async (base64Data: string, fileName: string): Promise<string> => {
+    const result = await uploadImage.mutateAsync({
+      imageData: base64Data,
+      fileName,
+      contentType: "image/webp",
+    });
+    return result.url;
+  };
 
   // Load existing settings
   useEffect(() => {
@@ -134,6 +154,9 @@ export default function StoreDataPage() {
         aboutText: settings.aboutText || "",
         ownerName: settings.ownerName || "",
         ownerPhoto: settings.ownerPhoto || "",
+        deliveryFee: settings.deliveryFee || "",
+        attendantName: (settings as any).attendantName || "",
+        attendantPhoto: (settings as any).attendantPhoto || "",
       });
       setHasChanges(false);
     }
@@ -174,7 +197,10 @@ export default function StoreDataPage() {
   };
 
   const handleSave = () => {
-    updateSettings.mutate(formData);
+    updateSettings.mutate({
+      ...formData,
+      deliveryFee: formData.deliveryFee === "" ? null : formData.deliveryFee,
+    });
   };
 
   return (
@@ -185,7 +211,7 @@ export default function StoreDataPage() {
           <div>
             <h1 className="text-3xl font-bold text-white">Dados da Loja</h1>
             <p className="text-zinc-400 mt-1">
-              Configure informações de contato, horários e conteúdo
+              Configure informações, endereço e horários
             </p>
           </div>
           <Button
@@ -201,103 +227,307 @@ export default function StoreDataPage() {
         {isLoading ? (
           <div className="text-zinc-500 text-center py-12">Carregando...</div>
         ) : (
-          <Tabs defaultValue="contact">
+          <Tabs defaultValue="info">
             <TabsList className="bg-zinc-800">
-              <TabsTrigger value="contact" className="data-[state=active]:bg-zinc-700">
-                <Phone className="h-4 w-4 mr-2" />
-                Contato
+              <TabsTrigger value="info" className="data-[state=active]:bg-zinc-700 text-zinc-300 data-[state=active]:text-white">
+                <Store className="h-4 w-4 mr-2" />
+                Informações
               </TabsTrigger>
-              <TabsTrigger value="hours" className="data-[state=active]:bg-zinc-700">
-                <Clock className="h-4 w-4 mr-2" />
-                Horários
-              </TabsTrigger>
-              <TabsTrigger value="address" className="data-[state=active]:bg-zinc-700">
+              <TabsTrigger value="address" className="data-[state=active]:bg-zinc-700 text-zinc-300 data-[state=active]:text-white">
                 <MapPin className="h-4 w-4 mr-2" />
                 Endereço
               </TabsTrigger>
-              <TabsTrigger value="social" className="data-[state=active]:bg-zinc-700">
+              <TabsTrigger value="hours" className="data-[state=active]:bg-zinc-700 text-zinc-300 data-[state=active]:text-white">
+                <Clock className="h-4 w-4 mr-2" />
+                Horários
+              </TabsTrigger>
+              <TabsTrigger value="sharing" className="data-[state=active]:bg-zinc-700 text-zinc-300 data-[state=active]:text-white">
                 <Share2 className="h-4 w-4 mr-2" />
-                Redes Sociais
-              </TabsTrigger>
-              <TabsTrigger value="content" className="data-[state=active]:bg-zinc-700">
-                Conteúdo
-              </TabsTrigger>
-              <TabsTrigger value="sharing" className="data-[state=active]:bg-zinc-700">
-                <QrCode className="h-4 w-4 mr-2" />
                 Compartilhar
               </TabsTrigger>
             </TabsList>
 
-            {/* Contact Tab */}
-            <TabsContent value="contact" className="mt-6">
+            {/* ============================================ */}
+            {/* TAB 1: INFORMAÇÕES                           */}
+            {/* ============================================ */}
+            <TabsContent value="info" className="mt-6 space-y-6">
+              {/* Contato */}
               <Card className="bg-zinc-900 border-zinc-800">
                 <CardHeader>
-                  <CardTitle className="text-white">Informações de Contato</CardTitle>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-green-500" />
+                    Contato
+                  </CardTitle>
                   <CardDescription className="text-zinc-400">
                     Dados para os clientes entrarem em contato
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4 text-green-500" />
-                      WhatsApp
-                    </Label>
+                    <Label className="text-zinc-300">WhatsApp</Label>
                     <Input
                       value={formData.whatsapp}
                       onChange={(e) => handleChange("whatsapp", e.target.value)}
                       placeholder="5511999999999"
-                      className="bg-zinc-800 border-zinc-700"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     />
                     <p className="text-xs text-zinc-500">
                       Número com código do país (55) e DDD, sem espaços ou caracteres especiais
                     </p>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Telefone (opcional)</Label>
+                      <Input
+                        value={formData.phone}
+                        onChange={(e) => handleChange("phone", e.target.value)}
+                        placeholder="(11) 3333-4444"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">E-mail (opcional)</Label>
+                      <Input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
+                        placeholder="contato@loja.com"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Redes Sociais */}
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Share2 className="h-5 w-5 text-blue-500" />
+                    Redes Sociais
+                  </CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Links para suas redes sociais
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-zinc-300">
+                        <Instagram className="h-4 w-4 text-pink-500" />
+                        Instagram
+                      </Label>
+                      <Input
+                        value={formData.socialLinks.instagram || ""}
+                        onChange={(e) => handleSocialLinkChange("instagram", e.target.value)}
+                        placeholder="https://instagram.com/sualoja"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-zinc-300">
+                        <Facebook className="h-4 w-4 text-blue-500" />
+                        Facebook
+                      </Label>
+                      <Input
+                        value={formData.socialLinks.facebook || ""}
+                        onChange={(e) => handleSocialLinkChange("facebook", e.target.value)}
+                        placeholder="https://facebook.com/sualoja"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-zinc-300">
+                        <Youtube className="h-4 w-4 text-red-500" />
+                        YouTube
+                      </Label>
+                      <Input
+                        value={formData.socialLinks.youtube || ""}
+                        onChange={(e) => handleSocialLinkChange("youtube", e.target.value)}
+                        placeholder="https://youtube.com/@sualoja"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">TikTok</Label>
+                      <Input
+                        value={formData.socialLinks.tiktok || ""}
+                        onChange={(e) => handleSocialLinkChange("tiktok", e.target.value)}
+                        placeholder="https://tiktok.com/@sualoja"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Taxa de Entrega */}
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Truck className="h-5 w-5 text-amber-500" />
+                    Taxa de Entrega
+                  </CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Defina uma taxa fixa de entrega (opcional)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-2">
-                    <Label>Telefone (opcional)</Label>
+                    <Label className="text-zinc-300">Taxa Fixa de Entrega (R$)</Label>
+                    <div className="relative max-w-xs">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-medium">R$</span>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.deliveryFee}
+                        onChange={(e) => handleChange("deliveryFee", e.target.value)}
+                        placeholder="0.00"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 pl-10"
+                      />
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      Deixe em branco para não exibir taxa de entrega na loja
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Configuração do Atendimento (Popup WhatsApp) */}
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Headset className="h-5 w-5 text-green-500" />
+                    Configuração do Atendimento (Popup WhatsApp)
+                  </CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Personalize o popup de WhatsApp que aparece na sua loja
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Foto do Atendente */}
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Foto do Atendente</Label>
+                      <ImageUploader
+                        value={formData.attendantPhoto}
+                        onChange={(url) => {
+                          handleChange("attendantPhoto", url);
+                        }}
+                        onRemove={() => handleChange("attendantPhoto", "")}
+                        context="profile"
+                        onUpload={handleImageUpload}
+                        placeholder="Foto do atendente (quadrada)"
+                      />
+                      <p className="text-xs text-zinc-500">
+                        Foto que aparecerá no popup do WhatsApp. Corte quadrado (1:1).
+                      </p>
+                    </div>
+
+                    {/* Nome do Atendente */}
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Nome do Atendente</Label>
+                      <Input
+                        value={formData.attendantName}
+                        onChange={(e) => handleChange("attendantName", e.target.value)}
+                        placeholder="Ex: Maria"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                      <p className="text-xs text-zinc-500">
+                        Nome exibido no popup de atendimento via WhatsApp
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* ============================================ */}
+            {/* TAB 2: ENDEREÇO                              */}
+            {/* ============================================ */}
+            <TabsContent value="address" className="mt-6">
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-red-500" />
+                    Endereço
+                  </CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Localização da sua loja
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300">Endereço Completo</Label>
                     <Input
-                      value={formData.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      placeholder="(11) 3333-4444"
-                      className="bg-zinc-800 border-zinc-700"
+                      value={formData.address}
+                      onChange={(e) => handleChange("address", e.target.value)}
+                      placeholder="Rua Exemplo, 123 - Bairro"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>E-mail (opcional)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Cidade</Label>
+                      <Input
+                        value={formData.city}
+                        onChange={(e) => handleChange("city", e.target.value)}
+                        placeholder="São Paulo"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Estado</Label>
+                      <Input
+                        value={formData.state}
+                        onChange={(e) => handleChange("state", e.target.value)}
+                        placeholder="SP"
+                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 max-w-xs">
+                    <Label className="text-zinc-300">CEP</Label>
                     <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      placeholder="contato@loja.com"
-                      className="bg-zinc-800 border-zinc-700"
+                      value={formData.cep}
+                      onChange={(e) => handleChange("cep", e.target.value)}
+                      placeholder="01234-567"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     />
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Hours Tab */}
+            {/* ============================================ */}
+            {/* TAB 3: HORÁRIOS                              */}
+            {/* ============================================ */}
             <TabsContent value="hours" className="mt-6">
               <Card className="bg-zinc-900 border-zinc-800">
                 <CardHeader>
-                  <CardTitle className="text-white">Horário de Funcionamento</CardTitle>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-blue-500" />
+                    Horário de Funcionamento
+                  </CardTitle>
                   <CardDescription className="text-zinc-400">
                     Configure os horários de abertura e fechamento
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {(Object.keys(dayNames) as Array<keyof OpeningHours>).map((day) => (
                       <div
                         key={day}
                         className="flex items-center gap-4 p-4 rounded-lg bg-zinc-800/50"
                       >
-                        <div className="w-32">
-                          <p className="font-medium text-white">{dayNames[day]}</p>
+                        <div className="w-32 shrink-0">
+                          <p className="font-medium text-white text-sm">{dayNames[day]}</p>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={!formData.openingHours[day].closed}
@@ -305,7 +535,7 @@ export default function StoreDataPage() {
                               handleOpeningHoursChange(day, "closed", !checked)
                             }
                           />
-                          <span className="text-sm text-zinc-400">
+                          <span className="text-sm text-zinc-400 w-16">
                             {formData.openingHours[day].closed ? "Fechado" : "Aberto"}
                           </span>
                         </div>
@@ -318,16 +548,16 @@ export default function StoreDataPage() {
                               onChange={(e) =>
                                 handleOpeningHoursChange(day, "open", e.target.value)
                               }
-                              className="w-32 bg-zinc-800 border-zinc-700"
+                              className="w-32 bg-zinc-800 border-zinc-700 text-white"
                             />
-                            <span className="text-zinc-500">às</span>
+                            <span className="text-zinc-500 text-sm">às</span>
                             <Input
                               type="time"
                               value={formData.openingHours[day].close}
                               onChange={(e) =>
                                 handleOpeningHoursChange(day, "close", e.target.value)
                               }
-                              className="w-32 bg-zinc-800 border-zinc-700"
+                              className="w-32 bg-zinc-800 border-zinc-700 text-white"
                             />
                           </div>
                         )}
@@ -338,215 +568,18 @@ export default function StoreDataPage() {
               </Card>
             </TabsContent>
 
-            {/* Address Tab */}
-            <TabsContent value="address" className="mt-6">
-              <Card className="bg-zinc-900 border-zinc-800">
-                <CardHeader>
-                  <CardTitle className="text-white">Endereço</CardTitle>
-                  <CardDescription className="text-zinc-400">
-                    Localização da sua loja
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Endereço Completo</Label>
-                    <Input
-                      value={formData.address}
-                      onChange={(e) => handleChange("address", e.target.value)}
-                      placeholder="Rua Exemplo, 123 - Bairro"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Cidade</Label>
-                      <Input
-                        value={formData.city}
-                        onChange={(e) => handleChange("city", e.target.value)}
-                        placeholder="São Paulo"
-                        className="bg-zinc-800 border-zinc-700"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Estado</Label>
-                      <Input
-                        value={formData.state}
-                        onChange={(e) => handleChange("state", e.target.value)}
-                        placeholder="SP"
-                        className="bg-zinc-800 border-zinc-700"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>CEP</Label>
-                    <Input
-                      value={formData.cep}
-                      onChange={(e) => handleChange("cep", e.target.value)}
-                      placeholder="01234-567"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Social Tab */}
-            <TabsContent value="social" className="mt-6">
-              <Card className="bg-zinc-900 border-zinc-800">
-                <CardHeader>
-                  <CardTitle className="text-white">Redes Sociais</CardTitle>
-                  <CardDescription className="text-zinc-400">
-                    Links para suas redes sociais
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Instagram className="h-4 w-4 text-pink-500" />
-                      Instagram
-                    </Label>
-                    <Input
-                      value={formData.socialLinks.instagram || ""}
-                      onChange={(e) => handleSocialLinkChange("instagram", e.target.value)}
-                      placeholder="https://instagram.com/sualoja"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Facebook className="h-4 w-4 text-blue-500" />
-                      Facebook
-                    </Label>
-                    <Input
-                      value={formData.socialLinks.facebook || ""}
-                      onChange={(e) => handleSocialLinkChange("facebook", e.target.value)}
-                      placeholder="https://facebook.com/sualoja"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Youtube className="h-4 w-4 text-red-500" />
-                      YouTube
-                    </Label>
-                    <Input
-                      value={formData.socialLinks.youtube || ""}
-                      onChange={(e) => handleSocialLinkChange("youtube", e.target.value)}
-                      placeholder="https://youtube.com/@sualoja"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>TikTok</Label>
-                    <Input
-                      value={formData.socialLinks.tiktok || ""}
-                      onChange={(e) => handleSocialLinkChange("tiktok", e.target.value)}
-                      placeholder="https://tiktok.com/@sualoja"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Content Tab */}
-            <TabsContent value="content" className="mt-6 space-y-6">
-              <Card className="bg-zinc-900 border-zinc-800">
-                <CardHeader>
-                  <CardTitle className="text-white">Hero (Topo da Página)</CardTitle>
-                  <CardDescription className="text-zinc-400">
-                    Textos exibidos no topo da landing page
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Título Principal</Label>
-                    <Input
-                      value={formData.heroTitle}
-                      onChange={(e) => handleChange("heroTitle", e.target.value)}
-                      placeholder="Bem-vindo ao Casa Blanca"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Subtítulo</Label>
-                    <Input
-                      value={formData.heroSubtitle}
-                      onChange={(e) => handleChange("heroSubtitle", e.target.value)}
-                      placeholder="Experiência gastronômica única"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-zinc-900 border-zinc-800">
-                <CardHeader>
-                  <CardTitle className="text-white">Seção Sobre</CardTitle>
-                  <CardDescription className="text-zinc-400">
-                    Conte a história da sua loja
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Título da Seção</Label>
-                    <Input
-                      value={formData.aboutTitle}
-                      onChange={(e) => handleChange("aboutTitle", e.target.value)}
-                      placeholder="Nossa História"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Texto</Label>
-                    <Textarea
-                      value={formData.aboutText}
-                      onChange={(e) => handleChange("aboutText", e.target.value)}
-                      placeholder="Conte a história da sua loja..."
-                      className="bg-zinc-800 border-zinc-700 min-h-32"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Nome do Proprietário</Label>
-                    <Input
-                      value={formData.ownerName}
-                      onChange={(e) => handleChange("ownerName", e.target.value)}
-                      placeholder="João Silva"
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Foto do Proprietário (URL)</Label>
-                    <Input
-                      value={formData.ownerPhoto}
-                      onChange={(e) => handleChange("ownerPhoto", e.target.value)}
-                      placeholder="https://..."
-                      className="bg-zinc-800 border-zinc-700"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Sharing Tab */}
+            {/* ============================================ */}
+            {/* TAB 4: COMPARTILHAR                          */}
+            {/* ============================================ */}
             <TabsContent value="sharing" className="mt-6">
               <ShareStoreCard />
             </TabsContent>
           </Tabs>
         )}
 
-        {/* Save Button (mobile) */}
+        {/* Save Button (mobile floating) */}
         {hasChanges && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:hidden">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:hidden z-50">
             <Button
               onClick={handleSave}
               disabled={updateSettings.isPending}
@@ -581,25 +614,21 @@ function ShareStoreCard() {
     canvas.width = size;
     canvas.height = size;
 
-    // Simple QR-like pattern using the URL as seed
-    // For production, use a proper QR library. This generates a visual placeholder.
     const qrSize = 25;
     const cellSize = size / qrSize;
-    
+
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, size, size);
-    
-    // Generate deterministic pattern from URL
+
     let hash = 0;
     for (let i = 0; i < storeUrl.length; i++) {
       const char = storeUrl.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash;
     }
-    
+
     ctx.fillStyle = '#000000';
-    
-    // Draw finder patterns (corners)
+
     const drawFinder = (x: number, y: number) => {
       for (let i = 0; i < 7; i++) {
         for (let j = 0; j < 7; j++) {
@@ -609,16 +638,14 @@ function ShareStoreCard() {
         }
       }
     };
-    
+
     drawFinder(0, 0);
     drawFinder(qrSize - 7, 0);
     drawFinder(0, qrSize - 7);
-    
-    // Fill data area with deterministic pattern
+
     let seed = Math.abs(hash);
     for (let i = 0; i < qrSize; i++) {
       for (let j = 0; j < qrSize; j++) {
-        // Skip finder pattern areas
         if ((i < 8 && j < 8) || (i >= qrSize - 8 && j < 8) || (i < 8 && j >= qrSize - 8)) continue;
         seed = (seed * 1103515245 + 12345) & 0x7fffffff;
         if (seed % 3 !== 0) {
@@ -701,13 +728,13 @@ function ShareStoreCard() {
               </div>
               <div className="flex flex-col gap-3">
                 <p className="text-zinc-400 text-sm">
-                  Imprima este QR Code e coloque nas mesas, balcão ou material de divulgação. 
+                  Imprima este QR Code e coloque nas mesas, balcão ou material de divulgação.
                   Seus clientes poderão escanear e acessar o cardápio diretamente.
                 </p>
                 <Button
                   variant="outline"
                   onClick={handleDownloadQR}
-                  className="border-zinc-700 hover:bg-zinc-800 w-fit"
+                  className="border-zinc-700 hover:bg-zinc-800 w-fit text-zinc-300"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Baixar QR Code (PNG)
