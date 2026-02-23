@@ -6,7 +6,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock } from 'lucide-react';
-import { cn, isRestaurantOpen } from '@/lib/utils';
+import { cn, isRestaurantOpen, formatDaySchedule } from '@/lib/utils';
 import { useSiteData, useUI } from '@/store/useStore';
 
 export default function ScheduleModal() {
@@ -89,12 +89,18 @@ export default function ScheduleModal() {
                         )}
                       </span>
                       <span className={cn(
+                        'text-right',
                         isToday ? 'text-lp-highlight' : 'text-lp-text-muted'
                       )}>
                         {day.closed ? (
                           <span className="text-red-500/70">Fechado</span>
                         ) : (
-                          `${day.open} - ${day.close}`
+                          <span className="flex flex-col items-end">
+                            <span>{day.open} - {day.close}</span>
+                            {day.shift2_start && day.shift2_end && (
+                              <span className="text-xs opacity-75">{day.shift2_start} - {day.shift2_end}</span>
+                            )}
+                          </span>
                         )}
                       </span>
                     </div>

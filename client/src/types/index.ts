@@ -32,8 +32,10 @@ export interface Contact {
 export interface DaySchedule {
   day: string;
   dayNumber: number;
-  open: string;
-  close: string;
+  open: string;  // shift1_start (backward compat alias)
+  close: string; // shift1_end (backward compat alias)
+  shift2_start?: string | null; // 2nd shift opening (e.g., dinner)
+  shift2_end?: string | null;   // 2nd shift closing
   closed: boolean;
 }
 

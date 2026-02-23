@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, name FROM tenants LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, name FROM tenants LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Restaurante Teste"
+    },
+    {
+      "id": "30001",
+      "name": "Aldeia"
+    },
+    {
+      "id": "60001",
+      "name": "Mirian Carvalho - Feito a Mão"
+    },
+    {
+      "id": "90001",
+      "name": "Empresa teste 01"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\n1\tRestaurante Teste\n30001\tAldeia\n60001\tMirian Carvalho - Feito a Mão\n90001\tEmpresa teste 01\n",
+  "stderr": "",
+  "execution_time_ms": 351
+}

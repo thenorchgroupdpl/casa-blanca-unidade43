@@ -14,15 +14,23 @@ function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
   return user.tenantId!;
 }
 
-// Opening hours schema
+// Opening hours schema - supports 2 shifts per day (e.g., lunch + dinner)
+const dayHoursSchema = z.object({
+  shift1_start: z.string(),
+  shift1_end: z.string(),
+  shift2_start: z.string().nullable().optional(),
+  shift2_end: z.string().nullable().optional(),
+  closed: z.boolean(),
+});
+
 const openingHoursSchema = z.object({
-  monday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-  tuesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-  wednesday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-  thursday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-  friday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-  saturday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
-  sunday: z.object({ open: z.string(), close: z.string(), closed: z.boolean() }),
+  monday: dayHoursSchema,
+  tuesday: dayHoursSchema,
+  wednesday: dayHoursSchema,
+  thursday: dayHoursSchema,
+  friday: dayHoursSchema,
+  saturday: dayHoursSchema,
+  sunday: dayHoursSchema,
 }).optional();
 
 // Social links schema

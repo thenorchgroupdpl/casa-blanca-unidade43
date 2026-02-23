@@ -116,14 +116,17 @@ export const storeSettings = mysqlTable("store_settings", {
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
   
   // Opening Hours (JSON structure for flexibility)
+  // Each day supports up to 2 shifts (e.g., lunch + dinner)
+  // shift2_start/shift2_end are optional (null = single shift)
+  // Legacy format (open/close) is auto-migrated to shift1_start/shift1_end
   openingHours: json("openingHours").$type<{
-    monday: { open: string; close: string; closed: boolean };
-    tuesday: { open: string; close: string; closed: boolean };
-    wednesday: { open: string; close: string; closed: boolean };
-    thursday: { open: string; close: string; closed: boolean };
-    friday: { open: string; close: string; closed: boolean };
-    saturday: { open: string; close: string; closed: boolean };
-    sunday: { open: string; close: string; closed: boolean };
+    monday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
+    tuesday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
+    wednesday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
+    thursday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
+    friday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
+    saturday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
+    sunday: { shift1_start: string; shift1_end: string; shift2_start?: string | null; shift2_end?: string | null; closed: boolean };
   }>(),
   
   // Social Links (editable by Client Admin)

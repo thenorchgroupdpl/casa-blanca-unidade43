@@ -24,18 +24,28 @@ import {
   Truck,
   Headset,
   Share2,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 
+type DayHours = {
+  shift1_start: string;
+  shift1_end: string;
+  shift2_start?: string | null;
+  shift2_end?: string | null;
+  closed: boolean;
+};
+
 type OpeningHours = {
-  monday: { open: string; close: string; closed: boolean };
-  tuesday: { open: string; close: string; closed: boolean };
-  wednesday: { open: string; close: string; closed: boolean };
-  thursday: { open: string; close: string; closed: boolean };
-  friday: { open: string; close: string; closed: boolean };
-  saturday: { open: string; close: string; closed: boolean };
-  sunday: { open: string; close: string; closed: boolean };
+  monday: DayHours;
+  tuesday: DayHours;
+  wednesday: DayHours;
+  thursday: DayHours;
+  friday: DayHours;
+  saturday: DayHours;
+  sunday: DayHours;
 };
 
 type SocialLinks = {
@@ -68,14 +78,40 @@ type FormData = {
 };
 
 const defaultOpeningHours: OpeningHours = {
-  monday: { open: "18:00", close: "23:00", closed: false },
-  tuesday: { open: "18:00", close: "23:00", closed: false },
-  wednesday: { open: "18:00", close: "23:00", closed: false },
-  thursday: { open: "18:00", close: "23:00", closed: false },
-  friday: { open: "18:00", close: "00:00", closed: false },
-  saturday: { open: "18:00", close: "00:00", closed: false },
-  sunday: { open: "18:00", close: "22:00", closed: false },
+  monday: { shift1_start: "18:00", shift1_end: "23:00", closed: false },
+  tuesday: { shift1_start: "18:00", shift1_end: "23:00", closed: false },
+  wednesday: { shift1_start: "18:00", shift1_end: "23:00", closed: false },
+  thursday: { shift1_start: "18:00", shift1_end: "23:00", closed: false },
+  friday: { shift1_start: "18:00", shift1_end: "00:00", closed: false },
+  saturday: { shift1_start: "18:00", shift1_end: "00:00", closed: false },
+  sunday: { shift1_start: "18:00", shift1_end: "22:00", closed: false },
 };
+
+// Migrate legacy format (open/close) to new format (shift1_start/shift1_end)
+function migrateOpeningHours(raw: any): OpeningHours {
+  if (!raw) return defaultOpeningHours;
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+  const result: any = {};
+  for (const day of days) {
+    const d = raw[day];
+    if (!d) {
+      result[day] = defaultOpeningHours[day];
+    } else if ('shift1_start' in d) {
+      // Already new format
+      result[day] = d;
+    } else {
+      // Legacy format: migrate open/close -> shift1_start/shift1_end
+      result[day] = {
+        shift1_start: d.open || '18:00',
+        shift1_end: d.close || '23:00',
+        shift2_start: null,
+        shift2_end: null,
+        closed: d.closed ?? false,
+      };
+    }
+  }
+  return result as OpeningHours;
+}
 
 const dayNames: Record<keyof OpeningHours, string> = {
   monday: "Segunda-feira",
@@ -148,7 +184,7 @@ export default function StoreDataPage() {
         city: settings.city || "",
         state: settings.state || "",
         cep: settings.cep || "",
-        openingHours: settings.openingHours || defaultOpeningHours,
+        openingHours: migrateOpeningHours(settings.openingHours),
         socialLinks: settings.socialLinks || {},
         heroTitle: settings.heroTitle || "",
         heroSubtitle: settings.heroSubtitle || "",
@@ -539,50 +575,131 @@ export default function StoreDataPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {(Object.keys(dayNames) as Array<keyof OpeningHours>).map((day) => (
-                      <div
-                        key={day}
-                        className="flex items-center gap-4 p-4 rounded-lg bg-zinc-800/50"
-                      >
-                        <div className="w-32 shrink-0">
-                          <p className="font-medium text-white text-sm">{dayNames[day]}</p>
-                        </div>
+                    {(Object.keys(dayNames) as Array<keyof OpeningHours>).map((day) => {
+                      const dayData = formData.openingHours[day];
+                      const hasShift2 = !!(dayData.shift2_start && dayData.shift2_end);
 
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={!formData.openingHours[day].closed}
-                            onCheckedChange={(checked) =>
-                              handleOpeningHoursChange(day, "closed", !checked)
-                            }
-                          />
-                          <span className="text-sm text-zinc-400 w-16">
-                            {formData.openingHours[day].closed ? "Fechado" : "Aberto"}
-                          </span>
-                        </div>
+                      return (
+                        <div
+                          key={day}
+                          className="p-4 rounded-lg bg-zinc-800/50 space-y-3"
+                        >
+                          {/* Day header row */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-32 shrink-0">
+                              <p className="font-medium text-white text-sm">{dayNames[day]}</p>
+                            </div>
 
-                        {!formData.openingHours[day].closed && (
-                          <div className="flex items-center gap-2 ml-auto">
-                            <Input
-                              type="time"
-                              value={formData.openingHours[day].open}
-                              onChange={(e) =>
-                                handleOpeningHoursChange(day, "open", e.target.value)
-                              }
-                              className="w-32 bg-zinc-800 border-zinc-700 text-white"
-                            />
-                            <span className="text-zinc-500 text-sm">às</span>
-                            <Input
-                              type="time"
-                              value={formData.openingHours[day].close}
-                              onChange={(e) =>
-                                handleOpeningHoursChange(day, "close", e.target.value)
-                              }
-                              className="w-32 bg-zinc-800 border-zinc-700 text-white"
-                            />
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={!dayData.closed}
+                                onCheckedChange={(checked) =>
+                                  handleOpeningHoursChange(day, "closed", !checked)
+                                }
+                              />
+                              <span className="text-sm text-zinc-400 w-16">
+                                {dayData.closed ? "Fechado" : "Aberto"}
+                              </span>
+                            </div>
+
+                            {!dayData.closed && (
+                              <div className="flex items-center gap-2 ml-auto">
+                                <Label className="text-xs text-zinc-500">Turno 1</Label>
+                                <Input
+                                  type="time"
+                                  value={dayData.shift1_start}
+                                  onChange={(e) =>
+                                    handleOpeningHoursChange(day, "shift1_start", e.target.value)
+                                  }
+                                  className="w-28 bg-zinc-800 border-zinc-700 text-white text-sm"
+                                />
+                                <span className="text-zinc-500 text-sm">às</span>
+                                <Input
+                                  type="time"
+                                  value={dayData.shift1_end}
+                                  onChange={(e) =>
+                                    handleOpeningHoursChange(day, "shift1_end", e.target.value)
+                                  }
+                                  className="w-28 bg-zinc-800 border-zinc-700 text-white text-sm"
+                                />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+
+                          {/* Shift 2 row */}
+                          {!dayData.closed && hasShift2 && (
+                            <div className="flex items-center gap-2 ml-[calc(8rem+1rem)] pl-[calc(4.5rem+0.5rem)]">
+                              <Label className="text-xs text-zinc-500">Turno 2</Label>
+                              <Input
+                                type="time"
+                                value={dayData.shift2_start || ''}
+                                onChange={(e) =>
+                                  handleOpeningHoursChange(day, "shift2_start", e.target.value)
+                                }
+                                className="w-28 bg-zinc-800 border-zinc-700 text-white text-sm"
+                              />
+                              <span className="text-zinc-500 text-sm">às</span>
+                              <Input
+                                type="time"
+                                value={dayData.shift2_end || ''}
+                                onChange={(e) =>
+                                  handleOpeningHoursChange(day, "shift2_end", e.target.value)
+                                }
+                                className="w-28 bg-zinc-800 border-zinc-700 text-white text-sm"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    openingHours: {
+                                      ...prev.openingHours,
+                                      [day]: {
+                                        ...prev.openingHours[day],
+                                        shift2_start: null,
+                                        shift2_end: null,
+                                      },
+                                    },
+                                  }));
+                                  setHasChanges(true);
+                                }}
+                                className="p-1.5 rounded-md text-red-400 hover:bg-red-500/10 transition-colors"
+                                title="Remover 2º turno"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Add shift 2 button */}
+                          {!dayData.closed && !hasShift2 && (
+                            <div className="ml-[calc(8rem+1rem)] pl-[calc(4.5rem+0.5rem)]">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    openingHours: {
+                                      ...prev.openingHours,
+                                      [day]: {
+                                        ...prev.openingHours[day],
+                                        shift2_start: "18:00",
+                                        shift2_end: "23:00",
+                                      },
+                                    },
+                                  }));
+                                  setHasChanges(true);
+                                }}
+                                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                Adicionar 2º Turno
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>

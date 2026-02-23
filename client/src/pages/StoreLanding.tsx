@@ -645,16 +645,21 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       })),
   }));
 
-  // Transform opening hours to schedule format
+  // Transform opening hours to schedule format (supports legacy + new shift format)
   const openingHours = settings?.openingHours || {};
   const dayOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const transformedSchedule: DaySchedule[] = dayOrder.map((day, index) => {
-    const hours = openingHours[day] || { open: '18:00', close: '23:00', closed: true };
+    const hours: any = openingHours[day] || { closed: true };
+    // Support both legacy (open/close) and new (shift1_start/shift1_end) formats
+    const shift1Start = hours.shift1_start || hours.open || '18:00';
+    const shift1End = hours.shift1_end || hours.close || '23:00';
     return {
       day: translateDay(day),
       dayNumber: index,
-      open: hours.open || '18:00',
-      close: hours.close || '23:00',
+      open: shift1Start,
+      close: shift1End,
+      shift2_start: hours.shift2_start || null,
+      shift2_end: hours.shift2_end || null,
       closed: hours.closed ?? true,
     };
   });

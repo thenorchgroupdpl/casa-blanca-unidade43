@@ -659,3 +659,27 @@
 - [x] Teste unitário de login com credenciais válidas
 - [x] Teste unitário de login com credenciais inválidas
 - [x] Teste unitário de login com usuário inexistente
+
+## Fase 56: Turnos Divididos - Horários com 2 Turnos por Dia
+### 1. Estrutura de Dados (Schema / Tipos)
+- [x] Atualizar tipo OpeningHours no schema para suportar shift1 e shift2 (shift2 opcional)
+- [x] Atualizar tipo DaySchedule no frontend para incluir shift2_start e shift2_end
+- [x] Manter retrocompatibilidade com dados existentes (migrar open/close para shift1_start/shift1_end)
+### 2. Backend (API)
+- [x] Atualizar procedure de saveSettings para aceitar novo formato de openingHours (Zod schema)
+- [x] Garantir que shift2 pode ser null/undefined (turno único)
+### 3. Interface do Lojista (StoreData.tsx - Aba Horários)
+- [x] Refatorar UI para mostrar Turno 1 (shift1_start / shift1_end) por dia
+- [x] Adicionar botão "+ Adicionar 2º Turno" para cada dia
+- [x] Exibir inputs de Turno 2 (shift2_start / shift2_end) quando ativado
+- [x] Permitir remover 2º turno (voltar a turno único)
+### 4. Landing Page (Lógica de Status)
+- [x] Atualizar isRestaurantOpen() para verificar Turno 1 OU Turno 2
+- [x] Atualizar getStatusText() para considerar intervalo entre turnos
+- [x] Se hora atual entre shift1_end e shift2_start: "Fechada" ou "Abre em breve" (< 30min)
+- [x] Atualizar ScheduleModal para exibir ambos os turnos
+- [x] Atualizar transformedSchedule no StoreLanding.tsx
+### 5. Dashboard do Lojista
+- [x] Atualizar isStoreOpenBySchedule no Dashboard.tsx para considerar 2 turnos
+### 6. Testes
+- [x] Testes unitários para lógica de status com turnos divididos (260 testes passando)

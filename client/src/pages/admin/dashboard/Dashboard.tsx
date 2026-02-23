@@ -120,7 +120,7 @@ export default function ClientDashboard() {
   // Derived data
   const manualOverride = settingsQuery.data?.manualOverride as 'open' | 'closed' | null;
 
-  // Check if store is currently open based on opening hours
+  // Check if store is currently open based on opening hours (supports 2 shifts)
   const isStoreOpenBySchedule = useMemo(() => {
     const hours = settingsQuery.data?.openingHours as any;
     if (!hours) return false;
@@ -133,12 +133,31 @@ export default function ClientDashboard() {
     if (!todayHours || todayHours.closed) return false;
 
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const [openH, openM] = todayHours.open.split(':').map(Number);
-    const [closeH, closeM] = todayHours.close.split(':').map(Number);
-    const openMinutes = openH * 60 + openM;
-    const closeMinutes = closeH * 60 + closeM;
-
-    return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+    
+    // Support both legacy (open/close) and new (shift1_start/shift1_end) formats
+    const s1Start = todayHours.shift1_start || todayHours.open;
+    const s1End = todayHours.shift1_end || todayHours.close;
+    
+    if (s1Start && s1End) {
+      const [openH, openM] = s1Start.split(':').map(Number);
+      const [closeH, closeM] = s1End.split(':').map(Number);
+      let openMinutes = openH * 60 + openM;
+      let closeMinutes = closeH * 60 + closeM;
+      if (closeMinutes === 0) closeMinutes = 24 * 60;
+      if (currentMinutes >= openMinutes && currentMinutes <= closeMinutes) return true;
+    }
+    
+    // Check shift 2
+    if (todayHours.shift2_start && todayHours.shift2_end) {
+      const [s2OpenH, s2OpenM] = todayHours.shift2_start.split(':').map(Number);
+      const [s2CloseH, s2CloseM] = todayHours.shift2_end.split(':').map(Number);
+      let s2OpenMinutes = s2OpenH * 60 + s2OpenM;
+      let s2CloseMinutes = s2CloseH * 60 + s2CloseM;
+      if (s2CloseMinutes === 0) s2CloseMinutes = 24 * 60;
+      if (currentMinutes >= s2OpenMinutes && currentMinutes <= s2CloseMinutes) return true;
+    }
+    
+    return false;
   }, [settingsQuery.data?.openingHours]);
 
   // Final store status considering manual override

@@ -82,11 +82,32 @@ export function getCurrentDaySchedule(businessHours: BusinessHours): DaySchedule
   return businessHours.schedule.find(s => s.dayNumber === currentDay) || null;
 }
 
-// Check if restaurant is currently open
+// Helper: check if current time is within a time range (in minutes since midnight)
+function isTimeInRange(currentTime: number, openTime: number, closeTime: number): boolean {
+  // Handle closing after midnight (e.g., closes at 00:00 or 01:00)
+  if (closeTime === 0) {
+    closeTime = 24 * 60; // Treat as end of day
+  }
+  
+  if (closeTime < openTime) {
+    // Crosses midnight: open from openTime to midnight OR midnight to closeTime
+    return currentTime >= openTime || currentTime < closeTime;
+  }
+  
+  return currentTime >= openTime && currentTime < closeTime;
+}
+
+// Parse time string "HH:MM" to minutes since midnight
+function parseTime(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// Check if restaurant is currently open (supports 2 shifts)
 export function isRestaurantOpen(businessHours: BusinessHours): boolean {
   const now = new Date();
   const currentDay = now.getDay();
-  const currentTime = now.getHours() * 60 + now.getMinutes(); // Minutes since midnight
+  const currentTime = now.getHours() * 60 + now.getMinutes();
   
   const todaySchedule = businessHours.schedule.find(s => s.dayNumber === currentDay);
   
@@ -94,27 +115,29 @@ export function isRestaurantOpen(businessHours: BusinessHours): boolean {
     return false;
   }
   
-  const [openHour, openMin] = todaySchedule.open.split(':').map(Number);
-  const [closeHour, closeMin] = todaySchedule.close.split(':').map(Number);
+  const shift1Start = parseTime(todaySchedule.open);
+  const shift1End = parseTime(todaySchedule.close);
   
-  const openTime = openHour * 60 + openMin;
-  let closeTime = closeHour * 60 + closeMin;
-  
-  // Handle closing after midnight (e.g., closes at 00:00)
-  if (closeTime === 0) {
-    closeTime = 24 * 60; // Treat as end of day
+  // Check shift 1
+  if (isTimeInRange(currentTime, shift1Start, shift1End)) {
+    return true;
   }
   
-  // If close time is less than open time, it means it closes after midnight
-  if (closeTime < openTime) {
-    // Check if we're after opening OR before closing (next day)
-    return currentTime >= openTime || currentTime < closeTime;
+  // Check shift 2 (if exists)
+  if (todaySchedule.shift2_start && todaySchedule.shift2_end) {
+    const shift2Start = parseTime(todaySchedule.shift2_start);
+    const shift2End = parseTime(todaySchedule.shift2_end);
+    
+    if (isTimeInRange(currentTime, shift2Start, shift2End)) {
+      return true;
+    }
   }
   
-  return currentTime >= openTime && currentTime < closeTime;
+  return false;
 }
 
 // Get status text with dynamic warnings ("Abre em breve" / "Fechando em breve")
+// Updated to support 2 shifts per day
 export function getStatusText(businessHours: BusinessHours): { text: string; isOpen: boolean; warning?: 'opening_soon' | 'closing_soon' } {
   const isOpen = isRestaurantOpen(businessHours);
   const todaySchedule = getCurrentDaySchedule(businessHours);
@@ -123,14 +146,29 @@ export function getStatusText(businessHours: BusinessHours): { text: string; isO
   const SOON_THRESHOLD = 30; // 30 minutes
   
   if (isOpen && todaySchedule) {
-    // Check if closing soon (within 30 minutes)
-    const [closeHour, closeMin] = todaySchedule.close.split(':').map(Number);
-    let closeTime = closeHour * 60 + closeMin;
-    if (closeTime === 0) closeTime = 24 * 60;
+    // Determine which shift we're in and when it ends
+    const shift1Start = parseTime(todaySchedule.open);
+    let shift1End = parseTime(todaySchedule.close);
+    if (shift1End === 0) shift1End = 24 * 60;
     
-    const minutesUntilClose = closeTime > currentTime 
-      ? closeTime - currentTime 
-      : (closeTime < currentTime ? (24 * 60 - currentTime + closeTime) : 0);
+    let currentShiftEnd = shift1End;
+    let nextShiftLabel = '';
+    
+    // Check if we're in shift 2
+    if (todaySchedule.shift2_start && todaySchedule.shift2_end) {
+      const shift2Start = parseTime(todaySchedule.shift2_start);
+      let shift2End = parseTime(todaySchedule.shift2_end);
+      if (shift2End === 0) shift2End = 24 * 60;
+      
+      if (isTimeInRange(currentTime, shift2Start, shift2End)) {
+        currentShiftEnd = shift2End;
+      }
+    }
+    
+    // Check if closing soon
+    const minutesUntilClose = currentShiftEnd > currentTime 
+      ? currentShiftEnd - currentTime 
+      : (currentShiftEnd < currentTime ? (24 * 60 - currentTime + currentShiftEnd) : 0);
     
     if (minutesUntilClose > 0 && minutesUntilClose <= SOON_THRESHOLD) {
       return {
@@ -140,8 +178,13 @@ export function getStatusText(businessHours: BusinessHours): { text: string; isO
       };
     }
     
+    // Format the closing time for display
+    const closeHour = Math.floor(currentShiftEnd / 60) % 24;
+    const closeMin = currentShiftEnd % 60;
+    const closeStr = `${String(closeHour).padStart(2, '0')}:${String(closeMin).padStart(2, '0')}`;
+    
     return {
-      text: `Aberto até ${todaySchedule.close}`,
+      text: `Aberto até ${closeStr}`,
       isOpen: true,
     };
   }
@@ -149,13 +192,13 @@ export function getStatusText(businessHours: BusinessHours): { text: string; isO
   // Store is closed - find next opening time
   const currentDay = now.getDay();
   
-  // Check if opens later today
+  // Check if opens later today (shift 1 or shift 2)
   if (todaySchedule && !todaySchedule.closed) {
-    const [openHour, openMin] = todaySchedule.open.split(':').map(Number);
-    const openTime = openHour * 60 + openMin;
+    const shift1Start = parseTime(todaySchedule.open);
     
-    if (currentTime < openTime) {
-      const minutesUntilOpen = openTime - currentTime;
+    // Check if shift 1 hasn't started yet
+    if (currentTime < shift1Start) {
+      const minutesUntilOpen = shift1Start - currentTime;
       
       if (minutesUntilOpen <= SOON_THRESHOLD) {
         return {
@@ -169,6 +212,28 @@ export function getStatusText(businessHours: BusinessHours): { text: string; isO
         text: `Abre às ${todaySchedule.open}`,
         isOpen: false,
       };
+    }
+    
+    // Check if between shifts (shift 1 ended, shift 2 hasn't started)
+    if (todaySchedule.shift2_start && todaySchedule.shift2_end) {
+      const shift2Start = parseTime(todaySchedule.shift2_start);
+      
+      if (currentTime < shift2Start) {
+        const minutesUntilShift2 = shift2Start - currentTime;
+        
+        if (minutesUntilShift2 <= SOON_THRESHOLD) {
+          return {
+            text: 'Abre em breve',
+            isOpen: false,
+            warning: 'opening_soon',
+          };
+        }
+        
+        return {
+          text: `Abre às ${todaySchedule.shift2_start}`,
+          isOpen: false,
+        };
+      }
     }
   }
   
@@ -195,6 +260,19 @@ export function getStatusText(businessHours: BusinessHours): { text: string; isO
     text: 'Fechado',
     isOpen: false,
   };
+}
+
+// Format schedule display for a day (supports 2 shifts)
+export function formatDaySchedule(day: DaySchedule): string {
+  if (day.closed) return 'Fechado';
+  
+  let text = `${day.open} - ${day.close}`;
+  
+  if (day.shift2_start && day.shift2_end) {
+    text += ` / ${day.shift2_start} - ${day.shift2_end}`;
+  }
+  
+  return text;
 }
 
 // Format relative date for reviews

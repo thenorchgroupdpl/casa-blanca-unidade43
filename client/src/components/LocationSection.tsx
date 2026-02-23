@@ -381,8 +381,15 @@ export default function LocationSection() {
                     {business_hours.schedule.slice(0, 3).map((day) => (
                       <div key={day.day} className="flex justify-between text-sm">
                         <span className="text-lp-text-subtle">{day.day}</span>
-                        <span className="text-lp-text-muted">
-                          {day.closed ? 'Fechado' : `${day.open} - ${day.close}`}
+                        <span className="text-lp-text-muted text-right">
+                          {day.closed ? 'Fechado' : (
+                            <>
+                              {day.open} - {day.close}
+                              {day.shift2_start && day.shift2_end && (
+                                <span className="block text-xs opacity-75">{day.shift2_start} - {day.shift2_end}</span>
+                              )}
+                            </>
+                          )}
                         </span>
                       </div>
                     ))}
