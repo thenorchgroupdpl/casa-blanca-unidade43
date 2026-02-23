@@ -623,3 +623,17 @@
 - [x] Verificar e garantir que o Select de Empresa/Tenant salva o ID numérico (tenant_id) e não o nome
 ### 4. Testes
 - [x] Testes unitários para as correções (231 testes passando, 7 novos)
+
+## Fase 54: Correção Arquitetura - Múltiplos Usuários por Tenant (1:N)
+### 1. Schema / Banco de Dados
+- [x] Confirmar que tabela users NÃO tem UNIQUE no tenantId (já correto no schema e no banco)
+- [x] Adicionar relação explícita 1:N no relations.ts (tenants -> users)
+### 2. Validação Backend
+- [x] Confirmar que API de criação valida apenas unicidade de email (já correto)
+- [x] Confirmar que não há validação oculta bloqueando múltiplos users por tenant
+### 3. Gravação da Hierarquia (Role)
+- [x] Confirmar que o campo role é salvo corretamente na criação de usuários
+- [x] Confirmar que role é passado corretamente do frontend para o backend
+### 4. Teste de Múltiplos Usuários por Tenant
+- [x] Criar teste unitário que cria 2+ usuários no mesmo tenant e confirma sucesso (7 novos testes)
+- [x] Testar no navegador criando múltiplos usuários para a mesma loja (3 users no mesmo tenant OK)

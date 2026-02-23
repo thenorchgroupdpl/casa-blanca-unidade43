@@ -1,0 +1,46 @@
+{
+  "query": "SELECT id, name, email, role, tenantId, isActive, loginMethod FROM users ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, name, email, role, tenantId, isActive, loginMethod FROM users ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Gustavo Moreira",
+      "email": "oper.globaladm@gmail.com",
+      "role": "super_admin",
+      "tenantId": "90001",
+      "isActive": "1",
+      "loginMethod": "google"
+    },
+    {
+      "id": "96",
+      "name": "Lucas Guarda",
+      "email": "admin@casablanca.com",
+      "role": "super_admin",
+      "tenantId": "NULL",
+      "isActive": "1",
+      "loginMethod": "email"
+    },
+    {
+      "id": "97",
+      "name": "Lojista Demo",
+      "email": "lojista@casablanca.com",
+      "role": "client_admin",
+      "tenantId": "1",
+      "isActive": "1",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670070",
+      "name": "Mirian Carvalho",
+      "email": "mirian@feitoamao.com",
+      "role": "client_admin",
+      "tenantId": "60001",
+      "isActive": "1",
+      "loginMethod": "email"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\ttenantId\tisActive\tloginMethod\n1\tGustavo Moreira\toper.globaladm@gmail.com\tsuper_admin\t90001\t1\tgoogle\n96\tLucas Guarda\tadmin@casablanca.com\tsuper_admin\tNULL\t1\temail\n97\tLojista Demo\tlojista@casablanca.com\tclient_admin\t1\t1\temail\n2670070\tMirian Carvalho\tmirian@feitoamao.com\tclient_admin\t60001\t1\temail\n",
+  "stderr": "",
+  "execution_time_ms": 357
+}

@@ -517,3 +517,166 @@ describe("users.create - email validation", () => {
     await caller.users.delete({ id: createdUser!.id });
   });
 });
+
+// ─── Fase 54: Testes de múltiplos usuários por tenant (1:N) e hierarquia ───
+
+describe("users.create - multiple users per tenant (1:N relationship)", () => {
+  function createSuperAdminContext(): TrpcContext {
+    const user: NonNullable<TrpcContext["user"]> = {
+      id: 1,
+      openId: "super-admin-test",
+      email: "admin@casablanca.com",
+      name: "Administrador",
+      loginMethod: "email",
+      role: "super_admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    };
+    return {
+      user,
+      req: { protocol: "https", headers: {} } as TrpcContext["req"],
+      res: { clearCookie: () => {} } as TrpcContext["res"],
+    };
+  }
+
+  const tenantIdForTest = 1; // Use existing tenant
+  const createdUserIds: number[] = [];
+
+  it("can create first user (client_admin) for a tenant", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const email = `multi-tenant-admin-${Date.now()}@test.com`;
+
+    const result = await caller.users.create({
+      name: "Lojista Dono",
+      email,
+      password: "test1234",
+      role: "client_admin",
+      tenantId: tenantIdForTest,
+      isActive: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(typeof result.userId).toBe("number");
+    createdUserIds.push(result.userId);
+
+    // Verify role is saved correctly
+    const users = await caller.users.list();
+    const created = users.find((u) => u.id === result.userId);
+    expect(created).toBeDefined();
+    expect(created!.role).toBe("client_admin");
+    expect(created!.tenantId).toBe(tenantIdForTest);
+  });
+
+  it("can create second user (user/funcionário) for the SAME tenant", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const email = `multi-tenant-func1-${Date.now()}@test.com`;
+
+    const result = await caller.users.create({
+      name: "Funcionário 1",
+      email,
+      password: "test1234",
+      role: "user",
+      tenantId: tenantIdForTest,
+      isActive: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(typeof result.userId).toBe("number");
+    createdUserIds.push(result.userId);
+
+    // Verify role is saved correctly
+    const users = await caller.users.list();
+    const created = users.find((u) => u.id === result.userId);
+    expect(created).toBeDefined();
+    expect(created!.role).toBe("user");
+    expect(created!.tenantId).toBe(tenantIdForTest);
+  });
+
+  it("can create third user (another funcionário) for the SAME tenant", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const email = `multi-tenant-func2-${Date.now()}@test.com`;
+
+    const result = await caller.users.create({
+      name: "Funcionário 2",
+      email,
+      password: "test1234",
+      role: "user",
+      tenantId: tenantIdForTest,
+      isActive: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(typeof result.userId).toBe("number");
+    createdUserIds.push(result.userId);
+  });
+
+  it("all three users share the same tenantId and appear in list", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const users = await caller.users.list();
+    const tenantUsers = users.filter(
+      (u) => createdUserIds.includes(u.id) && u.tenantId === tenantIdForTest
+    );
+
+    expect(tenantUsers.length).toBe(3);
+    // Verify different roles coexist under same tenant
+    const roles = tenantUsers.map((u) => u.role);
+    expect(roles).toContain("client_admin");
+    expect(roles.filter((r) => r === "user").length).toBe(2);
+  });
+
+  it("only email uniqueness blocks creation, NOT tenantId", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    // Try creating with a duplicate email (should fail)
+    const users = await caller.users.list();
+    const existingUser = users.find((u) => createdUserIds.includes(u.id));
+    expect(existingUser).toBeDefined();
+
+    await expect(
+      caller.users.create({
+        name: "Duplicate Email User",
+        email: existingUser!.email!,
+        password: "test1234",
+        role: "user",
+        tenantId: tenantIdForTest,
+        isActive: true,
+      })
+    ).rejects.toThrow(/já está cadastrado/);
+  });
+
+  it("role hierarchy is preserved correctly for each user", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const users = await caller.users.list();
+    
+    for (const userId of createdUserIds) {
+      const user = users.find((u) => u.id === userId);
+      expect(user).toBeDefined();
+      // Role must be one of the valid enum values
+      expect(["user", "admin", "super_admin", "client_admin"]).toContain(user!.role);
+    }
+  });
+
+  it("cleanup: delete all test users", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    for (const userId of createdUserIds) {
+      const result = await caller.users.delete({ id: userId });
+      expect(result).toEqual({ success: true });
+    }
+
+    // Verify cleanup
+    const users = await caller.users.list();
+    const remaining = users.filter((u) => createdUserIds.includes(u.id));
+    expect(remaining.length).toBe(0);
+  });
+});
