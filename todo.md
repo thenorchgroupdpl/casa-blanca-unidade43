@@ -728,3 +728,10 @@
 - [x] Ocultar scrollbar (hide-scrollbar + scrollbarWidth: none + msOverflowStyle: none)
 - [x] Aplicar shrink-0 nos botões de abas para manter tamanho natural
 - [x] Testar no navegador (todas as 7 abas acessíveis via scroll horizontal)
+
+## Fase 60: Correção Formatação Mensagem WhatsApp (Pedido)
+- [x] Remover underlines (_itálico_) da frase final "Aguardo confirmação do pedido!"
+- [x] Substituir ícones quebrados por emojis UTF-8 universais (🛍️ sacola, 🧾 recibo, 📝 nota)
+- [x] Usar bullet point simples (•) na lista de itens
+- [x] Garantir que a string é construída primeiro e encodeURIComponent aplicado uma única vez (em openWhatsApp)
+- [x] Testar (297 testes passando, 0 erros TS)

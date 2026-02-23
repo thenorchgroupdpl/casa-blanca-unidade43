@@ -20,7 +20,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
   const handleFinishOrder = () => {
     if (!data) return;
     
-    const message = generateWhatsAppMessage(items, getTotalPrice());
+    const storeName = data.project_name || 'Casa Blanca';
+    const message = generateWhatsAppMessage(items, getTotalPrice(), undefined, storeName);
     openWhatsApp(data.contact.whatsapp, message);
     onClose();
   };

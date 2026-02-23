@@ -39,7 +39,8 @@ export default function CartDrawer() {
     if (!data || items.length === 0) return;
 
     const total = getTotalPrice();
-    const message = generateWhatsAppMessage(items, total, observation || undefined);
+    const storeName = data.project_name || 'Casa Blanca';
+    const message = generateWhatsAppMessage(items, total, observation || undefined, storeName);
     openWhatsApp(data.contact.whatsapp, message);
     
     // Clear cart after checkout

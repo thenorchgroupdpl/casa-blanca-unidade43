@@ -301,26 +301,30 @@ export function formatRelativeDate(dateString: string): string {
 }
 
 // Generate WhatsApp message for checkout
+// Returns a CLEAN string (no encoding). Encoding is done in openWhatsApp().
 export function generateWhatsAppMessage(
   items: { product: { name: string; price: number }; quantity: number }[],
   total: number,
-  observation?: string
+  observation?: string,
+  storeName?: string
 ): string {
-  let message = '🍽️ *Olá Casa Blanca! Pedido via Site:*\n\n';
-  
-  items.forEach((item) => {
-    const itemTotal = item.product.price * item.quantity;
-    message += `• ${item.quantity}x ${item.product.name} - ${formatPrice(itemTotal)}\n`;
-  });
-  
-  message += `\n💰 *Total: ${formatPrice(total)}*\n`;
-  
+  const nome = storeName || 'Casa Blanca';
+
+  const itensList = items
+    .map((item) => {
+      const itemTotal = item.product.price * item.quantity;
+      return `\u2022 ${item.quantity}x ${item.product.name} - ${formatPrice(itemTotal)}`;
+    })
+    .join('\n');
+
+  let message = `\uD83D\uDECD\uFE0F *Ol\u00E1 ${nome}! Pedido via Site:*\n\n${itensList}\n\n\uD83E\uDDFE *Total: ${formatPrice(total)}*`;
+
   if (observation) {
-    message += `\n📝 *Observação:* ${observation}\n`;
+    message += `\n\n\uD83D\uDCDD *Observa\u00E7\u00E3o:* ${observation}`;
   }
-  
-  message += '\n_Aguardo confirmação do pedido!_';
-  
+
+  message += '\n\nAguardo confirma\u00E7\u00E3o do pedido!';
+
   return message;
 }
 
