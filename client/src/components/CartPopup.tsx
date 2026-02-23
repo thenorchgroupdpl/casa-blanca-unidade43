@@ -22,7 +22,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
     
     const message = generateWhatsAppMessage(items, getTotalPrice());
     const whatsappNumber = normalizeWhatsAppNumber(data.contact.whatsapp);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(message)}`;
+    // message is already encoded by generateWhatsAppMessage — do NOT double-encode
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
     
     window.open(whatsappUrl, '_blank');
     onClose();
@@ -50,6 +51,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed top-16 right-4 left-4 sm:left-auto sm:w-96 z-[70] max-h-[80vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl bg-lp-surface border border-lp-border"
+            style={{ fontFamily: 'var(--font-sans, inherit)' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-lp-border">

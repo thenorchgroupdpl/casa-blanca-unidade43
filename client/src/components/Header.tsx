@@ -138,7 +138,7 @@ export default function Header() {
                 'relative p-2.5 rounded-full transition-all duration-200',
                 'text-lp-text-muted hover:text-lp-text',
                 'hover:bg-lp-border',
-                'lg:hidden' // Esconde no desktop grande
+                '' // Sempre visível em mobile e desktop
               )}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

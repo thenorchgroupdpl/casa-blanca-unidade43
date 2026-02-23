@@ -54,10 +54,10 @@ export default function WhatsAppModal() {
               <div className="text-center">
                 {/* Avatar */}
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border-2 border-lp-highlight-border">
-                  {data.sections_content.about.owner_photo ? (
+                  {(data.whatsapp_avatar || data.sections_content.about.owner_photo) ? (
                     <img
-                      src={data.sections_content.about.owner_photo}
-                      alt={`Atendente ${data.project_name || 'Casa Blanca'}`}
+                      src={data.whatsapp_avatar || data.sections_content.about.owner_photo}
+                      alt={`Atendente ${data.whatsapp_name || data.project_name || 'Casa Blanca'}`}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -66,6 +66,13 @@ export default function WhatsAppModal() {
                     </div>
                   )}
                 </div>
+
+                {/* Attendant Name */}
+                {data.whatsapp_name && (
+                  <p className="text-lp-text font-semibold text-base mb-1">
+                    {data.whatsapp_name}
+                  </p>
+                )}
 
                 {/* Title */}
                 <h3 className="font-display text-xl text-lp-text mb-2">

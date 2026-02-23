@@ -70,6 +70,7 @@ export default function CartDrawer() {
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-lp-surface shadow-2xl"
+            style={{ fontFamily: 'var(--font-sans, inherit)' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-lp-border">

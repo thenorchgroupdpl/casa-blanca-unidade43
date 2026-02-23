@@ -64,6 +64,7 @@ type FormData = {
   deliveryFee: string;
   attendantName: string;
   attendantPhoto: string;
+  googleMapsLink: string;
 };
 
 const defaultOpeningHours: OpeningHours = {
@@ -105,6 +106,7 @@ const defaultFormData: FormData = {
   deliveryFee: "",
   attendantName: "",
   attendantPhoto: "",
+  googleMapsLink: "",
 };
 
 export default function StoreDataPage() {
@@ -157,6 +159,7 @@ export default function StoreDataPage() {
         deliveryFee: settings.deliveryFee || "",
         attendantName: (settings as any).attendantName || "",
         attendantPhoto: (settings as any).attendantPhoto || "",
+        googleMapsLink: (settings as any).googleMapsLink || "",
       });
       setHasChanges(false);
     }
@@ -498,6 +501,23 @@ export default function StoreDataPage() {
                       placeholder="01234-567"
                       className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
                     />
+                  </div>
+
+                  {/* Google Maps Link */}
+                  <div className="space-y-2 pt-4 border-t border-zinc-800">
+                    <Label className="text-zinc-300 flex items-center gap-2">
+                      <ExternalLink className="h-4 w-4 text-blue-400" />
+                      Link do Google Maps
+                    </Label>
+                    <Input
+                      value={formData.googleMapsLink}
+                      onChange={(e) => handleChange("googleMapsLink", e.target.value)}
+                      placeholder="https://maps.google.com/..."
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                    />
+                    <p className="text-xs text-zinc-500">
+                      Cole aqui o link do Google Maps da sua loja. Será usado no botão "Como Chegar" do site.
+                    </p>
                   </div>
                 </CardContent>
               </Card>

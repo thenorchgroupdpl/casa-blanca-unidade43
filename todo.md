@@ -591,3 +591,19 @@
 - [x] Adicionar campo deliveryFee, attendantName, attendantPhoto ao schema storeSettings
 - [x] Atualizar router store.updateSettings para aceitar novos campos
 - [x] Testes unitários: 11 novos testes (208 total passando)
+
+## Fase 52: QA - Correção de 8 Bugs e Melhorias
+### BLOCO 1: Frontend (Landing Page e Carrinho)
+- [x] Bug 1: WhatsApp Popup agora consome attendantName/attendantPhoto do settings via StoreLanding
+- [x] Bug 2: Carrinho sempre visível no desktop (removido lg:hidden do Header)
+- [x] Bug 3: Corrigida dupla codificação: generateWhatsAppMessage já retorna encoded, CartPopup não re-encoda
+### BLOCO 2: Design System e Tipografia
+- [x] Bug 4: Painel admin isolado com Inter via fontFamily inline no ClientAdminLayout
+- [x] Bug 5: CartPopup e CartDrawer agora herdam fontes do Design System via var(--font-sans)
+### BLOCO 3: Painel do Lojista
+- [x] Bug 6: Accordion de disponibilidade inicia fechado (defaultValue=[] removido)
+- [x] Bug 7: Campo 'Link do Google Maps' adicionado na aba Endereço (schema + router + frontend)
+- [x] Bug 8: Botão 'Como Chegar' usa googleMapsLink com fallback para busca por endereço
+### Teste Geral
+- [x] Teste geral: 0 erros TypeScript, 0 erros console, 0 erros HTTP, 225 testes passando
+- [x] 17 novos testes unitários para QA Phase 52

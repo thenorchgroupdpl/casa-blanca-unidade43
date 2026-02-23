@@ -639,7 +639,7 @@ export default function ClientDashboard() {
                       </p>
                     </div>
                   ) : (
-                    <Accordion type="multiple" defaultValue={productsByCategory.map(g => String(g.category.id))} className="space-y-1">
+                    <Accordion type="multiple" defaultValue={[]} className="space-y-1">
                       {productsByCategory.map((group) => {
                         const activeCount = group.products.filter(p => p.isAvailable).length;
                         const totalCount = group.products.length;

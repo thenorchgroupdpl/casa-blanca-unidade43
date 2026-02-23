@@ -394,6 +394,13 @@ export interface SiteData {
     feedbacks?: SectionColors;
     location?: SectionColors;
   };
+  // WhatsApp Popup attendant info
+  whatsapp_avatar?: string;
+  whatsapp_name?: string;
+  // Delivery fee
+  delivery_fee?: number;
+  // Google Maps link
+  google_maps_link?: string;
 }
 
 // Cart types

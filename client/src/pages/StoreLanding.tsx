@@ -715,7 +715,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         zip: settings?.cep || '',
         city: settings?.city || '',
         state: settings?.state || '',
-        map_link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings?.address || '')}`,
+        map_link: settings?.googleMapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings?.address || '')}`,
         coordinates: {
           lat: parseFloat(settings?.latitude || '0'),
           lng: parseFloat(settings?.longitude || '0'),
@@ -990,6 +990,13 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       bgOverlayColor: ld.info.bgOverlayColor,
     } : undefined,
     section_colors: ld?.sectionColors || {},
+    // WhatsApp Popup attendant info
+    whatsapp_avatar: settings?.attendantPhoto || '',
+    whatsapp_name: settings?.attendantName || '',
+    // Delivery fee
+    delivery_fee: settings?.deliveryFee ? parseFloat(settings.deliveryFee as string) : undefined,
+    // Google Maps link
+    google_maps_link: settings?.googleMapsLink || '',
   };
 }
 

@@ -195,6 +195,9 @@ export const storeSettings = mysqlTable("store_settings", {
   attendantName: varchar("attendantName", { length: 255 }),
   attendantPhoto: varchar("attendantPhoto", { length: 500 }),
   
+  // Google Maps Link
+  googleMapsLink: varchar("googleMapsLink", { length: 500 }),
+  
   // Manual Override (Lojista can force open/closed)
   manualOverride: varchar("manualOverride", { length: 20 }).$type<'open' | 'closed' | null>(),
   

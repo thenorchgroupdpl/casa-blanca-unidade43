@@ -251,7 +251,7 @@ function ClientAdminLayoutContent({
   }, [isResizing, setSidebarWidth]);
 
   return (
-    <div className="flex min-h-screen w-full bg-[#0A0A0A] overflow-x-hidden">
+    <div className="flex min-h-screen w-full bg-[#0A0A0A] overflow-x-hidden" style={{ fontFamily: "'Inter', 'DM Sans', system-ui, sans-serif" }}>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
