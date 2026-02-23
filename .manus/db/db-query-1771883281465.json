@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, email, name, role, LEFT(passwordHash, 10) as hashPrefix, openId FROM users WHERE role = 'super_admin';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, email, name, role, LEFT(passwordHash, 10) as hashPrefix, openId FROM users WHERE role = 'super_admin';",
+  "rows": [
+    {
+      "id": "1",
+      "email": "oper.globaladm@gmail.com",
+      "name": "Gustavo Moreira",
+      "role": "super_admin",
+      "hashPrefix": "$2b$10$3t2",
+      "openId": "7DQFJKY2pPqbjK62Bozgmv"
+    },
+    {
+      "id": "96",
+      "email": "admin@casablanca.com",
+      "name": "Lucas Guarda",
+      "role": "super_admin",
+      "hashPrefix": "$2b$10$rW5",
+      "openId": "email:admin@casablanca.com"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\tname\trole\thashPrefix\topenId\n1\toper.globaladm@gmail.com\tGustavo Moreira\tsuper_admin\t$2b$10$3t2\t7DQFJKY2pPqbjK62Bozgmv\n96\tadmin@casablanca.com\tLucas Guarda\tsuper_admin\t$2b$10$rW5\temail:admin@casablanca.com\n",
+  "stderr": "",
+  "execution_time_ms": 349
+}

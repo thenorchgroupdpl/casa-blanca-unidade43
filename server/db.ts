@@ -8,7 +8,8 @@ import {
   InsertProduct, products, Product,
   InsertHomeRow, homeRows, HomeRow,
   InsertReview, reviews, Review,
-  orders, Order, InsertOrder
+  orders, Order, InsertOrder,
+  globalSettings, GlobalSetting, InsertGlobalSetting
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -743,4 +744,40 @@ export async function duplicateProduct(productId: number): Promise<number> {
   });
 
   return Number(result[0].insertId);
+}
+
+// ============================================
+// GLOBAL SETTINGS HELPERS
+// ============================================
+
+export async function getGlobalSetting(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(globalSettings).where(eq(globalSettings.key, key)).limit(1);
+  return rows[0]?.value ?? null;
+}
+
+export async function setGlobalSetting(key: string, value: string, description?: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Upsert: insert or update on duplicate key
+  const existing = await db.select().from(globalSettings).where(eq(globalSettings.key, key)).limit(1);
+  if (existing.length > 0) {
+    await db.update(globalSettings).set({ value, description }).where(eq(globalSettings.key, key));
+  } else {
+    await db.insert(globalSettings).values({ key, value, description });
+  }
+}
+
+export async function getAllGlobalSettings(): Promise<GlobalSetting[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(globalSettings).orderBy(globalSettings.key);
+}
+
+export async function deleteGlobalSetting(key: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(globalSettings).where(eq(globalSettings.key, key));
 }

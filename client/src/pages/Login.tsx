@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eye, EyeOff, Loader2, LogIn, AlertCircle, HelpCircle, MessageCircle, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn, AlertCircle, HelpCircle, MessageCircle, ShieldAlert, Mail } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Login() {
@@ -27,6 +27,18 @@ export default function Login() {
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   const utils = trpc.useUtils();
+
+  // Fetch support WhatsApp from global settings (public endpoint)
+  const { data: supportWhatsapp } = trpc.publicSettings.get.useQuery(
+    { key: "support_whatsapp" },
+    { retry: false, staleTime: 5 * 60 * 1000 }
+  );
+
+  // Fetch support email as fallback
+  const { data: supportEmail } = trpc.publicSettings.get.useQuery(
+    { key: "support_email" },
+    { retry: false, staleTime: 5 * 60 * 1000 }
+  );
 
   const loginMutation = trpc.emailAuth.login.useMutation({
     onSuccess: (data) => {
@@ -83,6 +95,22 @@ export default function Login() {
     }
     return `${base} border-[#2a2a2a] focus:border-[#D4AF37] focus:ring-[#D4AF37]/30 focus:ring-2`;
   };
+
+  // Build WhatsApp link dynamically
+  const whatsappDigits = supportWhatsapp?.replace(/\D/g, "") || "";
+  const hasWhatsapp = whatsappDigits.length >= 10;
+  const whatsappLink = hasWhatsapp
+    ? `https://wa.me/${whatsappDigits.startsWith("55") ? whatsappDigits : `55${whatsappDigits}`}?text=${encodeURIComponent("Olá, preciso de ajuda para redefinir minha senha no Casa Blanca.")}`
+    : "";
+
+  // Build email fallback
+  const hasSupportEmail = !!supportEmail && supportEmail.includes("@");
+  const emailLink = hasSupportEmail
+    ? `mailto:${supportEmail}?subject=${encodeURIComponent("Redefinição de Senha - Casa Blanca")}&body=${encodeURIComponent("Olá, preciso de ajuda para redefinir minha senha de acesso ao painel.")}`
+    : "";
+
+  // Whether to show the forgot password button at all
+  const showForgotButton = hasWhatsapp || hasSupportEmail;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -222,13 +250,15 @@ export default function Login() {
                   </Label>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowForgotModal(true)}
-                  className="text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors"
-                >
-                  Esqueci a senha
-                </button>
+                {showForgotButton && (
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(true)}
+                    className="text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors"
+                  >
+                    Esqueci a senha
+                  </button>
+                )}
               </div>
 
               {/* Submit button */}
@@ -276,25 +306,47 @@ export default function Login() {
           </DialogHeader>
 
           <div className="space-y-3 pt-2">
-            {/* WhatsApp contact option */}
-            <a
-              href="https://wa.me/5500000000000?text=Ol%C3%A1%2C%20preciso%20redefinir%20minha%20senha%20de%20acesso%20ao%20painel%20Casa%20Blanca."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-3 rounded-lg bg-[#1a1a1a] border border-[#252525] hover:border-[#2f6b2f] hover:bg-[#1a2a1a] transition-all group"
-            >
-              <div className="w-9 h-9 rounded-full bg-[#25D366]/10 flex items-center justify-center flex-shrink-0">
-                <MessageCircle className="h-4 w-4 text-[#25D366]" />
-              </div>
-              <div>
-                <p className="text-sm text-white font-medium group-hover:text-[#25D366] transition-colors">
-                  Contato via WhatsApp
-                </p>
-                <p className="text-xs text-gray-500">
-                  Fale com o suporte para recuperar seu acesso
-                </p>
-              </div>
-            </a>
+            {/* WhatsApp contact option - only show if configured */}
+            {hasWhatsapp && (
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg bg-[#1a1a1a] border border-[#252525] hover:border-[#2f6b2f] hover:bg-[#1a2a1a] transition-all group"
+              >
+                <div className="w-9 h-9 rounded-full bg-[#25D366]/10 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                </div>
+                <div>
+                  <p className="text-sm text-white font-medium group-hover:text-[#25D366] transition-colors">
+                    Contato via WhatsApp
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Fale com o suporte para recuperar seu acesso
+                  </p>
+                </div>
+              </a>
+            )}
+
+            {/* Email fallback - show if email configured */}
+            {hasSupportEmail && (
+              <a
+                href={emailLink}
+                className="flex items-center gap-3 p-3 rounded-lg bg-[#1a1a1a] border border-[#252525] hover:border-[#2a4a6b] hover:bg-[#1a1a2a] transition-all group"
+              >
+                <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                  <Mail className="h-4 w-4 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-white font-medium group-hover:text-blue-400 transition-colors">
+                    Contato via E-mail
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {supportEmail}
+                  </p>
+                </div>
+              </a>
+            )}
 
             {/* Info note */}
             <div className="flex items-start gap-2 p-3 rounded-lg bg-[#D4AF37]/[0.05] border border-[#D4AF37]/10">

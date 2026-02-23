@@ -20,6 +20,7 @@ import UsersPage from "./pages/admin/super/Users";
 import DesignPage from "./pages/admin/super/Design";
 import IntegrationsPage from "./pages/admin/super/Integrations";
 import SettingsPage from "./pages/admin/super/Settings";
+import GlobalSettingsPage from "./pages/admin/super/GlobalSettings";
 
 // Client Admin Pages
 import ClientDashboard from "./pages/admin/dashboard/Dashboard";
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/admin/super/design" component={DesignPage} />
       <Route path="/admin/super/integrations" component={IntegrationsPage} />
       <Route path="/admin/super/settings" component={SettingsPage} />
+      <Route path="/admin/super/global-settings" component={GlobalSettingsPage} />
       
       {/* Client Admin Routes */}
       <Route path="/admin/dashboard" component={ClientDashboard} />

@@ -32,7 +32,8 @@ import {
   Palette,
   Key,
   Shield,
-  User
+  User,
+  Globe
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -47,6 +48,7 @@ const menuItems = [
   { icon: Palette, label: "Design System", path: "/admin/super/design" },
   { icon: Key, label: "Integrações", path: "/admin/super/integrations" },
   { icon: Settings, label: "Configurações", path: "/admin/super/settings" },
+  { icon: Globe, label: "Config. Globais", path: "/admin/super/global-settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "super-admin-sidebar-width";

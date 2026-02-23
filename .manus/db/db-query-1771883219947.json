@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, email, role FROM users WHERE email = 'logintest@casablanca.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, email, role FROM users WHERE email = 'logintest@casablanca.com';",
+  "rows": [
+    {
+      "id": "2670140",
+      "email": "logintest@casablanca.com",
+      "role": "client_admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\trole\n2670140\tlogintest@casablanca.com\tclient_admin\n",
+  "stderr": "",
+  "execution_time_ms": 382
+}

@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, email, role, passwordHash IS NOT NULL as hasPassword FROM users WHERE role = 'super_admin';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, email, role, passwordHash IS NOT NULL as hasPassword FROM users WHERE role = 'super_admin';",
+  "rows": [
+    {
+      "id": "1",
+      "email": "oper.globaladm@gmail.com",
+      "role": "super_admin",
+      "hasPassword": "0"
+    },
+    {
+      "id": "96",
+      "email": "admin@casablanca.com",
+      "role": "super_admin",
+      "hasPassword": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\trole\thasPassword\n1\toper.globaladm@gmail.com\tsuper_admin\t0\n96\tadmin@casablanca.com\tsuper_admin\t1\n",
+  "stderr": "",
+  "execution_time_ms": 358
+}

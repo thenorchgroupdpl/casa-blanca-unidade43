@@ -12,6 +12,7 @@ import { categoriesRouter, productsRouter } from "./routers/catalog";
 import { storeRouter, publicStoreRouter } from "./routers/store";
 import { emailAuthRouter } from "./routers/auth";
 import { usersRouter } from "./routers/users";
+import { globalSettingsRouter, publicGlobalSettingsRouter } from "./routers/globalSettings";
 
 export const appRouter = router({
   // System routes
@@ -90,6 +91,9 @@ export const appRouter = router({
   // User management (Super Admin only)
   users: usersRouter,
 
+  // Global settings (Super Admin only)
+  globalSettings: globalSettingsRouter,
+
   // ============================================
   // CLIENT ADMIN ROUTES
   // ============================================
@@ -107,6 +111,9 @@ export const appRouter = router({
   
   // Public store data
   publicStore: publicStoreRouter,
+
+  // Public global settings (no auth required - for Login page etc.)
+  publicSettings: publicGlobalSettingsRouter,
 
   // Alias for backward compatibility
   public: router({

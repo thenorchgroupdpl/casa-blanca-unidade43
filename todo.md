@@ -683,3 +683,26 @@
 - [x] Atualizar isStoreOpenBySchedule no Dashboard.tsx para considerar 2 turnos
 ### 6. Testes
 - [x] Testes unitários para lógica de status com turnos divididos (260 testes passando)
+
+## Fase 57: Configurações Globais do SaaS + WhatsApp Dinâmico no Login
+### 1. Banco de Dados
+- [x] Criar tabela global_settings (key VARCHAR UNIQUE, value TEXT, updatedAt)
+- [x] Executar migration (pnpm db:push)
+- [x] Criar helpers no db.ts: getGlobalSetting, setGlobalSetting
+### 2. Backend (Router)
+- [x] Criar router globalSettings com procedures get e update (Super Admin only)
+- [x] Criar procedure pública getPublicSetting para buscar WhatsApp no Login
+- [x] Registrar router no routers.ts
+### 3. Página de Configurações Globais (Super Admin)
+- [x] Criar /admin/super/global-settings com SuperAdminLayout
+- [x] Card "Atendimento e Suporte" com input de WhatsApp com máscara
+- [x] Botão Salvar Alterações que grava no banco
+- [x] Adicionar item no sidebar do SuperAdminLayout (ícone Globe)
+- [x] Registrar rota no App.tsx
+### 4. Integração com Tela de Login
+- [x] Buscar WhatsApp de suporte via API pública no Login (botão Esqueci a Senha)
+- [x] Formatar link wa.me com número dinâmico e texto pré-definido
+- [x] Se nenhum número cadastrado, ocultar botão (confirmado no teste visual)
+### 5. Testes
+- [x] Testes unitários para get/set global settings (284 testes passando)
+- [x] Teste de integração: Login busca WhatsApp dinâmico (confirmado no navegador)
