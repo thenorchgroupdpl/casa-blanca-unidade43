@@ -706,3 +706,19 @@
 ### 5. Testes
 - [x] Testes unitários para get/set global settings (284 testes passando)
 - [x] Teste de integração: Login busca WhatsApp dinâmico (confirmado no navegador)
+
+## Fase 58: WhatsApp Popup UI + Correção de Dupla Codificação
+### PARTE 1: UI do Popup e Personalização via Design System
+- [x] Remover elemento de texto que mostra número de telefone abaixo do botão no WhatsAppModal
+- [x] Adicionar campos whatsapp_popup_title e whatsapp_button_text ao tipo LandingDesign (seção whatsapp)
+- [x] Adicionar inputs no Design System (Design.tsx) para editar textos do popup WhatsApp
+- [x] Atualizar WhatsAppModal para consumir textos dinâmicos do SiteData
+- [x] Garantir que font-family do Design System é aplicada ao popup
+### PARTE 2: Correção Crítica de Dupla Codificação
+- [x] Corrigir generateWhatsAppMessage para retornar string LIMPA (sem encodeURIComponent)
+- [x] Aplicar encodeURIComponent APENAS UMA VEZ na openWhatsApp ao montar a URL final
+- [x] Corrigir CartPopup.tsx para usar openWhatsApp em vez de montar URL manualmente
+- [x] Garantir que botão abre nova aba (window.open target=_blank) sem recodificação
+### Testes
+- [x] Testes unitários para geração de mensagem WhatsApp sem dupla codificação (297 testes passando)
+- [x] Teste visual no navegador (popup limpo, carrinho funcional, encoding correto)

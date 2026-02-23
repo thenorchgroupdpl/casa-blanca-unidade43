@@ -998,6 +998,8 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     // WhatsApp Popup attendant info
     whatsapp_avatar: settings?.attendantPhoto || '',
     whatsapp_name: settings?.attendantName || '',
+    whatsapp_popup_title: (ld as any)?.whatsapp?.popupTitle || '',
+    whatsapp_button_text: (ld as any)?.whatsapp?.buttonText || '',
     // Delivery fee
     delivery_fee: settings?.deliveryFee ? parseFloat(settings.deliveryFee as string) : undefined,
     // Google Maps link

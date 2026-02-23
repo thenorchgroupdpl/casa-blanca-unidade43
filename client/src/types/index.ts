@@ -399,6 +399,8 @@ export interface SiteData {
   // WhatsApp Popup attendant info
   whatsapp_avatar?: string;
   whatsapp_name?: string;
+  whatsapp_popup_title?: string;
+  whatsapp_button_text?: string;
   // Delivery fee
   delivery_fee?: number;
   // Google Maps link

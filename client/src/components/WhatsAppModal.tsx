@@ -6,7 +6,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MessageCircle } from 'lucide-react';
-import { cn, formatPhone, openWhatsApp } from '@/lib/utils';
+import { cn, openWhatsApp } from '@/lib/utils';
 import { useSiteData, useUI } from '@/store/useStore';
 
 export default function WhatsAppModal() {
@@ -76,19 +76,11 @@ export default function WhatsAppModal() {
 
                 {/* Title */}
                 <h3 className="font-display text-xl text-lp-text mb-2">
-                  Deseja seguir para o WhatsApp?
+                  {data.whatsapp_popup_title || 'Olá! Como podemos ajudar?'}
                 </h3>
                 <p className="text-lp-text-muted text-sm mb-6">
                   {`Você será redirecionado para o WhatsApp da ${data.project_name || 'Casa Blanca'}`}
                 </p>
-
-                {/* Phone Number */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-lp-surface-soft mb-6">
-                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                  <span className="text-lp-text font-medium">
-                    {formatPhone(data.contact.whatsapp)}
-                  </span>
-                </div>
 
                 {/* CTA Button */}
                 <motion.button
@@ -111,7 +103,7 @@ export default function WhatsAppModal() {
                   }}
                 >
                   <MessageCircle className="w-5 h-5" />
-                  Abrir WhatsApp
+                  {data.whatsapp_button_text || 'Iniciar Conversa'}
                 </motion.button>
 
                 {/* Cancel */}

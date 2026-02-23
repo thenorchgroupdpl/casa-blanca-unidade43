@@ -321,14 +321,15 @@ export function generateWhatsAppMessage(
   
   message += '\n_Aguardo confirmação do pedido!_';
   
-  return encodeURIComponent(message);
+  return message;
 }
 
 // Open WhatsApp with message
+// encodeURIComponent is applied HERE — the single point of encoding
 export function openWhatsApp(phone: string, message?: string): void {
   const cleanPhone = normalizeWhatsAppNumber(phone);
   const url = message 
-    ? `https://wa.me/${cleanPhone}?text=${message}`
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
     : `https://wa.me/${cleanPhone}`;
   window.open(url, '_blank');
 }

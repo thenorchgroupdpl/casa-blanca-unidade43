@@ -5,7 +5,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle } from 'lucide-react';
-import { cn, formatPrice, generateWhatsAppMessage, normalizeWhatsAppNumber } from '@/lib/utils';
+import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/utils';
 import { useCart, useSiteData } from '@/store/useStore';
 
 interface CartPopupProps {
@@ -21,11 +21,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
     if (!data) return;
     
     const message = generateWhatsAppMessage(items, getTotalPrice());
-    const whatsappNumber = normalizeWhatsAppNumber(data.contact.whatsapp);
-    // message is already encoded by generateWhatsAppMessage — do NOT double-encode
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
-    
-    window.open(whatsappUrl, '_blank');
+    openWhatsApp(data.contact.whatsapp, message);
     onClose();
   };
 

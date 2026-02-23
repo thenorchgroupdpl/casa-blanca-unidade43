@@ -62,6 +62,7 @@ import {
   ChevronDown,
   Layers,
   Menu,
+  MessageCircle,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 
@@ -490,6 +491,10 @@ type LandingDesign = {
     feedbacks?: SectionColors;
     location?: SectionColors;
   };
+  whatsapp?: {
+    popupTitle?: string;
+    buttonText?: string;
+  };
 };
 
 type ThemeColors = {
@@ -503,7 +508,7 @@ type ThemeColors = {
   success: string;        // Notificações/Sucesso (toasts, badges)
 };
 
-type SectionTab = "home" | "products" | "menu" | "about" | "reviews" | "info";
+type SectionTab = "home" | "products" | "menu" | "about" | "reviews" | "info" | "whatsapp";
 
 const FONT_OPTIONS = [
   "DM Sans", "Inter", "Poppins", "Roboto", "Open Sans", "Lato",
@@ -535,6 +540,7 @@ const SECTION_TABS: { id: SectionTab; label: string; icon: typeof Home }[] = [
   { id: "about", label: "SOBRE NÓS", icon: Users2 },
   { id: "reviews", label: "AVALIAÇÕES", icon: Star },
   { id: "info", label: "INFORMAÇÕES", icon: Info },
+  { id: "whatsapp", label: "WHATSAPP", icon: MessageCircle },
 ];
 
 const defaultDesign: LandingDesign = {
@@ -617,6 +623,10 @@ const defaultDesign: LandingDesign = {
   },
   global: { alignment: "left" },
   sectionColors: {},
+  whatsapp: {
+    popupTitle: "Olá! Como podemos ajudar?",
+    buttonText: "Iniciar Conversa",
+  },
 };
 
 const defaultColors: ThemeColors = {
@@ -701,6 +711,7 @@ export default function DesignPage() {
         info: { ...defaultDesign.info, ...ld?.info },
         global: { ...defaultDesign.global, ...ld?.global },
         sectionColors: { ...ld?.sectionColors },
+        whatsapp: { ...defaultDesign.whatsapp, ...ld?.whatsapp },
       });
       const savedColors = (landingData.tenant.themeColors as Partial<ThemeColors>) || {};
       setColors({
@@ -817,6 +828,7 @@ export default function DesignPage() {
       about: "sobre",
       reviews: "feedbacks",
       info: "contato",
+      whatsapp: "whatsapp-popup",
     };
     try {
       iframeRef.current.contentWindow.postMessage(
@@ -1169,6 +1181,13 @@ export default function DesignPage() {
                         }}
                       />
                     </>
+                  )}
+
+                  {activeTab === "whatsapp" && (
+                    <WhatsAppPopupSection
+                      data={design.whatsapp || {}}
+                      onChange={(field, value) => updateDesign("whatsapp", field, value)}
+                    />
                   )}
                 </div>
               </div>
@@ -3951,6 +3970,77 @@ function SectionColorsPanel({
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ============================================
+// WHATSAPP POPUP SECTION
+// ============================================
+
+function WhatsAppPopupSection({
+  data,
+  onChange,
+}: {
+  data: NonNullable<LandingDesign["whatsapp"]>;
+  onChange: (field: string, value: unknown) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <SubPanel id="whatsapp-texts" title="Textos do Popup" icon={<MessageCircle className="w-4 h-4" />} defaultOpen>
+        <div className="space-y-3">
+          <div>
+            <Label className="text-[11px] text-zinc-400 mb-1 block">
+              Título / Boas-vindas
+            </Label>
+            <Input
+              value={data.popupTitle || ""}
+              onChange={(e) => onChange("popupTitle", e.target.value)}
+              placeholder="Olá! Como podemos ajudar?"
+              className="h-8 text-xs bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600"
+            />
+            <p className="text-[10px] text-zinc-600 mt-1">
+              Texto de boas-vindas exibido no popup do WhatsApp
+            </p>
+          </div>
+
+          <div>
+            <Label className="text-[11px] text-zinc-400 mb-1 block">
+              Texto do Botão
+            </Label>
+            <Input
+              value={data.buttonText || ""}
+              onChange={(e) => onChange("buttonText", e.target.value)}
+              placeholder="Iniciar Conversa"
+              className="h-8 text-xs bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600"
+            />
+            <p className="text-[10px] text-zinc-600 mt-1">
+              Texto exibido no botão de ação do popup
+            </p>
+          </div>
+        </div>
+      </SubPanel>
+
+      <SubPanel id="whatsapp-preview" title="Preview" icon={<MessageCircle className="w-4 h-4" />}>
+        <div className="bg-zinc-900/60 rounded-xl p-4 border border-zinc-800/50">
+          <div className="bg-zinc-800/80 rounded-2xl p-6 text-center max-w-[280px] mx-auto">
+            <div className="w-14 h-14 rounded-full bg-zinc-700 mx-auto mb-3 flex items-center justify-center">
+              <MessageCircle className="w-6 h-6 text-[#25D366]" />
+            </div>
+            <p className="text-white text-sm font-medium mb-1">
+              {data.popupTitle || "Olá! Como podemos ajudar?"}
+            </p>
+            <p className="text-zinc-500 text-[10px] mb-4">
+              Você será redirecionado para o WhatsApp
+            </p>
+            <div className="bg-[#25D366] text-white rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              {data.buttonText || "Iniciar Conversa"}
+            </div>
+          </div>
+        </div>
+      </SubPanel>
     </div>
   );
 }
