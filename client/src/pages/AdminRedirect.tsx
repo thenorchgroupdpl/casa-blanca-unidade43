@@ -23,15 +23,19 @@ export default function AdminRedirect() {
       return;
     }
 
-    // Redirect based on role
+    // Redirect based on role and tenant
     const role = authData.user.role;
+    const tenantId = authData.user.tenantId;
     
     if (role === "super_admin") {
       setLocation("/admin/super");
     } else if (role === "client_admin" || role === "admin") {
       setLocation("/admin/dashboard");
+    } else if (tenantId) {
+      // Funcionário com loja vinculada -> painel da loja
+      setLocation("/admin/dashboard");
     } else {
-      // Regular user, redirect to home
+      // Regular user without tenant, redirect to home
       setLocation("/");
     }
   }, [authData, isLoading, setLocation]);

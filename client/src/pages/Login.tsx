@@ -33,16 +33,29 @@ export default function Login() {
       utils.emailAuth.check.invalidate();
       utils.auth.me.invalidate();
 
+      // Role-based redirect
       if (data.user.role === "super_admin") {
         setLocation("/admin/super");
       } else if (data.user.role === "client_admin" || data.user.role === "admin") {
+        setLocation("/admin/dashboard");
+      } else if (data.user.tenantId) {
+        // Funcionário com loja vinculada -> painel da loja
         setLocation("/admin/dashboard");
       } else {
         setLocation("/");
       }
     },
     onError: (err) => {
-      setError(err.message || "Erro ao fazer login");
+      // Distinguish between credential errors and server errors
+      if (err.data?.code === "UNAUTHORIZED") {
+        setError("E-mail ou senha inválidos");
+      } else if (err.data?.code === "INTERNAL_SERVER_ERROR" || err.data?.code === "TIMEOUT") {
+        setError("Erro ao conectar com o servidor. Tente novamente.");
+      } else if (err.message?.includes("fetch") || err.message?.includes("network") || err.message?.includes("Failed")) {
+        setError("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else {
+        setError(err.message || "Erro ao fazer login. Tente novamente.");
+      }
       setHasAttempted(true);
     },
   });

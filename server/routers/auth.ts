@@ -53,11 +53,21 @@ export const emailAuthRouter = router({
         maxAge: sessionDuration,
       });
 
-      // Update last signed in
-      await db.upsertUser({
-        openId: user.openId,
-        lastSignedIn: new Date(),
-      });
+      // Update last signed in (use the same openId used for the session token)
+      // If user was created via admin panel without openId, update it now
+      if (!user.openId) {
+        // Backfill the openId for users created without one
+        await db.updateUserOpenId(user.id, openId);
+      }
+      try {
+        await db.upsertUser({
+          openId,
+          lastSignedIn: new Date(),
+        });
+      } catch (err) {
+        // Non-critical: don't block login if lastSignedIn update fails
+        console.error("[Auth] Failed to update lastSignedIn:", err);
+      }
 
       return {
         success: true,

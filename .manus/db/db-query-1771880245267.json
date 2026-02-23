@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, email, openId, LEFT(passwordHash, 15) as hash_prefix, loginMethod, role FROM users WHERE loginMethod = 'email' ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, email, openId, LEFT(passwordHash, 15) as hash_prefix, loginMethod, role FROM users WHERE loginMethod = 'email' ORDER BY id;",
+  "rows": [
+    {
+      "id": "96",
+      "email": "admin@casablanca.com",
+      "openId": "email:admin@casablanca.com",
+      "hash_prefix": "$2b$10$rW5QuInh",
+      "loginMethod": "email",
+      "role": "super_admin"
+    },
+    {
+      "id": "97",
+      "email": "lojista@casablanca.com",
+      "openId": "email:lojista@casablanca.com",
+      "hash_prefix": "$2b$10$rW5QuInh",
+      "loginMethod": "email",
+      "role": "client_admin"
+    },
+    {
+      "id": "2670070",
+      "email": "mirian@feitoamao.com",
+      "openId": "email:mirian@feitoamao.com",
+      "hash_prefix": "$2b$10$XegUTPIu",
+      "loginMethod": "email",
+      "role": "client_admin"
+    },
+    {
+      "id": "2670103",
+      "email": "func1-restaurante@test.com",
+      "openId": "email:func1-restaurante@test.com",
+      "hash_prefix": "$2b$10$i/Q0IgMA",
+      "loginMethod": "email",
+      "role": "user"
+    },
+    {
+      "id": "2670106",
+      "email": "func2-restaurante@test.com",
+      "openId": "email:func2-restaurante@test.com",
+      "hash_prefix": "$2b$10$Jinrm5pV",
+      "loginMethod": "email",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\topenId\thash_prefix\tloginMethod\trole\n96\tadmin@casablanca.com\temail:admin@casablanca.com\t$2b$10$rW5QuInh\temail\tsuper_admin\n97\tlojista@casablanca.com\temail:lojista@casablanca.com\t$2b$10$rW5QuInh\temail\tclient_admin\n2670070\tmirian@feitoamao.com\temail:mirian@feitoamao.com\t$2b$10$XegUTPIu\temail\tclient_admin\n2670103\tfunc1-restaurante@test.com\temail:func1-restaurante@test.com\t$2b$10$i/Q0IgMA\temail\tuser\n2670106\tfunc2-restaurante@test.com\temail:func2-restaurante@test.com\t$2b$10$Jinrm5pV\temail\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 350
+}

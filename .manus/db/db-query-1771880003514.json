@@ -1,0 +1,76 @@
+{
+  "query": "SELECT id, name, email, openId, passwordHash, plainPassword, loginMethod, role, tenantId FROM users LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, name, email, openId, passwordHash, plainPassword, loginMethod, role, tenantId FROM users LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Gustavo Moreira",
+      "email": "oper.globaladm@gmail.com",
+      "openId": "7DQFJKY2pPqbjK62Bozgmv",
+      "passwordHash": "NULL",
+      "plainPassword": "NULL",
+      "loginMethod": "google",
+      "role": "super_admin",
+      "tenantId": "90001"
+    },
+    {
+      "id": "96",
+      "name": "Lucas Guarda",
+      "email": "admin@casablanca.com",
+      "openId": "email:admin@casablanca.com",
+      "passwordHash": "$2b$10$rW5QuInh4tidJhqsiznhfOPJM8GzVXlV.5JA/OjyWrp4viOeWdtvG",
+      "plainPassword": "NULL",
+      "loginMethod": "email",
+      "role": "super_admin",
+      "tenantId": "NULL"
+    },
+    {
+      "id": "97",
+      "name": "Lojista Demo",
+      "email": "lojista@casablanca.com",
+      "openId": "email:lojista@casablanca.com",
+      "passwordHash": "$2b$10$rW5QuInh4tidJhqsiznhfOPJM8GzVXlV.5JA/OjyWrp4viOeWdtvG",
+      "plainPassword": "NULL",
+      "loginMethod": "email",
+      "role": "client_admin",
+      "tenantId": "1"
+    },
+    {
+      "id": "2670070",
+      "name": "Mirian Carvalho",
+      "email": "mirian@feitoamao.com",
+      "openId": "NULL",
+      "passwordHash": "$2b$10$XegUTPIuzz4eJd8cGySG4eaiItb4C6JO6Y11pEwz0ARQ7exCRHT.q",
+      "plainPassword": "88032323",
+      "loginMethod": "email",
+      "role": "client_admin",
+      "tenantId": "60001"
+    },
+    {
+      "id": "2670103",
+      "name": "Funcionário Teste 1",
+      "email": "func1-restaurante@test.com",
+      "openId": "NULL",
+      "passwordHash": "$2b$10$i/Q0IgMAdPwxbYhmOggql.hOEf3z5iNOyttKRYw5cWjEznzjqLsMO",
+      "plainPassword": "test1234",
+      "loginMethod": "email",
+      "role": "user",
+      "tenantId": "1"
+    },
+    {
+      "id": "2670106",
+      "name": "Funcionário Teste 2",
+      "email": "func2-restaurante@test.com",
+      "openId": "NULL",
+      "passwordHash": "$2b$10$Jinrm5pVq1XjvaHi24ukY.dAlLyJ2/n00omTOLdLJXnIXbzc4nk5a",
+      "plainPassword": "test1234",
+      "loginMethod": "email",
+      "role": "user",
+      "tenantId": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\topenId\tpasswordHash\tplainPassword\tloginMethod\trole\ttenantId\n1\tGustavo Moreira\toper.globaladm@gmail.com\t7DQFJKY2pPqbjK62Bozgmv\tNULL\tNULL\tgoogle\tsuper_admin\t90001\n96\tLucas Guarda\tadmin@casablanca.com\temail:admin@casablanca.com\t$2b$10$rW5QuInh4tidJhqsiznhfOPJM8GzVXlV.5JA/OjyWrp4viOeWdtvG\tNULL\temail\tsuper_admin\tNULL\n97\tLojista Demo\tlojista@casablanca.com\temail:lojista@casablanca.com\t$2b$10$rW5QuInh4tidJhqsiznhfOPJM8GzVXlV.5JA/OjyWrp4viOeWdtvG\tNULL\temail\tclient_admin\t1\n2670070\tMirian Carvalho\tmirian@feitoamao.com\tNULL\t$2b$10$XegUTPIuzz4eJd8cGySG4eaiItb4C6JO6Y11pEwz0ARQ7exCRHT.q\t88032323\temail\tclient_admin\t60001\n2670103\tFuncionário Teste 1\tfunc1-restaurante@test.com\tNULL\t$2b$10$i/Q0IgMAdPwxbYhmOggql.hOEf3z5iNOyttKRYw5cWjEznzjqLsMO\ttest1234\temail\tuser\t1\n2670106\tFuncionário Teste 2\tfunc2-restaurante@test.com\tNULL\t$2b$10$Jinrm5pVq1XjvaHi24ukY.dAlLyJ2/n00omTOLdLJXnIXbzc4nk5a\ttest1234\temail\tuser\t1\n",
+  "stderr": "",
+  "execution_time_ms": 372
+}

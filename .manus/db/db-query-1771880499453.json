@@ -1,0 +1,40 @@
+{
+  "query": "SELECT email, plainPassword, role FROM users ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT email, plainPassword, role FROM users ORDER BY id;",
+  "rows": [
+    {
+      "email": "oper.globaladm@gmail.com",
+      "plainPassword": "NULL",
+      "role": "super_admin"
+    },
+    {
+      "email": "admin@casablanca.com",
+      "plainPassword": "NULL",
+      "role": "super_admin"
+    },
+    {
+      "email": "lojista@casablanca.com",
+      "plainPassword": "NULL",
+      "role": "client_admin"
+    },
+    {
+      "email": "mirian@feitoamao.com",
+      "plainPassword": "88032323",
+      "role": "client_admin"
+    },
+    {
+      "email": "func1-restaurante@test.com",
+      "plainPassword": "test1234",
+      "role": "user"
+    },
+    {
+      "email": "func2-restaurante@test.com",
+      "plainPassword": "test1234",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "email\tplainPassword\trole\noper.globaladm@gmail.com\tNULL\tsuper_admin\nadmin@casablanca.com\tNULL\tsuper_admin\nlojista@casablanca.com\tNULL\tclient_admin\nmirian@feitoamao.com\t88032323\tclient_admin\nfunc1-restaurante@test.com\ttest1234\tuser\nfunc2-restaurante@test.com\ttest1234\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

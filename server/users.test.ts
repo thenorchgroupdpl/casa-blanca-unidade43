@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -678,5 +679,169 @@ describe("users.create - multiple users per tenant (1:N relationship)", () => {
     const users = await caller.users.list();
     const remaining = users.filter((u) => createdUserIds.includes(u.id));
     expect(remaining.length).toBe(0);
+  });
+});
+
+// ─── Fase 55: Testes de autenticação (login por email/senha) ───
+
+describe("emailAuth.login - authentication flow", () => {
+  function createPublicContext(): TrpcContext {
+    return {
+      user: null,
+      req: {
+        protocol: "https",
+        headers: { "x-forwarded-proto": "https" },
+      } as TrpcContext["req"],
+      res: {
+        cookie: vi.fn(),
+        clearCookie: vi.fn(),
+      } as unknown as TrpcContext["res"],
+    };
+  }
+
+  function createSuperAdminCtx(): TrpcContext {
+    const user: NonNullable<TrpcContext["user"]> = {
+      id: 1,
+      openId: "super-admin-test",
+      email: "admin@casablanca.com",
+      name: "Administrador",
+      loginMethod: "email",
+      role: "super_admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    };
+    return {
+      user,
+      req: { protocol: "https", headers: {} } as TrpcContext["req"],
+      res: { clearCookie: () => {} } as TrpcContext["res"],
+    };
+  }
+
+  const loginTestEmail = `login-test-${Date.now()}@casablanca.com`;
+  const loginTestPassword = "securePass123";
+  let loginTestUserId: number;
+
+  it("setup: create a test user for login tests", async () => {
+    const ctx = createSuperAdminCtx();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.users.create({
+      name: "Login Test User",
+      email: loginTestEmail,
+      password: loginTestPassword,
+      role: "client_admin",
+      tenantId: 1,
+      isActive: true,
+    });
+
+    expect(result.success).toBe(true);
+    loginTestUserId = result.userId;
+  });
+
+  it("login succeeds with correct email and password", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.emailAuth.login({
+      email: loginTestEmail,
+      password: loginTestPassword,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.user).toBeDefined();
+    expect(result.user.email).toBe(loginTestEmail);
+    expect(result.user.role).toBe("client_admin");
+    expect(result.user.tenantId).toBe(1);
+
+    // Verify cookie was set
+    expect(ctx.res.cookie).toHaveBeenCalled();
+  });
+
+  it("login fails with wrong password", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.emailAuth.login({
+        email: loginTestEmail,
+        password: "wrongPassword123",
+      })
+    ).rejects.toThrow(/Email ou senha incorretos/);
+  });
+
+  it("login fails with non-existent email", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.emailAuth.login({
+        email: "nonexistent@casablanca.com",
+        password: "anyPassword",
+      })
+    ).rejects.toThrow(/Email ou senha incorretos/);
+  });
+
+  it("login fails with empty password", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.emailAuth.login({
+        email: loginTestEmail,
+        password: "",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("login fails with invalid email format", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.emailAuth.login({
+        email: "not-an-email",
+        password: "test1234",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("login returns correct role and tenantId for routing", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.emailAuth.login({
+      email: loginTestEmail,
+      password: loginTestPassword,
+    });
+
+    // Verify the response has all fields needed for role-based redirect
+    expect(result.user).toHaveProperty("id");
+    expect(result.user).toHaveProperty("email");
+    expect(result.user).toHaveProperty("name");
+    expect(result.user).toHaveProperty("role");
+    expect(result.user).toHaveProperty("tenantId");
+    expect(typeof result.user.id).toBe("number");
+  });
+
+  it("emailAuth.check returns authenticated state after login", async () => {
+    // This tests the check endpoint with an authenticated context
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    // Without auth, should return not authenticated
+    const checkResult = await caller.emailAuth.check();
+    expect(checkResult.authenticated).toBe(false);
+    expect(checkResult.user).toBeNull();
+  });
+
+  it("cleanup: delete test user", async () => {
+    const ctx = createSuperAdminCtx();
+    const caller = appRouter.createCaller(ctx);
+
+    if (loginTestUserId) {
+      const result = await caller.users.delete({ id: loginTestUserId });
+      expect(result).toEqual({ success: true });
+    }
   });
 });

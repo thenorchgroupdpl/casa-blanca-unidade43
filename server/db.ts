@@ -589,7 +589,11 @@ export async function createUserWithPassword(data: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  // Generate openId for email-based users (required for session management)
+  const openId = `email:${data.email}`;
+
   const result = await db.insert(users).values({
+    openId,
     email: data.email,
     passwordHash: data.passwordHash,
     plainPassword: data.plainPassword,
@@ -608,6 +612,13 @@ export async function updateUserPassword(userId: number, passwordHash: string): 
   if (!db) throw new Error("Database not available");
 
   await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+}
+
+export async function updateUserOpenId(userId: number, openId: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(users).set({ openId }).where(eq(users.id, userId));
 }
 
 export async function updateUserPlainPassword(userId: number, plainPassword: string): Promise<void> {

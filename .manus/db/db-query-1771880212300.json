@@ -1,0 +1,52 @@
+{
+  "query": "SELECT id, name, email, COALESCE(openId, 'NULL') as openId_value, loginMethod FROM users ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, name, email, COALESCE(openId, 'NULL') as openId_value, loginMethod FROM users ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Gustavo Moreira",
+      "email": "oper.globaladm@gmail.com",
+      "openId_value": "7DQFJKY2pPqbjK62Bozgmv",
+      "loginMethod": "google"
+    },
+    {
+      "id": "96",
+      "name": "Lucas Guarda",
+      "email": "admin@casablanca.com",
+      "openId_value": "email:admin@casablanca.com",
+      "loginMethod": "email"
+    },
+    {
+      "id": "97",
+      "name": "Lojista Demo",
+      "email": "lojista@casablanca.com",
+      "openId_value": "email:lojista@casablanca.com",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670070",
+      "name": "Mirian Carvalho",
+      "email": "mirian@feitoamao.com",
+      "openId_value": "email:mirian@feitoamao.com",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670103",
+      "name": "Funcionário Teste 1",
+      "email": "func1-restaurante@test.com",
+      "openId_value": "email:func1-restaurante@test.com",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670106",
+      "name": "Funcionário Teste 2",
+      "email": "func2-restaurante@test.com",
+      "openId_value": "email:func2-restaurante@test.com",
+      "loginMethod": "email"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\topenId_value\tloginMethod\n1\tGustavo Moreira\toper.globaladm@gmail.com\t7DQFJKY2pPqbjK62Bozgmv\tgoogle\n96\tLucas Guarda\tadmin@casablanca.com\temail:admin@casablanca.com\temail\n97\tLojista Demo\tlojista@casablanca.com\temail:lojista@casablanca.com\temail\n2670070\tMirian Carvalho\tmirian@feitoamao.com\temail:mirian@feitoamao.com\temail\n2670103\tFuncionário Teste 1\tfunc1-restaurante@test.com\temail:func1-restaurante@test.com\temail\n2670106\tFuncionário Teste 2\tfunc2-restaurante@test.com\temail:func2-restaurante@test.com\temail\n",
+  "stderr": "",
+  "execution_time_ms": 370
+}

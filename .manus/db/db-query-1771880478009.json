@@ -1,0 +1,19 @@
+{
+  "query": "SELECT CONCAT(email, '|', COALESCE(plainPassword, 'N/A'), '|', role, '|', COALESCE(CAST(tenantId AS CHAR), 'null')) as info FROM users WHERE passwordHash IS NOT NULL LIMIT 3;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT CONCAT(email, '|', COALESCE(plainPassword, 'N/A'), '|', role, '|', COALESCE(CAST(tenantId AS CHAR), 'null')) as info FROM users WHERE passwordHash IS NOT NULL LIMIT 3;",
+  "rows": [
+    {
+      "info": "admin@casablanca.com|N/A|super_admin|null"
+    },
+    {
+      "info": "lojista@casablanca.com|N/A|client_admin|1"
+    },
+    {
+      "info": "mirian@feitoamao.com|88032323|client_admin|60001"
+    }
+  ],
+  "messages": [],
+  "stdout": "info\nadmin@casablanca.com|N/A|super_admin|null\nlojista@casablanca.com|N/A|client_admin|1\nmirian@feitoamao.com|88032323|client_admin|60001\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}

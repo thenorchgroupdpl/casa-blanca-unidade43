@@ -1,0 +1,52 @@
+{
+  "query": "SELECT id, email, openId, IF(passwordHash IS NOT NULL, 'YES', 'NO') as has_hash, loginMethod FROM users ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute SELECT id, email, openId, IF(passwordHash IS NOT NULL, 'YES', 'NO') as has_hash, loginMethod FROM users ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "email": "oper.globaladm@gmail.com",
+      "openId": "7DQFJKY2pPqbjK62Bozgmv",
+      "has_hash": "NO",
+      "loginMethod": "google"
+    },
+    {
+      "id": "96",
+      "email": "admin@casablanca.com",
+      "openId": "email:admin@casablanca.com",
+      "has_hash": "YES",
+      "loginMethod": "email"
+    },
+    {
+      "id": "97",
+      "email": "lojista@casablanca.com",
+      "openId": "email:lojista@casablanca.com",
+      "has_hash": "YES",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670070",
+      "email": "mirian@feitoamao.com",
+      "openId": "email:mirian@feitoamao.com",
+      "has_hash": "YES",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670103",
+      "email": "func1-restaurante@test.com",
+      "openId": "email:func1-restaurante@test.com",
+      "has_hash": "YES",
+      "loginMethod": "email"
+    },
+    {
+      "id": "2670106",
+      "email": "func2-restaurante@test.com",
+      "openId": "email:func2-restaurante@test.com",
+      "has_hash": "YES",
+      "loginMethod": "email"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\topenId\thas_hash\tloginMethod\n1\toper.globaladm@gmail.com\t7DQFJKY2pPqbjK62Bozgmv\tNO\tgoogle\n96\tadmin@casablanca.com\temail:admin@casablanca.com\tYES\temail\n97\tlojista@casablanca.com\temail:lojista@casablanca.com\tYES\temail\n2670070\tmirian@feitoamao.com\temail:mirian@feitoamao.com\tYES\temail\n2670103\tfunc1-restaurante@test.com\temail:func1-restaurante@test.com\tYES\temail\n2670106\tfunc2-restaurante@test.com\temail:func2-restaurante@test.com\tYES\temail\n",
+  "stderr": "",
+  "execution_time_ms": 348
+}

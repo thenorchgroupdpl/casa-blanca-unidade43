@@ -637,3 +637,25 @@
 ### 4. Teste de Múltiplos Usuários por Tenant
 - [x] Criar teste unitário que cria 2+ usuários no mesmo tenant e confirma sucesso (7 novos testes)
 - [x] Testar no navegador criando múltiplos usuários para a mesma loja (3 users no mesmo tenant OK)
+
+## Fase 55: Showstopper - Fluxo de Autenticação Quebrado
+### 1. Hashing e OpenId (Causa Raiz)
+- [x] Gerar openId automaticamente (`email:${email}`) na createUserWithPassword
+- [x] Corrigir upsertUser no login para usar fallback `email:${email}` quando openId é NULL
+- [x] Atualizar usuários existentes sem openId no banco de dados
+### 2. Sessão e Cookies
+- [x] Verificar que cookie é setado corretamente após login bem-sucedido
+- [x] Garantir que authenticateRequest reconhece sessões de login por email
+### 3. Redirecionamento por Role
+- [x] Super Admin -> /admin/super
+- [x] Client Admin (Lojista) -> /admin/dashboard
+- [x] Funcionário (user com tenantId) -> /admin/dashboard
+- [x] User sem tenant -> /
+### 4. Feedback Visual no Login
+- [x] Distinguir erro de credenciais vs erro de rede/servidor
+- [x] Toast ou mensagem clara para cada tipo de erro
+- [x] Garantir que erros internos não causem falha silenciosa (try/catch no upsertUser)
+### 5. Testes
+- [x] Teste unitário de login com credenciais válidas
+- [x] Teste unitário de login com credenciais inválidas
+- [x] Teste unitário de login com usuário inexistente

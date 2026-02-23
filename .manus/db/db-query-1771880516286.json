@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO users (openId, email, passwordHash, plainPassword, name, role, loginMethod, isActive) VALUES ('email:logintest@casablanca.com', 'logintest@casablanca.com', '$2b$10$TdZRTHWzpiiJNJeJorSJ6OSqqqMe2oqFZ5.JrPSLVOH3r3QcAzXBC', 'test1234', 'Login Test', 'client_admin', 'email', 1);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute INSERT INTO users (openId, email, passwordHash, plainPassword, name, role, loginMethod, isActive) VALUES ('email:logintest@casablanca.com', 'logintest@casablanca.com', '$2b$10$TdZRTHWzpiiJNJeJorSJ6OSqqqMe2oqFZ5.JrPSLVOH3r3QcAzXBC', 'test1234', 'Login Test', 'client_admin', 'email', 1);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 364
+}
