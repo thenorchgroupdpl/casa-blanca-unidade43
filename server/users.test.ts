@@ -376,3 +376,144 @@ describe("users router", () => {
     });
   });
 });
+
+// ─── Fase 53: Testes de validação de email e criação de usuário ───
+
+describe("users.create - email validation", () => {
+  function createSuperAdminContext(): TrpcContext {
+    const user: NonNullable<TrpcContext["user"]> = {
+      id: 1,
+      openId: "super-admin-test",
+      email: "admin@casablanca.com",
+      name: "Administrador",
+      loginMethod: "email",
+      role: "super_admin",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    };
+    return {
+      user,
+      req: { protocol: "https", headers: {} } as TrpcContext["req"],
+      res: { clearCookie: () => {} } as TrpcContext["res"],
+    };
+  }
+
+  it("rejects email without @ symbol", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.users.create({
+        name: "No At User",
+        email: "invalidemail.com",
+        password: "test1234",
+        role: "user",
+        tenantId: null,
+        isActive: true,
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects email with spaces", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.users.create({
+        name: "Space Email User",
+        email: "user @test.com",
+        password: "test1234",
+        role: "user",
+        tenantId: null,
+        isActive: true,
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects empty email", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.users.create({
+        name: "Empty Email User",
+        email: "",
+        password: "test1234",
+        role: "user",
+        tenantId: null,
+        isActive: true,
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects empty name", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.users.create({
+        name: "",
+        email: `empty-name-${Date.now()}@test.com`,
+        password: "test1234",
+        role: "user",
+        tenantId: null,
+        isActive: true,
+      })
+    ).rejects.toThrow();
+  });
+
+  it("accepts valid email with tenant binding", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const validEmail = `tenant-bind-${Date.now()}@test.com`;
+
+    const result = await caller.users.create({
+      name: "Tenant Bind User",
+      email: validEmail,
+      password: "test1234",
+      role: "client_admin",
+      tenantId: 1,
+      isActive: true,
+    });
+
+    expect(result).toHaveProperty("success", true);
+    expect(result).toHaveProperty("userId");
+
+    // Verify tenant binding
+    const users = await caller.users.list();
+    const createdUser = users.find((u) => u.email === validEmail);
+    expect(createdUser).toBeDefined();
+    expect(createdUser!.tenantId).toBe(1);
+    expect(createdUser!.role).toBe("client_admin");
+
+    // Cleanup
+    await caller.users.delete({ id: createdUser!.id });
+  });
+
+  it("accepts valid email without tenant (admin role)", async () => {
+    const ctx = createSuperAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const validEmail = `no-tenant-${Date.now()}@test.com`;
+
+    const result = await caller.users.create({
+      name: "No Tenant Admin",
+      email: validEmail,
+      password: "test1234",
+      role: "super_admin",
+      tenantId: null,
+      isActive: true,
+    });
+
+    expect(result).toHaveProperty("success", true);
+
+    // Verify no tenant binding
+    const users = await caller.users.list();
+    const createdUser = users.find((u) => u.email === validEmail);
+    expect(createdUser).toBeDefined();
+    expect(createdUser!.tenantId).toBeNull();
+
+    // Cleanup
+    await caller.users.delete({ id: createdUser!.id });
+  });
+});

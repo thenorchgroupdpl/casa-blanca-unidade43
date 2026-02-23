@@ -61,6 +61,7 @@ import {
   Lock,
   Copy,
   Check,
+  AlertCircle,
 } from "lucide-react";
 import { useState, useMemo, useCallback, useRef } from "react";
 import { toast } from "sonner";
@@ -161,6 +162,16 @@ const defaultCreateForm: CreateUserForm = {
   isActive: true,
 };
 
+type FieldErrors = {
+  name?: string;
+  email?: string;
+  password?: string;
+};
+
+// Strict email regex: no accents, no spaces, must have @ and valid domain
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const HAS_ACCENTS_OR_SPACES = /[\u00C0-\u024F\u1E00-\u1EFF\s]/;
+
 export default function UsersPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -168,6 +179,7 @@ export default function UsersPage() {
   // Create user drawer
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [createForm, setCreateForm] = useState<CreateUserForm>(defaultCreateForm);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // Edit user modal
   const [editingUser, setEditingUser] = useState<{
@@ -196,8 +208,11 @@ export default function UsersPage() {
       utils.users.list.invalidate();
       setShowCreateDrawer(false);
       setCreateForm(defaultCreateForm);
+      setFieldErrors({});
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: any) => {
+      toast.error(error.message || "Erro ao criar usuário. Tente novamente.");
+    },
   });
 
   const updateRoleMutation = trpc.users.updateRole.useMutation({
@@ -304,20 +319,55 @@ export default function UsersPage() {
     };
   }, [usersList]);
 
-  const handleCreateUser = () => {
-    if (!createForm.name.trim()) { toast.error("Nome é obrigatório"); return; }
-    if (!createForm.email.trim()) { toast.error("E-mail é obrigatório"); return; }
-    if (!createForm.password.trim()) { toast.error("Senha é obrigatória"); return; }
-    if (createForm.password.length < 4) { toast.error("Senha deve ter no mínimo 4 caracteres"); return; }
+  const validateCreateForm = (): FieldErrors => {
+    const errors: FieldErrors = {};
+    const name = createForm.name.trim();
+    const email = createForm.email.trim();
+    const password = createForm.password;
 
-    createUserMutation.mutate({
-      name: createForm.name.trim(),
-      email: createForm.email.trim().toLowerCase(),
-      password: createForm.password,
-      role: createForm.role as any,
-      tenantId: createForm.tenantId === "none" ? null : parseInt(createForm.tenantId),
-      isActive: createForm.isActive,
-    });
+    if (!name) {
+      errors.name = "Nome é obrigatório";
+    }
+
+    if (!email) {
+      errors.email = "E-mail é obrigatório";
+    } else if (HAS_ACCENTS_OR_SPACES.test(email)) {
+      errors.email = "Formato de e-mail inválido (não use acentos ou espaços)";
+    } else if (!EMAIL_REGEX.test(email)) {
+      errors.email = "Formato de e-mail inválido";
+    }
+
+    if (!password) {
+      errors.password = "Senha é obrigatória";
+    } else if (password.length < 4) {
+      errors.password = "Senha deve ter no mínimo 4 caracteres";
+    }
+
+    return errors;
+  };
+
+  const handleCreateUser = async () => {
+    const errors = validateCreateForm();
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Corrija os campos destacados antes de salvar.");
+      return;
+    }
+
+    try {
+      await createUserMutation.mutateAsync({
+        name: createForm.name.trim(),
+        email: createForm.email.trim().toLowerCase(),
+        password: createForm.password,
+        role: createForm.role as any,
+        tenantId: createForm.tenantId === "none" ? null : parseInt(createForm.tenantId),
+        isActive: createForm.isActive,
+      });
+    } catch (error: any) {
+      // Error is already handled by mutation's onError callback
+      // This catch prevents unhandled promise rejection
+    }
   };
 
   return (
@@ -330,7 +380,7 @@ export default function UsersPage() {
             <p className="text-zinc-400 mt-1">Gerencie todos os usuários da plataforma</p>
           </div>
           <Button
-            onClick={() => { setCreateForm(defaultCreateForm); setShowCreateDrawer(true); }}
+            onClick={() => { setCreateForm(defaultCreateForm); setFieldErrors({}); setShowCreateDrawer(true); }}
             className="bg-amber-500 hover:bg-amber-600 text-black font-medium gap-2"
           >
             <UserPlus className="h-4 w-4" />
@@ -651,12 +701,47 @@ export default function UsersPage() {
                 Informações Pessoais
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">Nome Completo *</Label>
-                <Input value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} placeholder="Ex: João da Silva" className="bg-zinc-900/80 border-zinc-800/60 focus:border-amber-500/50 focus:ring-amber-500/20" />
+                <Label className={`text-xs ${fieldErrors.name ? 'text-red-400' : 'text-zinc-400'}`}>Nome Completo *</Label>
+                <Input
+                  value={createForm.name}
+                  onChange={(e) => {
+                    setCreateForm({ ...createForm, name: e.target.value });
+                    if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                  }}
+                  placeholder="Ex: João da Silva"
+                  className={`bg-zinc-900/80 focus:ring-amber-500/20 ${
+                    fieldErrors.name
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-zinc-800/60 focus:border-amber-500/50'
+                  }`}
+                />
+                {fieldErrors.name && (
+                  <p className="text-red-400 text-xs flex items-center gap-1 mt-1">
+                    <AlertCircle className="h-3 w-3" />{fieldErrors.name}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">E-mail (Login) *</Label>
-                <Input type="email" value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} placeholder="Ex: joao@empresa.com" className="bg-zinc-900/80 border-zinc-800/60 focus:border-amber-500/50 focus:ring-amber-500/20" />
+                <Label className={`text-xs ${fieldErrors.email ? 'text-red-400' : 'text-zinc-400'}`}>E-mail (Login) *</Label>
+                <Input
+                  type="text"
+                  value={createForm.email}
+                  onChange={(e) => {
+                    setCreateForm({ ...createForm, email: e.target.value });
+                    if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  placeholder="Ex: joao@empresa.com"
+                  className={`bg-zinc-900/80 focus:ring-amber-500/20 ${
+                    fieldErrors.email
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-zinc-800/60 focus:border-amber-500/50'
+                  }`}
+                />
+                {fieldErrors.email && (
+                  <p className="text-red-400 text-xs flex items-center gap-1 mt-1">
+                    <AlertCircle className="h-3 w-3" />{fieldErrors.email}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -669,9 +754,28 @@ export default function UsersPage() {
                 Credenciais
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-400 text-xs">Senha *</Label>
-                <Input type="text" value={createForm.password} onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })} placeholder="Mínimo 4 caracteres" className="bg-zinc-900/80 border-zinc-800/60 focus:border-amber-500/50 focus:ring-amber-500/20 font-mono" />
-                <p className="text-[11px] text-zinc-600">A senha ficará visível no painel para fins de suporte.</p>
+                <Label className={`text-xs ${fieldErrors.password ? 'text-red-400' : 'text-zinc-400'}`}>Senha *</Label>
+                <Input
+                  type="text"
+                  value={createForm.password}
+                  onChange={(e) => {
+                    setCreateForm({ ...createForm, password: e.target.value });
+                    if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  placeholder="Mínimo 4 caracteres"
+                  className={`bg-zinc-900/80 font-mono focus:ring-amber-500/20 ${
+                    fieldErrors.password
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-zinc-800/60 focus:border-amber-500/50'
+                  }`}
+                />
+                {fieldErrors.password ? (
+                  <p className="text-red-400 text-xs flex items-center gap-1 mt-1">
+                    <AlertCircle className="h-3 w-3" />{fieldErrors.password}
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-zinc-600">A senha ficará visível no painel para fins de suporte.</p>
+                )}
               </div>
             </div>
 

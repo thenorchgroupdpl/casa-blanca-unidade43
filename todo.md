@@ -607,3 +607,19 @@
 ### Teste Geral
 - [x] Teste geral: 0 erros TypeScript, 0 erros console, 0 erros HTTP, 225 testes passando
 - [x] 17 novos testes unitários para QA Phase 52
+
+## Fase 53: Bug Fix - Falha Silenciosa no Formulário de Novo Usuário (Super Admin)
+### 1. Validação Visual Frontend
+- [x] Implementar estado de erros por campo (fieldErrors) no formulário de criação
+- [x] Validação de e-mail: rejeitar acentos, espaços, formato inválido com regex rigorosa
+- [x] Exibir mensagem de erro em vermelho abaixo de cada input inválido
+- [x] Aplicar borda vermelha (border-red-500) nos campos obrigatórios vazios ou inválidos
+- [x] Validar campos obrigatórios (nome, email, senha) antes de chamar a API
+### 2. Tratamento de Erro na API (Try/Catch e Toasts)
+- [x] Envolver chamada createUserMutation em try/catch com toast de erro capturando mensagem do backend
+- [x] Toast de sucesso ao criar, fechar painel automaticamente e atualizar tabela via invalidate
+- [x] Garantir que erros de rede/500/conflito (email duplicado) sejam exibidos ao admin
+### 3. Vínculo do Tenant (Select Binding)
+- [x] Verificar e garantir que o Select de Empresa/Tenant salva o ID numérico (tenant_id) e não o nome
+### 4. Testes
+- [x] Testes unitários para as correções (231 testes passando, 7 novos)
