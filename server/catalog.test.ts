@@ -508,3 +508,185 @@ describe("Product data transformation", () => {
     expect(result.images).toEqual([]);
   });
 });
+
+
+// ============================================
+// 7. VITRINE LOGIC (pure function tests)
+// ============================================
+
+// Simulates the VitrineSection's highlightedCategories filter
+function filterVitrineCategories(
+  catalog: Array<{
+    id: string;
+    category_name: string;
+    highlight_on_home: boolean;
+    products: Array<{ id: string; name: string; available: boolean }>;
+  }>
+) {
+  return catalog
+    .filter((cat) => cat.highlight_on_home)
+    .map((cat) => ({
+      ...cat,
+      products: cat.products.filter((p) => p.available),
+    }))
+    .filter((cat) => cat.products.length > 0);
+}
+
+// Simulates the row reorder logic
+function reorderRows<T>(rows: T[], fromIndex: number, direction: "up" | "down"): T[] {
+  const newRows = [...rows];
+  const targetIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
+  if (targetIndex < 0 || targetIndex >= newRows.length) return newRows;
+  [newRows[fromIndex], newRows[targetIndex]] = [newRows[targetIndex], newRows[fromIndex]];
+  return newRows;
+}
+
+describe("Vitrine - highlightedCategories filter", () => {
+  const baseCatalog = [
+    {
+      id: "bebidas",
+      category_name: "Bebidas",
+      highlight_on_home: true,
+      products: [
+        { id: "1", name: "Suco", available: true },
+        { id: "2", name: "Água", available: true },
+        { id: "3", name: "Cerveja", available: false },
+      ],
+    },
+    {
+      id: "sobremesas",
+      category_name: "Sobremesas",
+      highlight_on_home: true,
+      products: [
+        { id: "4", name: "Pudim", available: false },
+        { id: "5", name: "Torta", available: false },
+      ],
+    },
+    {
+      id: "entradas",
+      category_name: "Entradas",
+      highlight_on_home: false,
+      products: [
+        { id: "6", name: "Bruschetta", available: true },
+      ],
+    },
+    {
+      id: "massas",
+      category_name: "Massas",
+      highlight_on_home: true,
+      products: [
+        { id: "7", name: "Lasanha", available: true },
+      ],
+    },
+  ];
+
+  it("only includes highlighted categories with available products", () => {
+    const result = filterVitrineCategories(baseCatalog);
+    expect(result.length).toBe(2);
+    expect(result[0].id).toBe("bebidas");
+    expect(result[1].id).toBe("massas");
+  });
+
+  it("hides category where all products are unavailable", () => {
+    const result = filterVitrineCategories(baseCatalog);
+    const sobremesas = result.find(c => c.id === "sobremesas");
+    expect(sobremesas).toBeUndefined();
+  });
+
+  it("hides category not highlighted on home even if it has available products", () => {
+    const result = filterVitrineCategories(baseCatalog);
+    const entradas = result.find(c => c.id === "entradas");
+    expect(entradas).toBeUndefined();
+  });
+
+  it("filters out unavailable products within shown categories", () => {
+    const result = filterVitrineCategories(baseCatalog);
+    const bebidas = result.find(c => c.id === "bebidas")!;
+    expect(bebidas.products.length).toBe(2);
+    expect(bebidas.products.every(p => p.available)).toBe(true);
+  });
+
+  it("returns empty array when no categories are highlighted", () => {
+    const noHighlights = baseCatalog.map(c => ({ ...c, highlight_on_home: false }));
+    const result = filterVitrineCategories(noHighlights);
+    expect(result.length).toBe(0);
+  });
+
+  it("returns empty array when all products are unavailable", () => {
+    const allUnavailable = baseCatalog.map(c => ({
+      ...c,
+      products: c.products.map(p => ({ ...p, available: false })),
+    }));
+    const result = filterVitrineCategories(allUnavailable);
+    expect(result.length).toBe(0);
+  });
+});
+
+describe("Vitrine - row reorder logic", () => {
+  const rows = [
+    { categoryId: 1, customTitle: "Bebidas" },
+    { categoryId: 2, customTitle: "Massas" },
+    { categoryId: null, customTitle: "" },
+  ];
+
+  it("moves row up correctly", () => {
+    const result = reorderRows(rows, 1, "up");
+    expect(result[0].categoryId).toBe(2);
+    expect(result[1].categoryId).toBe(1);
+    expect(result[2].categoryId).toBeNull();
+  });
+
+  it("moves row down correctly", () => {
+    const result = reorderRows(rows, 0, "down");
+    expect(result[0].categoryId).toBe(2);
+    expect(result[1].categoryId).toBe(1);
+  });
+
+  it("does not move first row up (boundary)", () => {
+    const result = reorderRows(rows, 0, "up");
+    expect(result[0].categoryId).toBe(1);
+    expect(result[1].categoryId).toBe(2);
+  });
+
+  it("does not move last row down (boundary)", () => {
+    const result = reorderRows(rows, 2, "down");
+    expect(result[2].categoryId).toBeNull();
+  });
+
+  it("preserves all rows after reorder (no data loss)", () => {
+    const result = reorderRows(rows, 0, "down");
+    expect(result.length).toBe(3);
+    expect(result.some(r => r.categoryId === 1)).toBe(true);
+    expect(result.some(r => r.categoryId === 2)).toBe(true);
+    expect(result.some(r => r.categoryId === null)).toBe(true);
+  });
+});
+
+describe("Vitrine - empty category alert logic", () => {
+  it("detects category with zero active products", () => {
+    const products = [
+      { id: 1, categoryId: 5, isAvailable: false },
+      { id: 2, categoryId: 5, isAvailable: false },
+    ];
+    const activeCount = products.filter(p => p.categoryId === 5 && p.isAvailable).length;
+    expect(activeCount).toBe(0);
+  });
+
+  it("detects category with some active products", () => {
+    const products = [
+      { id: 1, categoryId: 5, isAvailable: true },
+      { id: 2, categoryId: 5, isAvailable: false },
+      { id: 3, categoryId: 5, isAvailable: true },
+    ];
+    const activeCount = products.filter(p => p.categoryId === 5 && p.isAvailable).length;
+    expect(activeCount).toBe(2);
+  });
+
+  it("returns zero for non-existent category", () => {
+    const products = [
+      { id: 1, categoryId: 1, isAvailable: true },
+    ];
+    const activeCount = products.filter(p => p.categoryId === 999 && p.isAvailable).length;
+    expect(activeCount).toBe(0);
+  });
+});

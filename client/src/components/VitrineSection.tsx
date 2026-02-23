@@ -195,11 +195,17 @@ export default function VitrineSection() {
     return style;
   }, [intro?.cta_bg_color, intro?.cta_text_color, intro?.cta_gradient, intro?.cta_gradient_end, intro?.cta_font, intro?.cta_font_size, intro?.cta_font_weight]);
 
+  // Strict auto-hide: only show categories that are highlighted AND have at least one available product
+  // This prevents rendering empty sections (inactive category or all products paused)
   const highlightedCategories = useMemo(() => {
     if (!data) return [];
-    return data.catalog.filter(
-      (cat) => cat.highlight_on_home && cat.products.length > 0
-    );
+    return data.catalog
+      .filter((cat) => cat.highlight_on_home)
+      .map((cat) => ({
+        ...cat,
+        products: cat.products.filter((p) => p.available),
+      }))
+      .filter((cat) => cat.products.length > 0);
   }, [data?.catalog]);
 
   // Early returns AFTER all hooks

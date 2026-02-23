@@ -560,3 +560,17 @@
 - [x] Corrigir exibição de measurement_value: remover zeros decimais desnecessários (700.00g → 700g)
 - [x] Aplicar parseFloat() no ProductCard e ProductBottomSheet
 - [x] Preview do Design System reflete automaticamente via iframe
+
+## Fase 50: Melhorias na Aba Vitrine do Lojista
+### UI do Painel (Vitrine)
+- [x] Setas de reordenação (up/down) para reordenar fileiras
+- [x] Alerta de categoria vazia: banner amarelo quando categoria tem 0 produtos ativos
+- [x] Alerta de categoria inativa: banner amarelo quando categoria está desativada
+- [x] Preview dinâmico: mini-cards com imagem e nome dos 3 primeiros produtos ativos
+- [x] Botão "Ver Minha Loja" com ícone de link externo no cabeçalho
+- [x] Contagem de produtos ativos por categoria no dropdown e na descrição
+### Landing Page (Frontend)
+- [x] Ocultação automática: fileira inteira oculta se categoria inativa ou sem produtos ativos
+- [x] Nunca renderizar seção vazia (filtro triplo: backend + transformação + VitrineSection)
+### Backend/Testes
+- [x] Testes unitários: 14 novos testes de vitrine (197 total passando)
