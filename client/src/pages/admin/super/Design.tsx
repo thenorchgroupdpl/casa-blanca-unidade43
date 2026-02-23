@@ -1017,12 +1017,15 @@ export default function DesignPage() {
             {/* Left Panel - Editor */}
             <div className="w-[400px] shrink-0 flex flex-col overflow-hidden min-h-0 bg-zinc-900/80" style={{ boxShadow: '4px 0 24px rgba(0,0,0,0.4), 1px 0 0 rgba(63,63,70,0.3)' }}>
               {/* Section Tabs */}
-              <div className="flex border-b border-zinc-800/80 shrink-0 overflow-x-auto bg-zinc-900/60 backdrop-blur-sm">
+              <div
+                className="flex gap-1 border-b border-zinc-800/80 shrink-0 overflow-x-auto whitespace-nowrap bg-zinc-900/60 backdrop-blur-sm hide-scrollbar"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 {SECTION_TABS.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold whitespace-nowrap transition-all border-b-2 ${
+                    className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold whitespace-nowrap transition-all border-b-2 shrink-0 ${
                       activeTab === tab.id
                         ? "border-amber-500 text-amber-400 bg-amber-500/5"
                         : "border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/40"

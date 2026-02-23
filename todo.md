@@ -722,3 +722,9 @@
 ### Testes
 - [x] Testes unitários para geração de mensagem WhatsApp sem dupla codificação (297 testes passando)
 - [x] Teste visual no navegador (popup limpo, carrinho funcional, encoding correto)
+
+## Fase 59: Correção Layout Abas do Design System (Scroll Horizontal)
+- [x] Aplicar overflow-x-auto, whitespace-nowrap e gap-1 no container de abas
+- [x] Ocultar scrollbar (hide-scrollbar + scrollbarWidth: none + msOverflowStyle: none)
+- [x] Aplicar shrink-0 nos botões de abas para manter tamanho natural
+- [x] Testar no navegador (todas as 7 abas acessíveis via scroll horizontal)
