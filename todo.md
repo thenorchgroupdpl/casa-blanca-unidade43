@@ -555,3 +555,8 @@
 - [x] Tipo Product atualizado com unitValue, unit, highlightTag, originalPrice
 - [x] Transformação em StoreLanding.tsx mapeando novos campos do backend
 - [x] Testes unitários: 15 novos testes (183 total passando)
+
+## Fase 49: Bug Fix - Formatação de Unidade de Medida
+- [x] Corrigir exibição de measurement_value: remover zeros decimais desnecessários (700.00g → 700g)
+- [x] Aplicar parseFloat() no ProductCard e ProductBottomSheet
+- [x] Preview do Design System reflete automaticamente via iframe

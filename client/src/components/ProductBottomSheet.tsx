@@ -20,9 +20,12 @@ const HIGHLIGHT_LABELS: Record<string, string> = {
   vegano: '🌱 Vegano',
 };
 
+// Remove trailing zeros: 700.00 → 700, 1.50 → 1.5
 function formatUnit(unitValue?: string | null, unit?: string | null): string | null {
   if (!unitValue || !unit) return null;
-  return `${unitValue}${unit}`;
+  const formatted = parseFloat(unitValue);
+  if (isNaN(formatted)) return null;
+  return `${formatted}${unit}`;
 }
 
 export default function ProductBottomSheet() {
