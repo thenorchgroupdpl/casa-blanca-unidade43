@@ -735,3 +735,8 @@
 - [x] Usar bullet point simples (•) na lista de itens
 - [x] Garantir que a string é construída primeiro e encodeURIComponent aplicado uma única vez (em openWhatsApp)
 - [x] Testar (297 testes passando, 0 erros TS)
+
+## Fase 61: Remover Emojis da Mensagem WhatsApp
+- [x] Remover todos os emojis (🛍️, 🧾, 📝, •) da função generateWhatsAppMessage
+- [x] Manter apenas texto simples e formatação com asteriscos (*negrito*)
+- [x] Testar (0 erros TS, servidor rodando)

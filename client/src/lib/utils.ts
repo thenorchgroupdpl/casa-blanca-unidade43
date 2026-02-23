@@ -313,14 +313,14 @@ export function generateWhatsAppMessage(
   const itensList = items
     .map((item) => {
       const itemTotal = item.product.price * item.quantity;
-      return `\u2022 ${item.quantity}x ${item.product.name} - ${formatPrice(itemTotal)}`;
+      return `- ${item.quantity}x ${item.product.name} - ${formatPrice(itemTotal)}`;
     })
     .join('\n');
 
-  let message = `\uD83D\uDECD\uFE0F *Ol\u00E1 ${nome}! Pedido via Site:*\n\n${itensList}\n\n\uD83E\uDDFE *Total: ${formatPrice(total)}*`;
+  let message = `*Ol\u00E1 ${nome}! Pedido via Site:*\n\n${itensList}\n\n*Total: ${formatPrice(total)}*`;
 
   if (observation) {
-    message += `\n\n\uD83D\uDCDD *Observa\u00E7\u00E3o:* ${observation}`;
+    message += `\n\n*Observa\u00E7\u00E3o:* ${observation}`;
   }
 
   message += '\n\nAguardo confirma\u00E7\u00E3o do pedido!';
