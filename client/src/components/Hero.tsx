@@ -31,12 +31,14 @@ export default function Hero() {
   const locationText = hero.location_box_text;
   const locationIcon = hero.location_box_icon;
   const locationLabel = hero.location_label || data.contact.address.city;
+  const locationGlassmorphism = hero.location_box_glassmorphism ?? false;
 
   // Schedule box styles
   const scheduleBg = hero.schedule_box_bg;
   const scheduleText = hero.schedule_box_text;
   const scheduleIcon = hero.schedule_box_icon;
   const scheduleLabel = hero.schedule_label || status.text;
+  const scheduleGlassmorphism = hero.schedule_box_glassmorphism ?? false;
 
   // Headline styles
   const headlineStyle: React.CSSProperties = {};
@@ -126,9 +128,9 @@ export default function Hero() {
             href="#contato"
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 shadow-lg group',
-              !locationBg && 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20'
+              locationGlassmorphism && 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20'
             )}
-            style={locationBg ? {
+            style={!locationGlassmorphism && locationBg ? {
               backgroundColor: locationBg,
               borderColor: locationBg,
             } : undefined}
@@ -151,17 +153,17 @@ export default function Hero() {
             onClick={openScheduleModal}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 shadow-lg',
-              !scheduleBg && 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20',
+              scheduleGlassmorphism && 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20',
               status.warning && 'animate-pulse'
             )}
-            style={scheduleBg ? {
+            style={!scheduleGlassmorphism && scheduleBg ? {
               backgroundColor: scheduleBg,
               color: scheduleText || undefined,
-            } : !scheduleBg && status.warning === 'opening_soon' ? {
+            } : !scheduleGlassmorphism && !scheduleBg && status.warning === 'opening_soon' ? {
               backgroundColor: 'rgba(234, 179, 8, 0.3)',
               borderColor: 'rgba(250, 204, 21, 0.4)',
               color: '#facc15',
-            } : !scheduleBg && status.warning === 'closing_soon' ? {
+            } : !scheduleGlassmorphism && !scheduleBg && status.warning === 'closing_soon' ? {
               backgroundColor: 'rgba(239, 68, 68, 0.3)',
               borderColor: 'rgba(252, 165, 165, 0.4)',
               color: '#fca5a5',

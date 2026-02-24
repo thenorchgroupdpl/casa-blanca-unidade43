@@ -194,11 +194,13 @@ type LandingDesign = {
     locationBoxText?: string;
     locationBoxIcon?: string;
     locationLabel?: string; // editable city label
+    locationBoxGlassmorphism?: boolean;
     // Schedule Box
     scheduleBoxBg?: string;
     scheduleBoxText?: string;
     scheduleBoxIcon?: string;
     scheduleLabel?: string; // editable schedule text
+    scheduleBoxGlassmorphism?: boolean;
     badgeOpenColor?: string;
     badgeClosedColor?: string;
     // Headline
@@ -1791,6 +1793,18 @@ function HomeSection({
 
       {/* ===== 1.2 BOX LOCALIZAÇÃO ===== */}
       <SubPanel id="1-2-box-de-localiza-o" title="1.2 Box de Localização">
+        {/* Toggle Glassmorphism */}
+        <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div className="flex-1">
+            <Label className="text-xs text-white font-medium">Efeito de Vidro (Glassmorphism)</Label>
+            <p className="text-[10px] text-zinc-400 mt-0.5">Ativa fundo translúcido com desfoque</p>
+          </div>
+          <Switch
+            checked={data.locationBoxGlassmorphism ?? false}
+            onCheckedChange={(v) => onChange("locationBoxGlassmorphism", v)}
+          />
+        </div>
+        
         <div className="grid grid-cols-3 gap-2">
           <ColorRow label="Fundo" value={data.locationBoxBg} defaultVal="rgba(255,255,255,0.1)" field="locationBoxBg" />
           <ColorRow label="Texto" value={data.locationBoxText} defaultVal="#a1a1aa" field="locationBoxText" />
@@ -1809,6 +1823,18 @@ function HomeSection({
 
       {/* ===== 1.3 BOX HORÁRIOS ===== */}
       <SubPanel id="1-3-box-de-atendimento" title="1.3 Box de Atendimento">
+        {/* Toggle Glassmorphism */}
+        <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div className="flex-1">
+            <Label className="text-xs text-white font-medium">Efeito de Vidro (Glassmorphism)</Label>
+            <p className="text-[10px] text-zinc-400 mt-0.5">Ativa fundo translúcido com desfoque</p>
+          </div>
+          <Switch
+            checked={data.scheduleBoxGlassmorphism ?? false}
+            onCheckedChange={(v) => onChange("scheduleBoxGlassmorphism", v)}
+          />
+        </div>
+        
         <div className="grid grid-cols-3 gap-2">
           <ColorRow label="Fundo" value={data.scheduleBoxBg} defaultVal="rgba(34,197,94,0.15)" field="scheduleBoxBg" />
           <ColorRow label="Texto" value={data.scheduleBoxText} defaultVal="#22c55e" field="scheduleBoxText" />

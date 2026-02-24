@@ -788,3 +788,13 @@
 - [x] Testar que carrinho funciona sem restrições quando show_business_hours === false
 - [x] Validar que sistema de horários continua funcionando quando show_business_hours === true
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 64: Toggles para Controlar Glassmorphism no Design System
+- [x] Adicionar campos location_box_glassmorphism e schedule_box_glassmorphism ao tipo HeroContent
+- [x] Adicionar campos ao schema landingDesign (home.locationBoxGlassmorphism, home.scheduleBoxGlassmorphism)
+- [x] Adicionar toggles no Design System (aba HOME) para Localização e Horários
+- [x] Atualizar Hero.tsx para aplicar classes Glassmorphism condicionalmente
+- [x] Se glassmorphism === true: bg-white/10 backdrop-blur-md border border-white/20
+- [x] Se glassmorphism === false: usar cores customizadas normais (location_box_bg, schedule_box_bg)
+- [x] Testar no navegador (ativar/desativar cada toggle independentemente)
+- [x] 0 erros TypeScript, servidor rodando

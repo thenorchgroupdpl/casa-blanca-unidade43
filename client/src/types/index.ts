@@ -58,10 +58,12 @@ export interface HeroContent {
   location_box_text?: string;
   location_box_icon?: string;
   location_label?: string;
+  location_box_glassmorphism?: boolean;
   schedule_box_bg?: string;
   schedule_box_text?: string;
   schedule_box_icon?: string;
   schedule_label?: string;
+  schedule_box_glassmorphism?: boolean;
   headline_font?: string;
   headline_font_size?: number;
   headline_font_weight?: string;
