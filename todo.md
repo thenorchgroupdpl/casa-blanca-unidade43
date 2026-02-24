@@ -835,3 +835,14 @@
 - [x] Atualizar Open Graph tags (og:title, og:description, og:image)
 - [x] Cleanup: restaurar valores originais ao desmontar
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 67: Reformular Color Picker com Botão "Salvar Cor"
+- [x] Analisar componente ColorPickerInput atual no Design.tsx
+- [x] Substituir input[type=color] nativo por react-colorful (HexColorPicker)
+- [x] Implementar controle manual de abertura/fechamento (isOpen state)
+- [x] Adicionar botão "Salvar Cor" (amber) e "Cancelar" para confirmar/descartar
+- [x] Manter preview da cor em tempo real enquanto arrasta (tempColor state)
+- [x] Aplicar em TODOS os color pickers do Design System (componente único reutilizado)
+- [x] Adicionar estilos CSS customizados para react-colorful no index.css
+- [x] Testar que o picker não fecha ao arrastar/clicar dentro dele
+- [x] 0 erros TypeScript, servidor rodando

@@ -134,12 +134,12 @@ function SubPanel({
 }
 
 // ============================================
-// COLOR PICKER WITH LOCAL STATE
+// COLOR PICKER WITH SAVE BUTTON
 // ============================================
-// This component maintains its own local state so that parent re-renders
-// (caused by design state updates) don't unmount the native color picker dialog.
-// Wrapped in a container that stops event propagation to prevent parent
-// accordions/popovers from closing when interacting with the color picker.
+// Uses react-colorful for a rich, draggable color picker.
+// The picker only closes when the user clicks "Salvar Cor" or "Cancelar".
+import { HexColorPicker } from 'react-colorful';
+
 function ColorPickerInput({
   value,
   onChange,
@@ -149,59 +149,108 @@ function ColorPickerInput({
   onChange: (value: string) => void;
   className?: string;
 }) {
-  const [localValue, setLocalValue] = useState(value);
-  const isPickingRef = useRef(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [tempColor, setTempColor] = useState(value);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
-  // Sync from parent when not actively picking
+  // Sync tempColor when value changes externally and picker is closed
   useEffect(() => {
-    if (!isPickingRef.current) {
-      setLocalValue(value);
+    if (!isOpen) {
+      setTempColor(value);
     }
-  }, [value]);
+  }, [value, isOpen]);
 
-  // Cleanup debounce on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
+  // When opening, reset temp to current value
+  const handleOpen = () => {
+    setTempColor(value);
+    setIsOpen(true);
+  };
 
-  // Stop propagation helper to prevent parent containers from capturing events
+  const handleSave = () => {
+    onChange(tempColor);
+    setIsOpen(false);
+  };
+
+  const handleCancel = () => {
+    setTempColor(value);
+    setIsOpen(false);
+  };
+
+  // Stop all propagation to prevent SubPanel/Popover from closing
   const stopBubble = (e: React.SyntheticEvent) => {
     e.stopPropagation();
   };
 
   return (
-    <div
-      onClick={stopBubble}
-      onMouseDown={stopBubble}
-      onTouchStart={stopBubble}
-      onPointerDown={stopBubble}
-      className="inline-flex"
-    >
-      <input
-        type="color"
-        value={localValue}
-        onFocus={() => { isPickingRef.current = true; }}
-        onBlur={() => {
-          isPickingRef.current = false;
-          // Ensure final value is sent on blur
-          onChange(localValue);
-        }}
-        onInput={(e) => {
-          const newVal = (e.target as HTMLInputElement).value;
-          setLocalValue(newVal);
-          // Debounce the onChange to avoid excessive re-renders while dragging
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          debounceRef.current = setTimeout(() => {
-            onChange(newVal);
-          }, 50);
-        }}
-        onClick={stopBubble}
-        onMouseDown={stopBubble}
+    <div className="relative inline-flex" onClick={stopBubble} onMouseDown={stopBubble} onTouchStart={stopBubble} onPointerDown={stopBubble}>
+      {/* Color swatch button */}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); handleOpen(); }}
         className={className}
+        style={{ backgroundColor: value }}
+        aria-label="Escolher cor"
       />
+
+      {/* Color picker dropdown */}
+      {isOpen && (
+        <div
+          ref={pickerRef}
+          onClick={stopBubble}
+          onMouseDown={stopBubble}
+          onTouchStart={stopBubble}
+          onPointerDown={stopBubble}
+          className="absolute z-[9999] top-full left-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-3 space-y-3"
+          style={{ minWidth: 220 }}
+        >
+          {/* react-colorful picker */}
+          <div
+            onClick={stopBubble}
+            onMouseDown={stopBubble}
+            onTouchStart={stopBubble}
+            onPointerDown={stopBubble}
+          >
+            <HexColorPicker
+              color={tempColor}
+              onChange={setTempColor}
+            />
+          </div>
+
+          {/* Hex input */}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-lg border border-zinc-600 shrink-0"
+              style={{ backgroundColor: tempColor }}
+            />
+            <Input
+              value={tempColor}
+              onChange={(e) => setTempColor(e.target.value)}
+              onClick={stopBubble}
+              onMouseDown={stopBubble}
+              className="h-8 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1 text-white"
+              placeholder="#000000"
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); handleCancel(); }}
+              className="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 border border-zinc-700 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); handleSave(); }}
+              className="flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 transition-colors"
+            >
+              Salvar Cor
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
