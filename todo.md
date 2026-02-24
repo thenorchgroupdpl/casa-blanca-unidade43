@@ -880,3 +880,24 @@
 - [x] Trigger é um botão colorido (swatch) que abre o Popover ao clicar
 - [x] Input hex manual para digitar código de cor
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 71: Hover Customizável nos Cards + Título do Cardápio Editável
+
+### PARTE 1: Cor de Hover Customizável (Cards de Produto)
+- [x] Identificar estilos dos cards: ProductCard.tsx, VitrineSection.tsx, OrderOverlay.tsx
+- [x] Adicionar campo cardHoverBgColor aos tipos (IntroContent, MenuStyleOverrides, Design.tsx)
+- [x] Adicionar Color Picker "Fundo (Hover)" no painel (seção 2.3 e 3.3)
+- [x] Atualizar ProductCard com isHovered state e cor dinâmica via cardContainerStyle
+- [x] Passar hoverBgColor no VitrineSection e OrderOverlay
+- [x] Mapear cardHoverBgColor no StoreLanding.tsx (postMessage + transformTenantData)
+
+### PARTE 2: Título do Cardápio Editável
+- [x] Identificar texto fixo "Cardápio" em OrderOverlay, Header, CartDrawer
+- [x] Adicionar campo menuSectionTitle ao tipo menu no Design.tsx e MenuStyleOverrides
+- [x] Adicionar input "Título da Tela de Produtos" antes da seção 3.1 no Design System
+- [x] Substituir texto estático "Cardápio" no OrderOverlay, Header e CartDrawer
+- [x] Mapear menuSectionTitle no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Título herda tipografia do Design System (font-display)
+
+### Testes
+- [x] 0 erros TypeScript, servidor rodando

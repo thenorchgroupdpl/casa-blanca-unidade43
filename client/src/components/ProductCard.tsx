@@ -24,6 +24,7 @@ export interface CardStyleOverrides {
   font?: string;
   fontSize?: number;
   fontWeight?: string;
+  hoverBgColor?: string;
 }
 
 interface ProductCardProps {
@@ -50,6 +51,7 @@ function formatUnit(unitValue?: string | null, unit?: string | null): string | n
 
 export default function ProductCard({ product, index = 0, variant = 'showcase', cardStyle }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const { addItem } = useCart();
   const { openProductSheet } = useUI();
   const { showToast } = useToast();
@@ -84,15 +86,21 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   // Card container style from Design System overrides
   const cardContainerStyle = useMemo(() => {
     const style: React.CSSProperties = {};
-    if (cardStyle?.bgColor) style.backgroundColor = cardStyle.bgColor;
+    // Apply hover bg color dynamically when hovered, otherwise use normal bg
+    if (isHovered && cardStyle?.hoverBgColor) {
+      style.backgroundColor = cardStyle.hoverBgColor;
+    } else if (cardStyle?.bgColor) {
+      style.backgroundColor = cardStyle.bgColor;
+    }
     if (cardStyle?.borderRadius !== undefined) style.borderRadius = `${cardStyle.borderRadius}px`;
     if (cardStyle?.borderColor) style.borderColor = cardStyle.borderColor;
     if (cardStyle?.borderWidth !== undefined) style.borderWidth = `${cardStyle.borderWidth}px`;
     if (cardStyle?.font && cardStyle.font !== 'inherit') style.fontFamily = cardStyle.font;
     if (cardStyle?.fontSize) style.fontSize = `${cardStyle.fontSize}px`;
     if (cardStyle?.fontWeight) style.fontWeight = cardStyle.fontWeight;
+    style.transition = 'background-color 0.3s ease';
     return style;
-  }, [cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
+  }, [isHovered, cardStyle?.hoverBgColor, cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
 
   // =============================================
   // GRID VARIANT
@@ -101,10 +109,12 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     return (
       <motion.div
         onClick={handleCardClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={cn(
           'group relative bg-lp-surface rounded-xl overflow-hidden cursor-pointer',
           'border border-lp-border hover:border-lp-highlight-border transition-all duration-300',
-          'hover:shadow-lg hover:bg-lp-highlight-subtle'
+          !cardStyle?.hoverBgColor && 'hover:shadow-lg hover:bg-lp-highlight-subtle'
         )}
         style={cardContainerStyle}
         initial={{ opacity: 0, y: 20 }}
@@ -183,6 +193,8 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   return (
     <motion.div
       onClick={handleCardClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
         'group relative flex-shrink-0 w-[200px] sm:w-[220px] cursor-pointer',
         'product-card rounded-2xl overflow-hidden',

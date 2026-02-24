@@ -103,6 +103,7 @@ export interface IntroContent {
   card_border_radius?: number;
   card_border_color?: string;
   card_border_width?: number;
+  card_hover_bg_color?: string;
   // Section background
   bg_color?: string;
   bg_gradient?: boolean;
@@ -266,6 +267,9 @@ export interface MenuStyleOverrides {
   cardFont?: string;
   cardFontSize?: number;
   cardFontWeight?: string;
+  cardHoverBgColor?: string;
+  // Título editável do Cardápio
+  menuSectionTitle?: string;
   // 3.4 Modal de Detalhes
   modalBgColor?: string;
   modalCtaBgColor?: string;

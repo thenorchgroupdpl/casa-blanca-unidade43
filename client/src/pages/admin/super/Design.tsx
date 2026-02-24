@@ -396,6 +396,7 @@ type LandingDesign = {
     cardBorderRadius?: number; // px
     cardBorderColor?: string;
     cardBorderWidth?: number; // px
+    cardHoverBgColor?: string;
     // 2.4 Fundo da Seção
     bgColor?: string;
     bgGradient?: boolean;
@@ -470,6 +471,8 @@ type LandingDesign = {
     textColor?: string;
   };
   menu?: {
+    // Título editável do Cardápio
+    menuSectionTitle?: string;
     // 3.1 Painel do Cardápio (Drawer/Overlay)
     panelBgColor?: string;
     panelOverlayOpacity?: number; // 0-100
@@ -494,6 +497,7 @@ type LandingDesign = {
     cardFont?: string;
     cardFontSize?: number;
     cardFontWeight?: string;
+    cardHoverBgColor?: string;
     // 3.4 Modal de Detalhes do Produto
     modalBgColor?: string;
     modalCtaBgColor?: string;
@@ -2430,6 +2434,7 @@ function ProductsSection({
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
         <ColorRow label="Fundo do Card" value={data.cardBgColor} defaultVal="#ffffff" field="cardBgColor" />
+        <ColorRow label="Fundo (Hover)" value={data.cardHoverBgColor} defaultVal="" field="cardHoverBgColor" />
         <ColorRow label="Nome do Produto" value={data.cardNameColor} defaultVal="#111827" field="cardNameColor" />
         <ColorRow label="Preço" value={data.cardPriceColor} defaultVal="" field="cardPriceColor" />
         <ColorRow label="Descrição Curta" value={data.cardDescColor} defaultVal="#6b7280" field="cardDescColor" />
@@ -2702,6 +2707,21 @@ function MenuSection({
         Estilize os modais dinâmicos do Cardápio (Drawer, Filtros, Cards e Modal de Detalhes). Os dados dos produtos vêm do Catálogo e não são editáveis aqui.
       </p>
 
+      {/* TÍTULO DA TELA DE PRODUTOS */}
+      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
+        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">TÍTULO DA TELA DE PRODUTOS</h4>
+        <p className="text-[9px] text-zinc-600">Texto exibido no cabeçalho do cardápio (ao lado do botão de fechar).</p>
+        <div>
+          <Label className="text-[10px] text-zinc-400">Título da Tela de Produtos</Label>
+          <Input
+            value={data.menuSectionTitle ?? 'Cardápio'}
+            onChange={(e) => onChange('menuSectionTitle', e.target.value)}
+            placeholder="Cardápio"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+          />
+        </div>
+      </div>
+
       {/* 3.1 PAINEL DO CARDÁPIO */}
       <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
         <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.1 PAINEL DO CARDÁPIO (DRAWER)</h4>
@@ -2751,6 +2771,7 @@ function MenuSection({
         <p className="text-[9px] text-zinc-600">Dados dos produtos (nome, preço, foto) vem do Catálogo — somente o design visual é editável.</p>
 
         <ColorRow label="Cor de Fundo do Card" value={data.cardBgColor} defaultVal="#111111" field="cardBgColor" />
+        <ColorRow label="Cor de Fundo (Hover)" value={data.cardHoverBgColor} defaultVal="" field="cardHoverBgColor" />
 
         <div className="grid grid-cols-3 gap-2">
           <ColorRow label="Nome" value={data.cardNameColor} defaultVal="#ffffff" field="cardNameColor" />

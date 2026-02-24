@@ -108,6 +108,7 @@ export default function OrderOverlay() {
       font: ms.cardFont,
       fontSize: ms.cardFontSize,
       fontWeight: ms.cardFontWeight,
+      hoverBgColor: ms.cardHoverBgColor,
     };
   }, [ms]);
 
@@ -151,7 +152,7 @@ export default function OrderOverlay() {
                   className="font-display text-xl text-foreground flex-1"
                   style={headerTextColor ? { color: headerTextColor } : undefined}
                 >
-                  Cardápio
+                  {ms?.menuSectionTitle || 'Cardápio'}
                 </h1>
               </div>
 

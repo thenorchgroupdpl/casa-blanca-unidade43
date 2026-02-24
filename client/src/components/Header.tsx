@@ -33,7 +33,7 @@ export default function Header() {
 
   const navItems = [
     { label: 'Início', href: '#hero' },
-    { label: 'Cardápio', href: '#vitrine' },
+    { label: data?.menu_style?.menuSectionTitle || 'Cardápio', href: '#vitrine' },
     { label: 'Sobre', href: '#sobre' },
     { label: 'Avaliações', href: '#feedbacks' },
     { label: 'Contato', href: '#contato' },
