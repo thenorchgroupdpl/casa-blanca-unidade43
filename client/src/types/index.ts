@@ -52,6 +52,7 @@ export interface HeroContent {
   cta_text: string;
   // Granular style overrides from Design System
   header_bg_color?: string;
+  header_behavior?: 'always_visible' | 'reveal_on_scroll';
   logo_size?: number;
   location_box_bg?: string;
   location_box_text?: string;

@@ -740,3 +740,15 @@
 - [x] Remover todos os emojis (🛍️, 🧾, 📝, •) da função generateWhatsAppMessage
 - [x] Manter apenas texto simples e formatação com asteriscos (*negrito*)
 - [x] Testar (0 erros TS, servidor rodando)
+
+## Fase 62: Controle de Comportamento do Header (Design System)
+- [x] Adicionar campo headerBehavior ao tipo LandingDesign (home section)
+- [x] Adicionar campo header_behavior ao tipo HeroContent
+- [x] Valores: 'always_visible' (Sempre Visível) e 'reveal_on_scroll' (Aparecer ao Rolar)
+- [x] Adicionar UI no Design System (aba HOME) com Toggle para escolher comportamento
+- [x] Adicionar headerBehavior ao defaultDesign com valor padrão 'always_visible'
+- [x] Implementar lógica de scroll reveal no Header.tsx (useEffect + isScrolled)
+- [x] Se always_visible: fixed top-0 com bg desde o início
+- [x] Se reveal_on_scroll: -translate-y-full inicialmente, aparecer com transição suave após scroll > 100px
+- [x] Garantir transição suave sem pulos no layout (translate-y, shadow, backdrop-blur)
+- [x] Testar no navegador (0 erros TS, servidor rodando)

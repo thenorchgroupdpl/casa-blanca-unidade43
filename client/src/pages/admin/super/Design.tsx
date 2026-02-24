@@ -226,6 +226,8 @@ type LandingDesign = {
     bgOverlayOpacity?: number;
     bgOverlayColor?: string; // overlay color with alpha
     bgFallbackColor?: string; // solid color fallback
+    // Header Behavior
+    headerBehavior?: 'always_visible' | 'reveal_on_scroll'; // Controls header visibility on scroll
   };
   products?: {
     headline?: string;
@@ -548,6 +550,7 @@ const defaultDesign: LandingDesign = {
     logoType: "text",
     logoSize: 80,
     headerBgColor: "rgba(0,0,0,0.3)",
+    headerBehavior: "always_visible",
     locationBoxBg: "rgba(255,255,255,0.1)",
     locationBoxText: "#a1a1aa",
     locationBoxIcon: "#d4a853",
@@ -1684,6 +1687,38 @@ function HomeSection({
       <SubPanel id="1-1-header-barra-da-logo" title="1.1 Header (Barra da Logo)">
 
         <ColorRow label="Cor de Fundo" value={data.headerBgColor} defaultVal="rgba(0,0,0,0.3)" field="headerBgColor" />
+
+        {/* Header Behavior */}
+        <div className="space-y-1.5">
+          <Label className="text-[10px] text-zinc-400">Comportamento da Barra de Navegação</Label>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => onChange("headerBehavior", "always_visible")}
+              className={`flex-1 px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
+                (data.headerBehavior || "always_visible") === "always_visible"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600"
+              }`}
+            >
+              Sempre Fix a no Topo
+            </button>
+            <button
+              onClick={() => onChange("headerBehavior", "reveal_on_scroll")}
+              className={`flex-1 px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
+                data.headerBehavior === "reveal_on_scroll"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600"
+              }`}
+            >
+              Aparecer ao Rolar
+            </button>
+          </div>
+          <p className="text-[9px] text-zinc-500 leading-relaxed">
+            {(data.headerBehavior || "always_visible") === "always_visible"
+              ? "O cabeçalho fica fixo no topo desde o início."
+              : "O cabeçalho aparece com transição suave após rolar a página."}
+          </p>
+        </div>
 
         {/* Logo Type */}
         <div className="space-y-1.5">

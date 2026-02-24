@@ -2,7 +2,7 @@
  * Header Component - Casa Blanca
  * Design: Warm Luxury - Glassmorphism sticky header
  * Features: Dynamic logo (image or text), WhatsApp CTA button, Cart icon on mobile
- * Supports granular style overrides from Design System (header_bg_color, logo_size)
+ * Supports granular style overrides from Design System (header_bg_color, logo_size, headerBehavior)
  */
 
 import { useState, useEffect } from 'react';
@@ -24,7 +24,7 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 100);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -48,6 +48,7 @@ export default function Header() {
   const hero = data?.sections_content?.hero;
   const headerBgColor = hero?.header_bg_color;
   const logoSize = hero?.logo_size || 40; // default 40px
+  const headerBehavior = hero?.header_behavior || 'always_visible';
 
   // Split company name for highlight effect (first word normal, rest highlighted)
   const nameParts = companyName.split(' ');
@@ -56,19 +57,41 @@ export default function Header() {
 
   // Header background style
   const headerStyle: React.CSSProperties = {};
-  if (isScrolled && headerBgColor) {
-    headerStyle.backgroundColor = headerBgColor;
+  if (headerBgColor) {
+    if (headerBehavior === 'always_visible') {
+      // Always visible: apply bg from start
+      headerStyle.backgroundColor = headerBgColor;
+    } else if (headerBehavior === 'reveal_on_scroll' && isScrolled) {
+      // Reveal on scroll: apply bg only when scrolled
+      headerStyle.backgroundColor = headerBgColor;
+    }
   }
+
+  // Determine header classes based on behavior
+  const getHeaderClasses = () => {
+    if (headerBehavior === 'reveal_on_scroll') {
+      // Reveal on scroll: hidden initially, slides down when scrolled
+      return cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out',
+        isScrolled
+          ? 'translate-y-0 shadow-lg backdrop-blur-md border-b border-lp-border py-3'
+          : '-translate-y-full'
+      );
+    } else {
+      // Always visible: fixed from start
+      return cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        isScrolled
+          ? !headerBgColor ? 'glass border-b border-lp-border py-3' : 'border-b border-lp-border py-3 backdrop-blur-md'
+          : 'bg-transparent py-4'
+      );
+    }
+  };
 
   return (
     <>
       <header
-        className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          isScrolled
-            ? !headerBgColor ? 'glass border-b border-lp-border py-3' : 'border-b border-lp-border py-3 backdrop-blur-md'
-            : 'bg-transparent py-4'
-        )}
+        className={getHeaderClasses()}
         style={headerStyle}
       >
         <div className="container flex items-center justify-between">
