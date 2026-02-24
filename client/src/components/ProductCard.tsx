@@ -6,8 +6,9 @@
  * Image standardization: aspect-square, w-full, object-cover
  *
  * REFACTORED: All styles injected DIRECTLY via inline styles from cardStyle.
- * Each element (name, price, description, bg, hover) uses its OWN variable.
+ * Each element (name, price, description, bg) uses its OWN variable.
  * No CSS inheritance — no CSS Bleeding.
+ * HOVER REMOVED: Background color is always static (menu_card_bg).
  */
 
 import { useState, useMemo } from 'react';
@@ -28,7 +29,6 @@ export interface CardStyleOverrides {
   font?: string;
   fontSize?: number;
   fontWeight?: string;
-  hoverBgColor?: string;
 }
 
 interface ProductCardProps {
@@ -55,7 +55,6 @@ function formatUnit(unitValue?: string | null, unit?: string | null): string | n
 
 export default function ProductCard({ product, index = 0, variant = 'showcase', cardStyle }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const { addItem } = useCart();
   const { openProductSheet } = useUI();
   const { showToast } = useToast();
@@ -87,24 +86,18 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     openProductSheet(product);
   };
 
-  // Card container style — ISOLATED: bgColor and hoverBgColor are separate
+  // Card container style — STATIC: only bgColor, no hover changes
   const cardContainerStyle = useMemo(() => {
     const style: React.CSSProperties = {};
-    // Apply hover bg color dynamically when hovered, otherwise use normal bg
-    if (isHovered && cardStyle?.hoverBgColor) {
-      style.backgroundColor = cardStyle.hoverBgColor;
-    } else if (cardStyle?.bgColor) {
-      style.backgroundColor = cardStyle.bgColor;
-    }
+    if (cardStyle?.bgColor) style.backgroundColor = cardStyle.bgColor;
     if (cardStyle?.borderRadius !== undefined) style.borderRadius = `${cardStyle.borderRadius}px`;
     if (cardStyle?.borderColor) style.borderColor = cardStyle.borderColor;
     if (cardStyle?.borderWidth !== undefined) style.borderWidth = `${cardStyle.borderWidth}px`;
     if (cardStyle?.font && cardStyle.font !== 'inherit') style.fontFamily = cardStyle.font;
     if (cardStyle?.fontSize) style.fontSize = `${cardStyle.fontSize}px`;
     if (cardStyle?.fontWeight) style.fontWeight = cardStyle.fontWeight;
-    style.transition = 'background-color 0.3s ease';
     return style;
-  }, [isHovered, cardStyle?.hoverBgColor, cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
+  }, [cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
 
   // =============================================
   // GRID VARIANT (used in OrderOverlay / Cardápio)
@@ -113,21 +106,17 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     return (
       <motion.div
         onClick={handleCardClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         className={cn(
           'group relative rounded-xl overflow-hidden cursor-pointer',
-          'border transition-all duration-300',
+          'border',
           !cardStyle?.bgColor && 'bg-lp-surface',
-          !cardStyle?.borderColor && 'border-lp-border hover:border-lp-highlight-border',
-          !cardStyle?.hoverBgColor && 'hover:shadow-lg hover:bg-lp-highlight-subtle'
+          !cardStyle?.borderColor && 'border-lp-border hover:border-lp-highlight-border'
         )}
         style={cardContainerStyle}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
-        whileHover={{ y: -4 }}
       >
         {/* Image - aspect-square + w-full + object-cover */}
         <div className="relative aspect-square w-full overflow-hidden">
@@ -199,19 +188,16 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   return (
     <motion.div
       onClick={handleCardClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className={cn(
         'group relative flex-shrink-0 w-[200px] sm:w-[220px] cursor-pointer',
         'product-card rounded-2xl overflow-hidden',
-        'shadow-lg hover:shadow-xl transition-all duration-300'
+        'shadow-lg hover:shadow-xl transition-shadow duration-300'
       )}
       style={cardContainerStyle}
       initial={{ opacity: 0, x: 20 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
-      whileHover={{ y: -4 }}
     >
       {/* Image Container - aspect-square + w-full + object-cover */}
       <div className="relative aspect-square w-full overflow-hidden">

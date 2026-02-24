@@ -943,3 +943,7 @@
 ### Testes
 - [x] Cada Color Picker altera APENAS seu elemento alvo
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 73: Remover Hover dos Cards de Produto no Cardápio
+- [x] Remover completamente efeito de hover (mudança de cor de fundo) nos cards de produto do cardápio (ProductCard, Preview Design System, OrderOverlay)
+- [x] Remover Color Picker e campos relacionados ao hover dos cards no Design System

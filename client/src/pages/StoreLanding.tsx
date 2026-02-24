@@ -223,7 +223,6 @@ export default function StoreLanding() {
               card_border_radius: design.products.cardBorderRadius,
               card_border_color: design.products.cardBorderColor,
               card_border_width: design.products.cardBorderWidth,
-              card_hover_bg_color: design.products.cardHoverBgColor,
               // 2.4 Background
               bg_color: design.products.bgColor,
               bg_gradient: design.products.bgGradient,
@@ -350,7 +349,6 @@ export default function StoreLanding() {
             cardFont: m.cardFont,
             cardFontSize: m.cardFontSize,
             cardFontWeight: m.cardFontWeight,
-            cardHoverBgColor: m.cardHoverBgColor,
             modalBgColor: m.modalBgColor,
             modalNameColor: m.modalNameColor,
             modalPriceColor: m.modalPriceColor,
@@ -851,7 +849,6 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         card_border_radius: ld?.products?.cardBorderRadius,
         card_border_color: ld?.products?.cardBorderColor,
         card_border_width: ld?.products?.cardBorderWidth,
-        card_hover_bg_color: ld?.products?.cardHoverBgColor,
         // 2.4 Background
         bg_color: ld?.products?.bgColor,
         bg_gradient: ld?.products?.bgGradient,
@@ -963,7 +960,6 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       cardFont: ld.menu.cardFont,
       cardFontSize: ld.menu.cardFontSize,
       cardFontWeight: ld.menu.cardFontWeight,
-      cardHoverBgColor: ld.menu.cardHoverBgColor,
       modalBgColor: ld.menu.modalBgColor,
       modalNameColor: ld.menu.modalNameColor,
       modalPriceColor: ld.menu.modalPriceColor,

@@ -396,7 +396,6 @@ type LandingDesign = {
     cardBorderRadius?: number; // px
     cardBorderColor?: string;
     cardBorderWidth?: number; // px
-    cardHoverBgColor?: string;
     // 2.4 Fundo da Seção
     bgColor?: string;
     bgGradient?: boolean;
@@ -500,7 +499,6 @@ type LandingDesign = {
     cardFont?: string;
     cardFontSize?: number;
     cardFontWeight?: string;
-    cardHoverBgColor?: string;
     // 3.4 Modal de Detalhes do Produto
     modalBgColor?: string;
     modalNameColor?: string;
@@ -2440,7 +2438,6 @@ function ProductsSection({
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
         <ColorRow label="Fundo do Card" value={data.cardBgColor} defaultVal="#ffffff" field="cardBgColor" />
-        <ColorRow label="Fundo (Hover)" value={data.cardHoverBgColor} defaultVal="" field="cardHoverBgColor" />
         <ColorRow label="Nome do Produto" value={data.cardNameColor} defaultVal="#111827" field="cardNameColor" />
         <ColorRow label="Preço" value={data.cardPriceColor} defaultVal="" field="cardPriceColor" />
         <ColorRow label="Descrição Curta" value={data.cardDescColor} defaultVal="#6b7280" field="cardDescColor" />
@@ -2783,7 +2780,6 @@ function MenuSection({
         <p className="text-[9px] text-zinc-600">Dados dos produtos (nome, preço, foto) vem do Catálogo — somente o design visual é editável.</p>
 
         <ColorRow label="Cor de Fundo do Card" value={data.cardBgColor} defaultVal="#111111" field="cardBgColor" />
-        <ColorRow label="Cor de Fundo (Hover)" value={data.cardHoverBgColor} defaultVal="" field="cardHoverBgColor" />
 
         <div className="grid grid-cols-3 gap-2">
           <ColorRow label="Nome" value={data.cardNameColor} defaultVal="#ffffff" field="cardNameColor" />

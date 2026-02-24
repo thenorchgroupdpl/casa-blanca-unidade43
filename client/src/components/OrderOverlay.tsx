@@ -111,7 +111,6 @@ export default function OrderOverlay() {
       font: ms.cardFont,
       fontSize: ms.cardFontSize,
       fontWeight: ms.cardFontWeight,
-      hoverBgColor: ms.cardHoverBgColor,
     };
   }, [ms]);
 
