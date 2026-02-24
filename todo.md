@@ -846,3 +846,12 @@
 - [x] Adicionar estilos CSS customizados para react-colorful no index.css
 - [x] Testar que o picker não fecha ao arrastar/clicar dentro dele
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 68: Reverter Color Picker para Nativo do Sistema
+- [x] Reverter ColorPickerInput para input[type=color] nativo (seletor MacOS/Windows)
+- [x] Remover dependência react-colorful
+- [x] Remover estilos CSS do react-colorful no index.css
+- [x] Garantir que SubPanel/accordion NÃO feche ao interagir com o color picker nativo
+- [x] Proteger contra event bubbling com stopPropagation + stopImmediatePropagation robusto
+- [x] Estado local isolado (isPicking ref) para prevenir re-renders destrutivos
+- [x] 0 erros TypeScript, servidor rodando

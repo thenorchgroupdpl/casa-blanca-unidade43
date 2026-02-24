@@ -134,12 +134,13 @@ function SubPanel({
 }
 
 // ============================================
-// COLOR PICKER WITH SAVE BUTTON
+// COLOR PICKER - NATIVE SYSTEM PICKER
 // ============================================
-// Uses react-colorful for a rich, draggable color picker.
-// The picker only closes when the user clicks "Salvar Cor" or "Cancelar".
-import { HexColorPicker } from 'react-colorful';
-
+// Uses the native <input type="color"> which opens the OS color picker (macOS/Windows).
+// The native picker stays open until the user clicks OK in the OS dialog.
+// We isolate the input in its own state to prevent parent re-renders from
+// unmounting the native dialog, and stop all event propagation to prevent
+// SubPanel/accordion from closing while the picker is active.
 function ColorPickerInput({
   value,
   onChange,
@@ -149,108 +150,65 @@ function ColorPickerInput({
   onChange: (value: string) => void;
   className?: string;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [tempColor, setTempColor] = useState(value);
-  const pickerRef = useRef<HTMLDivElement>(null);
+  // Local state so parent re-renders don't unmount the native color dialog
+  const [localValue, setLocalValue] = useState(value);
+  const isPicking = useRef(false);
 
-  // Sync tempColor when value changes externally and picker is closed
+  // Sync from parent only when not actively picking
   useEffect(() => {
-    if (!isOpen) {
-      setTempColor(value);
+    if (!isPicking.current) {
+      setLocalValue(value);
     }
-  }, [value, isOpen]);
+  }, [value]);
 
-  // When opening, reset temp to current value
-  const handleOpen = () => {
-    setTempColor(value);
-    setIsOpen(true);
-  };
-
-  const handleSave = () => {
-    onChange(tempColor);
-    setIsOpen(false);
-  };
-
-  const handleCancel = () => {
-    setTempColor(value);
-    setIsOpen(false);
-  };
-
-  // Stop all propagation to prevent SubPanel/Popover from closing
-  const stopBubble = (e: React.SyntheticEvent) => {
+  // Stop all event propagation to prevent SubPanel/accordion from closing
+  const stopAll = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
-  };
+    e.nativeEvent?.stopImmediatePropagation?.();
+  }, []);
 
   return (
-    <div className="relative inline-flex" onClick={stopBubble} onMouseDown={stopBubble} onTouchStart={stopBubble} onPointerDown={stopBubble}>
-      {/* Color swatch button */}
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); handleOpen(); }}
+    <div
+      className="inline-flex"
+      onClick={stopAll}
+      onMouseDown={stopAll}
+      onMouseUp={stopAll}
+      onTouchStart={stopAll}
+      onPointerDown={stopAll}
+      onPointerUp={stopAll}
+      onFocus={stopAll}
+      onBlur={stopAll}
+    >
+      <input
+        type="color"
+        value={localValue}
         className={className}
-        style={{ backgroundColor: value }}
-        aria-label="Escolher cor"
+        onClick={stopAll}
+        onMouseDown={stopAll}
+        onPointerDown={stopAll}
+        onFocus={(e) => {
+          stopAll(e);
+          isPicking.current = true;
+        }}
+        onBlur={(e) => {
+          stopAll(e);
+          isPicking.current = false;
+          // Send final value when the native dialog closes (user clicked OK)
+          onChange(localValue);
+        }}
+        onInput={(e) => {
+          stopAll(e);
+          const newVal = (e.target as HTMLInputElement).value;
+          setLocalValue(newVal);
+        }}
+        onChange={(e) => {
+          stopAll(e);
+          const newVal = e.target.value;
+          setLocalValue(newVal);
+          // onChange fires when user confirms in native picker
+          onChange(newVal);
+        }}
       />
-
-      {/* Color picker dropdown */}
-      {isOpen && (
-        <div
-          ref={pickerRef}
-          onClick={stopBubble}
-          onMouseDown={stopBubble}
-          onTouchStart={stopBubble}
-          onPointerDown={stopBubble}
-          className="absolute z-[9999] top-full left-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl p-3 space-y-3"
-          style={{ minWidth: 220 }}
-        >
-          {/* react-colorful picker */}
-          <div
-            onClick={stopBubble}
-            onMouseDown={stopBubble}
-            onTouchStart={stopBubble}
-            onPointerDown={stopBubble}
-          >
-            <HexColorPicker
-              color={tempColor}
-              onChange={setTempColor}
-            />
-          </div>
-
-          {/* Hex input */}
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-lg border border-zinc-600 shrink-0"
-              style={{ backgroundColor: tempColor }}
-            />
-            <Input
-              value={tempColor}
-              onChange={(e) => setTempColor(e.target.value)}
-              onClick={stopBubble}
-              onMouseDown={stopBubble}
-              className="h-8 bg-zinc-800 border-zinc-700 text-xs font-mono flex-1 text-white"
-              placeholder="#000000"
-            />
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); handleCancel(); }}
-              className="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 border border-zinc-700 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); handleSave(); }}
-              className="flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-black hover:bg-amber-400 transition-colors"
-            >
-              Salvar Cor
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
