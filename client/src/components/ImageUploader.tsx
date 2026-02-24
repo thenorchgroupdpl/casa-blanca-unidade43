@@ -135,12 +135,15 @@ function getCroppedCanvas(
   image: HTMLImageElement,
   crop: PixelCrop,
   zoom: number,
-  aspectRatio: number
+  aspectRatio: number,
+  context: ImageContext = 'product'
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
 
-  // Output dimensions based on aspect ratio
-  const maxSize = 1200;
+  // Output dimensions based on aspect ratio and context
+  // Background/Hero images: 1920px max for Full HD quality
+  // Other images: 1200px max for standard quality
+  const maxSize = context === 'background' ? 1920 : 1200;
   let outW: number, outH: number;
   if (aspectRatio >= 1) {
     outW = Math.min(maxSize, Math.round(crop.width));
@@ -240,22 +243,60 @@ function LogoPreview({ previewUrl }: { previewUrl: string | null }) {
 
 function BackgroundPreview({ previewUrl }: { previewUrl: string | null }) {
   return (
-    <div className="w-full max-w-xs">
-      <div className="relative rounded-xl overflow-hidden border border-zinc-700 aspect-video">
-        {previewUrl ? (
-          <img src={previewUrl} alt="Background preview" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
-            <ImagePlus className="w-8 h-8 text-zinc-600" />
+    <div className="w-full">
+      {/* Simula tela de celular para mostrar como a imagem preencherá a seção */}
+      <div className="relative mx-auto w-[180px] rounded-2xl overflow-hidden border-2 border-zinc-600 bg-zinc-900 shadow-xl">
+        {/* Notch simulado */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-zinc-700 rounded-b-full z-10" />
+        
+        {/* Tela do celular - Hero section */}
+        <div className="relative aspect-[9/16] overflow-hidden">
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Background preview"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
+              <ImagePlus className="w-8 h-8 text-zinc-600" />
+            </div>
+          )}
+          {/* Overlay com elementos simulados */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 flex flex-col">
+            {/* Header simulado */}
+            <div className="flex items-center justify-between px-3 pt-4 pb-2">
+              <div className="w-14 h-3 bg-white/30 rounded" />
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 bg-white/20 rounded-full" />
+                <div className="w-3 h-3 bg-white/20 rounded-full" />
+              </div>
+            </div>
+            {/* Conteúdo central */}
+            <div className="flex-1 flex flex-col items-center justify-center px-4">
+              <div className="w-16 h-2 bg-white/40 rounded mb-2" />
+              <h3 className="text-white text-sm font-bold text-center">Nome da Loja</h3>
+              <p className="text-zinc-300 text-[8px] mt-1 text-center">Subtítulo da loja</p>
+              <div className="flex gap-2 mt-3">
+                <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+                  <span className="text-[7px] text-white">Localização</span>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+                  <span className="text-[7px] text-white">Horários</span>
+                </div>
+              </div>
+            </div>
+            {/* CTA simulado */}
+            <div className="px-4 pb-6">
+              <div className="w-full py-2 rounded-full bg-amber-500/80 flex items-center justify-center">
+                <span className="text-[8px] text-black font-bold">Fazer Pedido</span>
+              </div>
+            </div>
           </div>
-        )}
-        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
-          <h3 className="text-white text-lg font-bold">Título da Seção</h3>
-          <p className="text-zinc-300 text-xs mt-1">Subtítulo descritivo</p>
         </div>
       </div>
-      <p className="text-[10px] text-zinc-600 text-center mt-2">
-        Simulação de seção com imagem de fundo
+      <p className="text-[10px] text-zinc-500 text-center mt-2">
+        Simulação de como a imagem preencherá a tela (object-cover)
       </p>
     </div>
   );
@@ -355,7 +396,7 @@ export default function ImageUploader({
 
     const rafId = requestAnimationFrame(() => {
       try {
-        const canvas = getCroppedCanvas(imgRef.current!, completedCrop, zoom, currentAspect);
+        const canvas = getCroppedCanvas(imgRef.current!, completedCrop, zoom, currentAspect, context);
         setPreviewUrl(canvas.toDataURL("image/png"));
       } catch {
         // Ignore preview errors
@@ -461,8 +502,12 @@ export default function ImageUploader({
 
     setIsProcessing(true);
     try {
-      const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom, currentAspect);
-      const base64Full = canvas.toDataURL("image/png");
+      // For background/hero: export at higher quality (90% webp)
+      const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom, currentAspect, context);
+      const isHighRes = context === 'background';
+      const base64Full = isHighRes
+        ? canvas.toDataURL("image/webp", 0.92)
+        : canvas.toDataURL("image/png");
       const base64Data = base64Full.split(",")[1];
 
       // Call the external upload handler
@@ -678,7 +723,7 @@ export default function ImageUploader({
             </div>
 
             {/* Right: Contextual Preview */}
-            <div className="w-48 shrink-0 flex flex-col items-center gap-3">
+            <div className={`${context === 'background' ? 'w-56' : 'w-48'} shrink-0 flex flex-col items-center gap-3`}>
               <span className="text-[11px] text-zinc-500 uppercase tracking-wider">
                 Preview
               </span>

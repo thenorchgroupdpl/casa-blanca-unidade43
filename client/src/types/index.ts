@@ -26,6 +26,7 @@ export interface Contact {
   instagram: string;
   facebook: string;
   youtube: string;
+  tiktok: string;
   address: Address;
 }
 
@@ -369,6 +370,8 @@ export interface InfoStyleOverrides {
   socialFacebookEnabled?: boolean;
   socialYoutubeUrl?: string;
   socialYoutubeEnabled?: boolean;
+  socialTiktokUrl?: string;
+  socialTiktokEnabled?: boolean;
   // 6.7 Background
   sectionBgColor?: string;
   cardsBgColor?: string;

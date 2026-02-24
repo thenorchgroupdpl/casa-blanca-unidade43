@@ -798,3 +798,20 @@
 - [x] Se glassmorphism === false: usar cores customizadas normais (location_box_bg, schedule_box_bg)
 - [x] Testar no navegador (ativar/desativar cada toggle independentemente)
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 65: Redes Sociais como Ícones + Qualidade de Imagem no Cropper
+
+### PARTE 1: Redes Sociais (URLs → Ícones)
+- [x] Identificar onde redes sociais são renderizadas (Footer/Header)
+- [x] Substituir URLs em texto bruto por ícones vetoriais (lucide-react ou SVGs)
+- [x] Envolver cada ícone em <a> com href={url} e target="_blank"
+- [x] Adicionar efeito hover sutil e alinhamento limpo (flex gap-4)
+- [x] Suportar Instagram, Facebook, TikTok, WhatsApp, Twitter/X
+
+### PARTE 2: Qualidade de Imagem no Cropper
+- [x] Identificar componente ImageUploader e lógica de compressão
+- [x] Criar condicional: se tipo === 'Background' ou 'Hero', limite = 1920px e qualidade = 0.92
+- [x] Manter compressão padrão para outros tipos de imagem (logos, produtos)
+- [x] Melhorar preview do cropper para Hero/Background: simular object-cover em tela de celular
+- [x] Testar que imagens de capa mantêm nitidez original
+- [x] 0 erros TypeScript, servidor rodando

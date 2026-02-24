@@ -715,6 +715,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       instagram: settings?.socialLinks?.instagram || '',
       facebook: settings?.socialLinks?.facebook || '',
       youtube: settings?.socialLinks?.youtube || '',
+      tiktok: settings?.socialLinks?.tiktok || '',
       address: {
         street: settings?.address || '',
         number: '',

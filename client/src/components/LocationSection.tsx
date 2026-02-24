@@ -8,7 +8,16 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Clock, Instagram, Facebook, Youtube, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Clock, Instagram, Facebook, Youtube, ExternalLink, Twitter } from 'lucide-react';
+
+// TikTok icon (not available in lucide-react)
+function TikTokIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
+      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.73a8.19 8.19 0 004.76 1.52V6.79a4.84 4.84 0 01-1-.1z" />
+    </svg>
+  );
+}
 import { cn, openMaps, formatPhone } from '@/lib/utils';
 import { useSiteData, useUI } from '@/store/useStore';
 
@@ -58,28 +67,63 @@ export default function LocationSection() {
   // Address
   const addressOverride = s.addressText;
 
+  // Helper: extract display name from URL or handle
+  const extractDisplayName = (value: string, platform: string): string => {
+    if (!value) return '';
+    // If it's a URL, extract the last meaningful segment
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      try {
+        const url = new URL(value);
+        const segments = url.pathname.split('/').filter(Boolean);
+        const last = segments[segments.length - 1] || '';
+        return last.startsWith('@') ? last : `@${last}`;
+      } catch {
+        return value;
+      }
+    }
+    // If it already starts with @, return as-is
+    if (value.startsWith('@')) return value;
+    // Otherwise, add @ prefix
+    return `@${value}`;
+  };
+
+  // Helper: ensure URL is complete
+  const ensureUrl = (value: string, baseUrl: string): string => {
+    if (!value) return '';
+    if (value.startsWith('http://') || value.startsWith('https://')) return value;
+    const clean = value.replace('@', '');
+    return `${baseUrl}${clean}`;
+  };
+
   // Social links with toggles
   const socialLinks = [
     {
       icon: Instagram,
       label: 'Instagram',
-      href: s.socialInstagramUrl || `https://instagram.com/${contact.instagram.replace('@', '')}`,
-      handle: contact.instagram,
+      href: s.socialInstagramUrl || ensureUrl(contact.instagram, 'https://instagram.com/'),
+      handle: extractDisplayName(s.socialInstagramUrl || contact.instagram, 'instagram'),
       enabled: s.socialInstagramEnabled ?? true,
     },
     {
       icon: Facebook,
       label: 'Facebook',
-      href: s.socialFacebookUrl || `https://facebook.com/${contact.facebook}`,
-      handle: contact.facebook,
+      href: s.socialFacebookUrl || ensureUrl(contact.facebook, 'https://facebook.com/'),
+      handle: extractDisplayName(s.socialFacebookUrl || contact.facebook, 'facebook'),
       enabled: s.socialFacebookEnabled ?? true,
     },
     {
       icon: Youtube,
       label: 'YouTube',
-      href: s.socialYoutubeUrl || `https://youtube.com/@${contact.youtube}`,
-      handle: contact.youtube,
+      href: s.socialYoutubeUrl || ensureUrl(contact.youtube, 'https://youtube.com/@'),
+      handle: extractDisplayName(s.socialYoutubeUrl || contact.youtube, 'youtube'),
       enabled: s.socialYoutubeEnabled ?? true,
+    },
+    {
+      icon: TikTokIcon,
+      label: 'TikTok',
+      href: s.socialTiktokUrl || ensureUrl(contact.tiktok, 'https://tiktok.com/@'),
+      handle: extractDisplayName(s.socialTiktokUrl || contact.tiktok, 'tiktok'),
+      enabled: s.socialTiktokEnabled ?? true,
     },
   ].filter(link => link.enabled && (link.handle || link.href));
 
