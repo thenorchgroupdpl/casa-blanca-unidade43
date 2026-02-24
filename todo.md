@@ -815,3 +815,23 @@
 - [x] Melhorar preview do cropper para Hero/Background: simular object-cover em tela de celular
 - [x] Testar que imagens de capa mantêm nitidez original
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 66: Correção de Popovers/Color Pickers + SEO Dinâmico
+
+### PARTE 1: Correção Global de Popovers e Color Pickers (Design System)
+- [x] Identificar componentes de Color Picker e Popovers no Design System
+- [x] Adicionar e.stopPropagation() em onClick, onMouseDown, onTouchStart e onPointerDown nos containers
+- [x] Separar estado temporário da cor (arrastar) do estado global com debounce (50ms)
+- [x] Usar debounce para enviar cor final ao banco
+- [x] Revisar SubPanel para ignorar cliques em elementos interativos filhos
+- [x] Revisar PopoverContent para evitar fechamento ao interagir com selects/color pickers
+- [x] Revisar SelectContent para parar propagação de onPointerDownOutside
+
+### PARTE 2: Correção de Título/SEO Dinâmico (Landing Page)
+- [x] Identificar título hardcoded no index.html
+- [x] Implementar useEffect com document.title dinâmico baseado em tenant.name
+- [x] Formato: "${store.name} | Pedidos Online"
+- [x] Adicionar meta description dinâmica (subheadline do hero)
+- [x] Atualizar Open Graph tags (og:title, og:description, og:image)
+- [x] Cleanup: restaurar valores originais ao desmontar
+- [x] 0 erros TypeScript, servidor rodando

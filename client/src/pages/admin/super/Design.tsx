@@ -93,7 +93,20 @@ function SubPanel({
         : 'bg-zinc-800/20 hover:bg-zinc-800/30'
     }`}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          // Only toggle if the click originated from the button itself, not from child interactive elements
+          const target = e.target as HTMLElement;
+          if (
+            target.closest('input[type="color"]') ||
+            target.closest('[data-slot="select-trigger"]') ||
+            target.closest('[data-slot="popover-trigger"]') ||
+            target.closest('[role="switch"]') ||
+            target.closest('[role="slider"]')
+          ) {
+            return;
+          }
+          setIsOpen(!isOpen);
+        }}
         className="flex items-center gap-2 w-full px-3.5 py-2.5 text-left"
       >
         {icon && <span className={`shrink-0 ${isOpen ? 'text-amber-500' : 'text-zinc-500'}`}>{icon}</span>}
@@ -125,6 +138,8 @@ function SubPanel({
 // ============================================
 // This component maintains its own local state so that parent re-renders
 // (caused by design state updates) don't unmount the native color picker dialog.
+// Wrapped in a container that stops event propagation to prevent parent
+// accordions/popovers from closing when interacting with the color picker.
 function ColorPickerInput({
   value,
   onChange,
@@ -136,6 +151,7 @@ function ColorPickerInput({
 }) {
   const [localValue, setLocalValue] = useState(value);
   const isPickingRef = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync from parent when not actively picking
   useEffect(() => {
@@ -144,23 +160,49 @@ function ColorPickerInput({
     }
   }, [value]);
 
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  // Stop propagation helper to prevent parent containers from capturing events
+  const stopBubble = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <input
-      type="color"
-      value={localValue}
-      onFocus={() => { isPickingRef.current = true; }}
-      onBlur={() => {
-        isPickingRef.current = false;
-        // Ensure final value is sent
-        onChange(localValue);
-      }}
-      onInput={(e) => {
-        const newVal = (e.target as HTMLInputElement).value;
-        setLocalValue(newVal);
-        onChange(newVal);
-      }}
-      className={className}
-    />
+    <div
+      onClick={stopBubble}
+      onMouseDown={stopBubble}
+      onTouchStart={stopBubble}
+      onPointerDown={stopBubble}
+      className="inline-flex"
+    >
+      <input
+        type="color"
+        value={localValue}
+        onFocus={() => { isPickingRef.current = true; }}
+        onBlur={() => {
+          isPickingRef.current = false;
+          // Ensure final value is sent on blur
+          onChange(localValue);
+        }}
+        onInput={(e) => {
+          const newVal = (e.target as HTMLInputElement).value;
+          setLocalValue(newVal);
+          // Debounce the onChange to avoid excessive re-renders while dragging
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            onChange(newVal);
+          }, 50);
+        }}
+        onClick={stopBubble}
+        onMouseDown={stopBubble}
+        className={className}
+      />
+    </div>
   );
 }
 

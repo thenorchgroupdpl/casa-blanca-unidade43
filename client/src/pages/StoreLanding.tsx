@@ -532,6 +532,55 @@ export default function StoreLanding() {
     };
   }, [tenantData?.tenant?.themeColors, tenantData?.tenant?.fontFamily, tenantData?.tenant?.fontDisplay]);
 
+  // Dynamic SEO: Update document title and meta tags based on tenant data
+  useEffect(() => {
+    if (!tenantData?.tenant) return;
+    
+    const storeName = tenantData.tenant.name;
+    const ld = (tenantData.settings as any)?.landingDesign;
+    const storeDescription = ld?.home?.subheadline || `${storeName} - Pedidos Online`;
+    const logoUrl = ld?.home?.logoUrl;
+    
+    // Update page title
+    const originalTitle = document.title;
+    document.title = `${storeName} | Pedidos Online`;
+    
+    // Update meta description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    const originalDesc = metaDesc?.getAttribute('content') || '';
+    if (metaDesc) {
+      metaDesc.setAttribute('content', storeDescription);
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const originalOgTitle = ogTitle?.getAttribute('content') || '';
+    if (ogTitle) {
+      ogTitle.setAttribute('content', `${storeName} | Pedidos Online`);
+    }
+    
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    const originalOgDesc = ogDesc?.getAttribute('content') || '';
+    if (ogDesc) {
+      ogDesc.setAttribute('content', storeDescription);
+    }
+    
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    const originalOgImage = ogImage?.getAttribute('content') || '';
+    if (ogImage && logoUrl) {
+      ogImage.setAttribute('content', logoUrl);
+    }
+    
+    // Cleanup: restore original values on unmount
+    return () => {
+      document.title = originalTitle;
+      if (metaDesc) metaDesc.setAttribute('content', originalDesc);
+      if (ogTitle) ogTitle.setAttribute('content', originalOgTitle);
+      if (ogDesc) ogDesc.setAttribute('content', originalOgDesc);
+      if (ogImage) ogImage.setAttribute('content', originalOgImage);
+    };
+  }, [tenantData?.tenant]);
+
   // Update site data store when tenant data loads
   useEffect(() => {
     if (isLoading) {
