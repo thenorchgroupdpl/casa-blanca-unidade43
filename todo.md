@@ -865,3 +865,18 @@
 - [x] Todos os handlers com useCallback estável (deps vazias)
 - [x] Garantir que o diálogo nativo do macOS NÃO feche durante arrasto
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 70: Correção Focus Management - Interceptar onInteractOutside/onPointerDownOutside
+- [x] Identificar componentes: ColorPickerInput está dentro de SubPanel (accordion), não de Popover Radix
+- [x] SubPanel já protege contra cliques diretos, mas janela nativa macOS dispara onInteractOutside
+- [x] Reestruturar ColorPickerInput: agora usa Popover Radix controlado manualmente
+- [x] Adicionar onInteractOutside={(e) => e.preventDefault()} no PopoverContent
+- [x] Adicionar onPointerDownOutside={(e) => e.preventDefault()} no PopoverContent
+- [x] Adicionar onOpenAutoFocus/onCloseAutoFocus/onFocusOutside com e.preventDefault()
+- [x] Adicionar onEscapeKeyDown com handleCancel()
+- [x] Botão "Confirmar" (amber) envia cor ao pai e fecha | Botão "Cancelar" descarta e fecha
+- [x] Estado local (tempColor) completamente isolado do global durante interação
+- [x] React.memo + onChangeRef para evitar re-renders destrutivos
+- [x] Trigger é um botão colorido (swatch) que abre o Popover ao clicar
+- [x] Input hex manual para digitar código de cor
+- [x] 0 erros TypeScript, servidor rodando

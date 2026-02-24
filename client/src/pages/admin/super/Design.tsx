@@ -1,5 +1,6 @@
 import SuperAdminLayout from "@/components/SuperAdminLayout";
 import React from 'react';
+import { cn } from "@/lib/utils";
 import ImageUploader, { type ImageContext } from "@/components/ImageUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,19 +136,20 @@ function SubPanel({
 }
 
 // ============================================
-// COLOR PICKER - NATIVE SYSTEM PICKER (MEMOIZED)
+// COLOR PICKER - POPOVER-BASED WITH MANUAL CLOSE
 // ============================================
-// ARCHITECTURE: Fully decoupled from parent state to prevent destructive re-renders.
-//
-// Problem: When onChange propagates to parent state, the parent re-renders,
-// which unmounts this component and forces macOS to close the native color dialog.
+// ARCHITECTURE: Uses a Radix Popover with ALL auto-close behaviors disabled.
+// The native macOS color picker opens a window OUTSIDE the DOM, which triggers
+// onInteractOutside / onPointerDownOutside / onBlur in Radix, closing the container.
 //
 // Solution:
-// 1. React.memo() prevents re-render when parent state changes (props unchanged)
-// 2. Local state (localColor) is NEVER propagated during drag (onInput)
-// 3. Global state is ONLY updated on onChange (fires when user clicks OK in native dialog)
-// 4. onChangeRef avoids stale closures without causing re-renders
-// 5. All events stop propagation to prevent SubPanel/accordion interference
+// 1. Popover with onInteractOutside/onPointerDownOutside/onOpenAutoFocus/onCloseAutoFocus
+//    all calling e.preventDefault() to block automatic closing
+// 2. Manual close via explicit "Confirmar" button
+// 3. Local state (tempColor) completely isolated from global state during interaction
+// 4. Global state only updated when user clicks "Confirmar"
+// 5. React.memo to prevent parent re-renders from unmounting the component
+// 6. onChangeRef to avoid stale closures
 
 const ColorPickerInput = React.memo(function ColorPickerInput({
   value,
@@ -158,85 +160,150 @@ const ColorPickerInput = React.memo(function ColorPickerInput({
   onChange: (value: string) => void;
   className?: string;
 }) {
-  // Strictly LOCAL state - only updates the swatch preview, never touches parent
-  const [localColor, setLocalColor] = useState(value);
-  const isPicking = useRef(false);
-  // Store onChange in a ref so we always call the latest version
-  // without needing it as a dependency (which would break memo)
+  const [isOpen, setIsOpen] = useState(false);
+  // tempColor: the color being edited inside the popover (local only)
+  const [tempColor, setTempColor] = useState(value);
+  // Ref to always have the latest onChange without breaking memo
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  // Sync from parent ONLY when not actively picking
+  // Sync from parent when popover is closed
   useEffect(() => {
-    if (!isPicking.current) {
-      setLocalColor(value);
+    if (!isOpen) {
+      setTempColor(value);
     }
+  }, [value, isOpen]);
+
+  // When opening, snapshot the current value
+  const handleOpen = useCallback(() => {
+    setTempColor(value);
+    setIsOpen(true);
   }, [value]);
 
-  // Stable event stopper - never changes reference
+  // Confirm: send to parent and close
+  const handleConfirm = useCallback(() => {
+    onChangeRef.current(tempColor);
+    setIsOpen(false);
+  }, [tempColor]);
+
+  // Cancel: discard and close
+  const handleCancel = useCallback(() => {
+    setTempColor(value);
+    setIsOpen(false);
+  }, [value]);
+
+  // Stop propagation to prevent SubPanel toggle
   const stopAll = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
     e.nativeEvent?.stopImmediatePropagation?.();
   }, []);
 
-  // onInput: fires continuously while dragging - ONLY updates local state
-  const handleInput = useCallback((e: React.FormEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    e.nativeEvent?.stopImmediatePropagation?.();
-    const newVal = (e.target as HTMLInputElement).value;
-    setLocalColor(newVal);
-    // DO NOT call onChange here - this is the key fix!
-  }, []);
-
-  // onChange: fires ONLY when user confirms (clicks OK in native dialog)
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    e.nativeEvent?.stopImmediatePropagation?.();
-    const newVal = e.target.value;
-    setLocalColor(newVal);
-    // NOW propagate to parent - user has confirmed their choice
-    onChangeRef.current(newVal);
-  }, []);
-
-  const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    e.nativeEvent?.stopImmediatePropagation?.();
-    isPicking.current = true;
-  }, []);
-
-  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    e.nativeEvent?.stopImmediatePropagation?.();
-    isPicking.current = false;
-  }, []);
-
   return (
-    <div
-      className="inline-flex"
-      onClick={stopAll}
-      onMouseDown={stopAll}
-      onMouseUp={stopAll}
-      onTouchStart={stopAll}
-      onPointerDown={stopAll}
-      onPointerUp={stopAll}
-    >
-      <input
-        type="color"
-        value={localColor}
-        className={className}
-        onClick={stopAll}
-        onMouseDown={stopAll}
-        onPointerDown={stopAll}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        onInput={handleInput}
-        onChange={handleChange}
-      />
-    </div>
+    <Popover open={isOpen} onOpenChange={(open) => { if (!open) { /* ignore auto-close, only close via buttons */ } }}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => { stopAll(e); handleOpen(); }}
+          onMouseDown={stopAll}
+          onPointerDown={stopAll}
+          className={cn(
+            "shrink-0 rounded border cursor-pointer transition-all hover:ring-2 hover:ring-amber-500/40",
+            className
+          )}
+          style={{ backgroundColor: value }}
+          aria-label="Selecionar cor"
+        />
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        className="w-auto p-3 bg-zinc-900 border-zinc-700 shadow-xl z-[9999]"
+        // CRITICAL: Block ALL automatic closing behaviors
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onFocusOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => { e.preventDefault(); handleCancel(); }}
+      >
+        <div
+          onClick={stopAll}
+          onMouseDown={stopAll}
+          onPointerDown={stopAll}
+          className="flex flex-col gap-3"
+        >
+          {/* Label */}
+          <span className="text-[11px] text-zinc-400 font-medium">Escolha a cor</span>
+
+          {/* Native color input - large and easy to click */}
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={tempColor}
+              onClick={stopAll}
+              onMouseDown={stopAll}
+              onPointerDown={stopAll}
+              onFocus={stopAll}
+              onBlur={stopAll}
+              onInput={(e) => {
+                stopAll(e);
+                setTempColor((e.target as HTMLInputElement).value);
+              }}
+              onChange={(e) => {
+                stopAll(e);
+                setTempColor(e.target.value);
+              }}
+              className="w-10 h-10 rounded-lg cursor-pointer border-2 border-zinc-600 hover:border-amber-500 transition-colors"
+            />
+            {/* Preview swatch + hex value */}
+            <div className="flex flex-col gap-1">
+              <div
+                className="w-16 h-6 rounded border border-zinc-600"
+                style={{ backgroundColor: tempColor }}
+              />
+              <span className="text-[10px] font-mono text-zinc-400">{tempColor}</span>
+            </div>
+          </div>
+
+          {/* Hex input for manual entry */}
+          <Input
+            value={tempColor}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (/^#[0-9a-fA-F]{0,6}$/.test(v) || v === '') {
+                setTempColor(v);
+              }
+            }}
+            onClick={stopAll}
+            onMouseDown={stopAll}
+            placeholder="#000000"
+            className="h-7 text-[11px] font-mono bg-zinc-800 border-zinc-700 text-zinc-200 px-2"
+          />
+
+          {/* Action buttons - MANUAL close only */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={(e) => { stopAll(e); handleConfirm(); }}
+              className="flex-1 px-3 py-1.5 text-[11px] font-medium rounded-md bg-amber-600 hover:bg-amber-500 text-white transition-colors"
+            >
+              Confirmar
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { stopAll(e); handleCancel(); }}
+              className="flex-1 px-3 py-1.5 text-[11px] font-medium rounded-md bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 });
 
-// Force React to preserve the component identity across parent re-renders
 ColorPickerInput.displayName = 'ColorPickerInput';
 
 // ============================================
