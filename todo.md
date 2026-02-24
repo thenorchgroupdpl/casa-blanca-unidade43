@@ -855,3 +855,13 @@
 - [x] Proteger contra event bubbling com stopPropagation + stopImmediatePropagation robusto
 - [x] Estado local isolado (isPicking ref) para prevenir re-renders destrutivos
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 69: Correção Definitiva do Color Picker - Desacoplamento Arquitetural
+- [x] Analisar fluxo completo: ColorPickerInput → onChange → updateColor/updateDesign → setColors/setDesign → re-render → desmontagem
+- [x] Criar estado LOCAL isolado (localColor) que NÃO propaga para o pai durante arrasto
+- [x] Separar eventos: onInput → apenas setLocalColor | onChange → onChangeRef.current(newVal)
+- [x] Envolver ColorPickerInput em React.memo() para blindar contra re-renders do pai
+- [x] Usar onChangeRef (useRef) para evitar stale closures sem quebrar memo
+- [x] Todos os handlers com useCallback estável (deps vazias)
+- [x] Garantir que o diálogo nativo do macOS NÃO feche durante arrasto
+- [x] 0 erros TypeScript, servidor rodando

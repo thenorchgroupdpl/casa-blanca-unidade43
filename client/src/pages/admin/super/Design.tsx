@@ -1,4 +1,5 @@
 import SuperAdminLayout from "@/components/SuperAdminLayout";
+import React from 'react';
 import ImageUploader, { type ImageContext } from "@/components/ImageUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,14 +135,21 @@ function SubPanel({
 }
 
 // ============================================
-// COLOR PICKER - NATIVE SYSTEM PICKER
+// COLOR PICKER - NATIVE SYSTEM PICKER (MEMOIZED)
 // ============================================
-// Uses the native <input type="color"> which opens the OS color picker (macOS/Windows).
-// The native picker stays open until the user clicks OK in the OS dialog.
-// We isolate the input in its own state to prevent parent re-renders from
-// unmounting the native dialog, and stop all event propagation to prevent
-// SubPanel/accordion from closing while the picker is active.
-function ColorPickerInput({
+// ARCHITECTURE: Fully decoupled from parent state to prevent destructive re-renders.
+//
+// Problem: When onChange propagates to parent state, the parent re-renders,
+// which unmounts this component and forces macOS to close the native color dialog.
+//
+// Solution:
+// 1. React.memo() prevents re-render when parent state changes (props unchanged)
+// 2. Local state (localColor) is NEVER propagated during drag (onInput)
+// 3. Global state is ONLY updated on onChange (fires when user clicks OK in native dialog)
+// 4. onChangeRef avoids stale closures without causing re-renders
+// 5. All events stop propagation to prevent SubPanel/accordion interference
+
+const ColorPickerInput = React.memo(function ColorPickerInput({
   value,
   onChange,
   className,
@@ -150,21 +158,56 @@ function ColorPickerInput({
   onChange: (value: string) => void;
   className?: string;
 }) {
-  // Local state so parent re-renders don't unmount the native color dialog
-  const [localValue, setLocalValue] = useState(value);
+  // Strictly LOCAL state - only updates the swatch preview, never touches parent
+  const [localColor, setLocalColor] = useState(value);
   const isPicking = useRef(false);
+  // Store onChange in a ref so we always call the latest version
+  // without needing it as a dependency (which would break memo)
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  // Sync from parent only when not actively picking
+  // Sync from parent ONLY when not actively picking
   useEffect(() => {
     if (!isPicking.current) {
-      setLocalValue(value);
+      setLocalColor(value);
     }
   }, [value]);
 
-  // Stop all event propagation to prevent SubPanel/accordion from closing
+  // Stable event stopper - never changes reference
   const stopAll = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
     e.nativeEvent?.stopImmediatePropagation?.();
+  }, []);
+
+  // onInput: fires continuously while dragging - ONLY updates local state
+  const handleInput = useCallback((e: React.FormEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+    const newVal = (e.target as HTMLInputElement).value;
+    setLocalColor(newVal);
+    // DO NOT call onChange here - this is the key fix!
+  }, []);
+
+  // onChange: fires ONLY when user confirms (clicks OK in native dialog)
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+    const newVal = e.target.value;
+    setLocalColor(newVal);
+    // NOW propagate to parent - user has confirmed their choice
+    onChangeRef.current(newVal);
+  }, []);
+
+  const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+    isPicking.current = true;
+  }, []);
+
+  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    e.nativeEvent?.stopImmediatePropagation?.();
+    isPicking.current = false;
   }, []);
 
   return (
@@ -176,42 +219,25 @@ function ColorPickerInput({
       onTouchStart={stopAll}
       onPointerDown={stopAll}
       onPointerUp={stopAll}
-      onFocus={stopAll}
-      onBlur={stopAll}
     >
       <input
         type="color"
-        value={localValue}
+        value={localColor}
         className={className}
         onClick={stopAll}
         onMouseDown={stopAll}
         onPointerDown={stopAll}
-        onFocus={(e) => {
-          stopAll(e);
-          isPicking.current = true;
-        }}
-        onBlur={(e) => {
-          stopAll(e);
-          isPicking.current = false;
-          // Send final value when the native dialog closes (user clicked OK)
-          onChange(localValue);
-        }}
-        onInput={(e) => {
-          stopAll(e);
-          const newVal = (e.target as HTMLInputElement).value;
-          setLocalValue(newVal);
-        }}
-        onChange={(e) => {
-          stopAll(e);
-          const newVal = e.target.value;
-          setLocalValue(newVal);
-          // onChange fires when user confirms in native picker
-          onChange(newVal);
-        }}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onInput={handleInput}
+        onChange={handleChange}
       />
     </div>
   );
-}
+});
+
+// Force React to preserve the component identity across parent re-renders
+ColorPickerInput.displayName = 'ColorPickerInput';
 
 // ============================================
 // TYPES
