@@ -75,6 +75,7 @@ type FormData = {
   attendantName: string;
   attendantPhoto: string;
   googleMapsLink: string;
+  showBusinessHours: boolean;
 };
 
 const defaultOpeningHours: OpeningHours = {
@@ -143,6 +144,7 @@ const defaultFormData: FormData = {
   attendantName: "",
   attendantPhoto: "",
   googleMapsLink: "",
+  showBusinessHours: true,
 };
 
 export default function StoreDataPage() {
@@ -196,6 +198,7 @@ export default function StoreDataPage() {
         attendantName: (settings as any).attendantName || "",
         attendantPhoto: (settings as any).attendantPhoto || "",
         googleMapsLink: (settings as any).googleMapsLink || "",
+        showBusinessHours: (settings as any).showBusinessHours ?? true,
       });
       setHasChanges(false);
     }
@@ -574,6 +577,25 @@ export default function StoreDataPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {/* Toggle: Exibir Horários no Site */}
+                  <div className="mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="show-hours-toggle" className="text-white font-medium text-base">
+                          Exibir Horários e Status (Aberto/Fechado) no Site
+                        </Label>
+                        <p className="text-sm text-zinc-400 mt-1">
+                          Desative esta opção se você trabalha apenas sob encomenda.
+                        </p>
+                      </div>
+                      <Switch
+                        id="show-hours-toggle"
+                        checked={formData.showBusinessHours}
+                        onCheckedChange={(checked) => handleChange('showBusinessHours', checked)}
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
                     {(Object.keys(dayNames) as Array<keyof OpeningHours>).map((day) => {
                       const dayData = formData.openingHours[day];

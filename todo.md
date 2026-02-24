@@ -752,3 +752,39 @@
 - [x] Se reveal_on_scroll: -translate-y-full inicialmente, aparecer com transição suave após scroll > 100px
 - [x] Garantir transição suave sem pulos no layout (translate-y, shadow, backdrop-blur)
 - [x] Testar no navegador (0 erros TS, servidor rodando)
+
+## Fase 63: Glassmorphism nos Botões do Hero + Sistema "Sob Encomenda"
+### PARTE 1: Efeito Glassmorphism nos Botões do Hero
+- [x] Identificar botões secundários no Hero.tsx (Localização, Atendimento)
+- [x] Aplicar classes Glassmorphism: bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 shadow-lg
+- [x] Garantir legibilidade do texto (100% branco)
+- [x] Testar visual translúcido sobre imagem de fundo
+
+### PARTE 2: Sistema "Sob Encomenda" (Ocultar Horários)
+#### Backend
+- [x] Adicionar campo show_business_hours (boolean, default: true) na tabela store_settings
+- [x] Atualizar tipo StoreSettings no schema.ts
+- [x] Executar pnpm db:push para migrar banco
+- [x] Atualizar API getStoreSettings para retornar show_business_hours
+- [x] Atualizar API updateStoreSettings para aceitar show_business_hours
+
+#### Painel do Lojista (Aba Horários)
+- [x] Adicionar Toggle/Switch no topo da aba Horários
+- [x] Texto do toggle: "Exibir Horários e Status (Aberto/Fechado) no Site"
+- [x] Adicionar texto de ajuda: "Desative esta opção se você trabalha apenas sob encomenda."
+- [x] Integrar com API para salvar/carregar estado do toggle
+
+#### Landing Page (Frontend)
+- [x] Envolver badge de status (Aberto/Fechado/Abre em breve) em renderização condicional
+- [x] Se show_business_hours === false, ocultar completamente o badge
+- [x] Remover restrição de horário no carrinho quando show_business_hours === false
+- [x] Permitir adicionar produtos ao carrinho independente do horário
+- [x] Testar que produtos ficam disponíveis 24/7 quando modo "Sob Encomenda" está ativo
+
+### Testes
+- [x] Testar visual Glassmorphism no Hero (desktop e mobile)
+- [x] Testar toggle de horários no painel do Lojista
+- [x] Testar ocultação do badge de status na Landing Page
+- [x] Testar que carrinho funciona sem restrições quando show_business_hours === false
+- [x] Validar que sistema de horários continua funcionando quando show_business_hours === true
+- [x] 0 erros TypeScript, servidor rodando

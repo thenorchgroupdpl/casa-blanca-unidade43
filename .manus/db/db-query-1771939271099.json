@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO users (openId, name, email, role, tenantId, createdAt, updatedAt) \nVALUES ('test-lojista-001', 'Lojista Teste', 'lojista@test.com', 'admin', 1, NOW(), NOW()) \nON DUPLICATE KEY UPDATE role='admin';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3Pj14a2EnUFM8XE.root --database NZpifSW9BTrd6QobKPrRSL --execute INSERT INTO users (openId, name, email, role, tenantId, createdAt, updatedAt) \nVALUES ('test-lojista-001', 'Lojista Teste', 'lojista@test.com', 'admin', 1, NOW(), NOW()) \nON DUPLICATE KEY UPDATE role='admin';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 450
+}

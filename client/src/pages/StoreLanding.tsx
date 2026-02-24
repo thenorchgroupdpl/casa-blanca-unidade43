@@ -1004,6 +1004,8 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     delivery_fee: settings?.deliveryFee ? parseFloat(settings.deliveryFee as string) : undefined,
     // Google Maps link
     google_maps_link: settings?.googleMapsLink || '',
+    // Show business hours toggle (for "Sob Encomenda" stores)
+    show_business_hours: settings?.showBusinessHours ?? true,
   };
 }
 

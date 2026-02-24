@@ -204,6 +204,9 @@ export const storeSettings = mysqlTable("store_settings", {
   // Manual Override (Lojista can force open/closed)
   manualOverride: varchar("manualOverride", { length: 20 }).$type<'open' | 'closed' | null>(),
   
+  // Show Business Hours (toggle to hide hours for "Sob Encomenda" stores)
+  showBusinessHours: boolean("showBusinessHours").default(true).notNull(),
+  
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

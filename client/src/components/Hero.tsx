@@ -125,8 +125,8 @@ export default function Hero() {
           <a
             href="#contato"
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border transition-colors group',
-              !locationBg && 'bg-lp-border border-lp-border hover:border-lp-highlight-border'
+              'flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 shadow-lg group',
+              !locationBg && 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20'
             )}
             style={locationBg ? {
               backgroundColor: locationBg,
@@ -134,11 +134,11 @@ export default function Hero() {
             } : undefined}
           >
             <MapPin
-              className={cn('w-4 h-4', !locationIcon && 'text-lp-highlight')}
+              className={cn('w-4 h-4', !locationIcon && 'text-white')}
               style={locationIcon ? { color: locationIcon } : undefined}
             />
             <span
-              className={cn('text-sm', !locationText && 'text-lp-text-muted group-hover:text-lp-text transition-colors')}
+              className={cn('text-sm', !locationText && 'text-white group-hover:text-white transition-colors')}
               style={locationText ? { color: locationText } : undefined}
             >
               {locationLabel}
@@ -146,35 +146,39 @@ export default function Hero() {
           </a>
 
           {/* Status */}
+          {data.show_business_hours !== false && (
           <button
             onClick={openScheduleModal}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm transition-all',
-              !scheduleBg && (status.isOpen ? 'badge-open' : 'badge-closed'),
+              'flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 shadow-lg',
+              !scheduleBg && 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20',
               status.warning && 'animate-pulse'
             )}
             style={scheduleBg ? {
               backgroundColor: scheduleBg,
               color: scheduleText || undefined,
             } : !scheduleBg && status.warning === 'opening_soon' ? {
-              backgroundColor: 'rgba(234, 179, 8, 0.25)',
+              backgroundColor: 'rgba(234, 179, 8, 0.3)',
+              borderColor: 'rgba(250, 204, 21, 0.4)',
               color: '#facc15',
             } : !scheduleBg && status.warning === 'closing_soon' ? {
-              backgroundColor: 'rgba(239, 68, 68, 0.25)',
+              backgroundColor: 'rgba(239, 68, 68, 0.3)',
+              borderColor: 'rgba(252, 165, 165, 0.4)',
               color: '#fca5a5',
             } : undefined}
           >
             <Clock
-              className="w-4 h-4"
+              className={cn('w-4 h-4', !scheduleIcon && 'text-white')}
               style={scheduleIcon ? { color: scheduleIcon } : undefined}
             />
             <span
-              className="text-sm font-medium"
+              className={cn('text-sm font-medium', !scheduleText && 'text-white')}
               style={scheduleText ? { color: scheduleText } : undefined}
             >
               {scheduleLabel}
             </span>
           </button>
+          )}
         </motion.div>
 
         {/* Headline */}

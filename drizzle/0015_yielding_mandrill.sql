@@ -1,0 +1,1 @@
+ALTER TABLE `store_settings` ADD `showBusinessHours` boolean DEFAULT true NOT NULL;

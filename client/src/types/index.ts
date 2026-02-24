@@ -406,6 +406,8 @@ export interface SiteData {
   delivery_fee?: number;
   // Google Maps link
   google_maps_link?: string;
+  // Show business hours toggle (for "Sob Encomenda" stores)
+  show_business_hours?: boolean;
 }
 
 // Cart types
