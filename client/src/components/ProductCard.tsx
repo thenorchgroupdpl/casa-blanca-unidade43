@@ -4,6 +4,10 @@
  * Features: Image gallery navigation, price, add to cart CTA
  * Now supports: highlight badges, unit of measure, granular card style overrides
  * Image standardization: aspect-square, w-full, object-cover
+ *
+ * REFACTORED: All styles injected DIRECTLY via inline styles from cardStyle.
+ * Each element (name, price, description, bg, hover) uses its OWN variable.
+ * No CSS inheritance — no CSS Bleeding.
  */
 
 import { useState, useMemo } from 'react';
@@ -83,7 +87,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     openProductSheet(product);
   };
 
-  // Card container style from Design System overrides
+  // Card container style — ISOLATED: bgColor and hoverBgColor are separate
   const cardContainerStyle = useMemo(() => {
     const style: React.CSSProperties = {};
     // Apply hover bg color dynamically when hovered, otherwise use normal bg
@@ -103,7 +107,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   }, [isHovered, cardStyle?.hoverBgColor, cardStyle?.bgColor, cardStyle?.borderRadius, cardStyle?.borderColor, cardStyle?.borderWidth, cardStyle?.font, cardStyle?.fontSize, cardStyle?.fontWeight]);
 
   // =============================================
-  // GRID VARIANT
+  // GRID VARIANT (used in OrderOverlay / Cardápio)
   // =============================================
   if (variant === 'grid') {
     return (
@@ -112,8 +116,10 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          'group relative bg-lp-surface rounded-xl overflow-hidden cursor-pointer',
-          'border border-lp-border hover:border-lp-highlight-border transition-all duration-300',
+          'group relative rounded-xl overflow-hidden cursor-pointer',
+          'border transition-all duration-300',
+          !cardStyle?.bgColor && 'bg-lp-surface',
+          !cardStyle?.borderColor && 'border-lp-border hover:border-lp-highlight-border',
           !cardStyle?.hoverBgColor && 'hover:shadow-lg hover:bg-lp-highlight-subtle'
         )}
         style={cardContainerStyle}
@@ -158,10 +164,10 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
           </button>
         </div>
 
-        {/* Info */}
+        {/* Info — ISOLATED: each text element gets its own color */}
         <div className="p-4">
           <h3
-            className="font-medium text-lp-text line-clamp-1"
+            className={cn('font-medium line-clamp-1', !cardStyle?.nameColor && 'text-lp-text')}
             style={cardStyle?.nameColor ? { color: cardStyle.nameColor } : undefined}
           >
             {product.name}
@@ -171,7 +177,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
           </h3>
           <div className="flex items-center gap-2 mt-1">
             <p
-              className="text-lp-highlight font-semibold"
+              className={cn('font-semibold', !cardStyle?.priceColor && 'text-lp-highlight')}
               style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
             >
               {formatPrice(product.price)}
@@ -188,7 +194,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   }
 
   // =============================================
-  // SHOWCASE VARIANT (horizontal scroll)
+  // SHOWCASE VARIANT (horizontal scroll on home/vitrine)
   // =============================================
   return (
     <motion.div
@@ -260,10 +266,10 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
         )}
       </div>
 
-      {/* Info */}
+      {/* Info — ISOLATED: each text element gets its own color via inline style */}
       <div className="p-4">
         <h3
-          className="font-medium text-gray-900 line-clamp-1"
+          className={cn('font-medium line-clamp-1', !cardStyle?.nameColor && 'text-gray-900')}
           style={cardStyle?.nameColor ? { color: cardStyle.nameColor } : undefined}
         >
           {product.name}
@@ -273,7 +279,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
           <p className="text-xs text-gray-400 mt-0.5">{unitDisplay}</p>
         )}
         <p
-          className="text-sm text-gray-600 mt-0.5 line-clamp-1"
+          className={cn('text-sm mt-0.5 line-clamp-1', !cardStyle?.descColor && 'text-gray-600')}
           style={cardStyle?.descColor ? { color: cardStyle.descColor } : undefined}
         >
           {product.description}
@@ -281,7 +287,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
         
         <div className="mt-3 flex items-center gap-2">
           <span
-            className="text-lg font-bold text-gray-900"
+            className={cn('text-lg font-bold', !cardStyle?.priceColor && 'text-gray-900')}
             style={cardStyle?.priceColor ? { color: cardStyle.priceColor } : undefined}
           >
             {formatPrice(product.price)}

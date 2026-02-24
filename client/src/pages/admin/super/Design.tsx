@@ -480,7 +480,10 @@ type LandingDesign = {
     headerTextColor?: string;
     searchBorderColor?: string;
     searchBgColor?: string;
+    searchTextColor?: string;
+    searchPlaceholderColor?: string;
     searchIconColor?: string;
+    categoryNameColor?: string;
     // 3.2 Filtros de Categoria (Pills)
     filterActiveBgColor?: string;
     filterActiveTextColor?: string;
@@ -500,6 +503,9 @@ type LandingDesign = {
     cardHoverBgColor?: string;
     // 3.4 Modal de Detalhes do Produto
     modalBgColor?: string;
+    modalNameColor?: string;
+    modalPriceColor?: string;
+    modalDescColor?: string;
     modalCtaBgColor?: string;
     modalCtaTextColor?: string;
     modalCtaFont?: string;
@@ -2750,7 +2756,13 @@ function MenuSection({
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Campo de Busca</Label>
         <ColorRow label="Cor da Borda" value={data.searchBorderColor} defaultVal="#333333" field="searchBorderColor" />
         <ColorRow label="Cor de Fundo" value={data.searchBgColor} defaultVal="#1a1a1a" field="searchBgColor" />
+        <ColorRow label="Cor do Texto Digitado" value={data.searchTextColor} defaultVal="#ffffff" field="searchTextColor" />
+        <ColorRow label="Cor do Placeholder" value={data.searchPlaceholderColor} defaultVal="#666666" field="searchPlaceholderColor" />
         <ColorRow label="Cor do Ícone (Lupa)" value={data.searchIconColor} defaultVal="#888888" field="searchIconColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Títulos de Categoria</Label>
+        <ColorRow label="Cor do Nome da Categoria" value={data.categoryNameColor} defaultVal="#ffffff" field="categoryNameColor" />
       </div>
 
       {/* 3.2 FILTROS DE CATEGORIA */}
@@ -2839,7 +2851,15 @@ function MenuSection({
         <ColorRow label="Cor de Fundo do Modal" value={data.modalBgColor} defaultVal="#111111" field="modalBgColor" />
 
         <Separator className="bg-zinc-800" />
-        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão ‘Adicionar ao Carrinho’ (CTA)</Label>
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Textos do Modal</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Nome do Produto" value={data.modalNameColor} defaultVal="#ffffff" field="modalNameColor" />
+          <ColorRow label="Preço" value={data.modalPriceColor} defaultVal="#d4a574" field="modalPriceColor" />
+          <ColorRow label="Descrição" value={data.modalDescColor} defaultVal="#999999" field="modalDescColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão 'Adicionar ao Carrinho' (CTA)</Label>
         <div className="grid grid-cols-2 gap-2">
           <ColorRow label="Cor de Fundo" value={data.modalCtaBgColor} defaultVal="#d4a574" field="modalCtaBgColor" />
           <ColorRow label="Cor do Texto" value={data.modalCtaTextColor} defaultVal="#000000" field="modalCtaTextColor" />

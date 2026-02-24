@@ -5,6 +5,10 @@
  * Now supports: highlight badges, unit of measure, original price strikethrough
  * Consumes menu_style from SiteData for Design System customization
  * Image standardization: aspect-square, w-full, object-cover
+ *
+ * REFACTORED: All styles injected DIRECTLY via inline styles from menu_style.
+ * Modal elements (name, price, desc, qty, CTA) each use their OWN variable.
+ * No CSS inheritance from card styles — fully isolated from Cardápio cards.
  */
 
 import { useState, useEffect } from 'react';
@@ -78,8 +82,12 @@ export default function ProductBottomSheet() {
   const highlightLabel = selectedProduct.highlightTag ? HIGHLIGHT_LABELS[selectedProduct.highlightTag] : null;
   const unitDisplay = formatUnit(selectedProduct.unitValue, selectedProduct.unit);
 
-  // Menu style overrides
+  // ===== ISOLATED MODAL STYLE VARIABLES (section 3.4) =====
+  // These are SEPARATE from card styles (section 3.3)
   const modalBg = ms?.modalBgColor;
+  const modalNameColor = ms?.modalNameColor;
+  const modalPriceColor = ms?.modalPriceColor;
+  const modalDescColor = ms?.modalDescColor;
   const ctaBg = ms?.modalCtaBgColor;
   const ctaText = ms?.modalCtaTextColor;
   const ctaFont = ms?.modalCtaFont;
@@ -105,13 +113,16 @@ export default function ProductBottomSheet() {
             } : undefined}
           />
 
-          {/* Bottom Sheet */}
+          {/* Bottom Sheet — ISOLATED: uses modalBg, NOT panelBg or cardBg */}
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-lp-surface rounded-t-3xl overflow-hidden"
+            className={cn(
+              'fixed inset-x-0 bottom-0 z-50 max-h-[90vh] rounded-t-3xl overflow-hidden',
+              !modalBg && 'bg-lp-surface'
+            )}
             style={modalBg ? { backgroundColor: modalBg } : undefined}
           >
             {/* Handle */}
@@ -171,17 +182,24 @@ export default function ProductBottomSheet() {
 
               {/* Product Info */}
               <div className="p-6 space-y-4">
-                {/* Name, Unit & Price */}
+                {/* Name — ISOLATED: uses modalNameColor, NOT cardNameColor */}
                 <div>
-                  <h2 className="font-display text-2xl text-lp-text mb-1">
+                  <h2
+                    className={cn('font-display text-2xl mb-1', !modalNameColor && 'text-lp-text')}
+                    style={modalNameColor ? { color: modalNameColor } : undefined}
+                  >
                     {selectedProduct.name}
                   </h2>
                   {/* Unit of measure below the name */}
                   {unitDisplay && (
                     <p className="text-sm text-lp-text-muted mb-2">{unitDisplay}</p>
                   )}
+                  {/* Price — ISOLATED: uses modalPriceColor, NOT cardPriceColor */}
                   <div className="flex items-center gap-3">
-                    <p className="text-lp-highlight text-xl font-semibold">
+                    <p
+                      className={cn('text-xl font-semibold', !modalPriceColor && 'text-lp-highlight')}
+                      style={modalPriceColor ? { color: modalPriceColor } : undefined}
+                    >
                       {formatPrice(selectedProduct.price)}
                     </p>
                     {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
@@ -192,14 +210,17 @@ export default function ProductBottomSheet() {
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* Description — ISOLATED: uses modalDescColor, NOT cardDescColor */}
                 {selectedProduct.description && (
-                  <p className="text-lp-text-muted leading-relaxed">
+                  <p
+                    className={cn('leading-relaxed', !modalDescColor && 'text-lp-text-muted')}
+                    style={modalDescColor ? { color: modalDescColor } : undefined}
+                  >
                     {selectedProduct.description}
                   </p>
                 )}
 
-                {/* Quantity Selector */}
+                {/* Quantity Selector — ISOLATED: uses qtyBtnBg/Text/NumColor */}
                 <div className="flex items-center justify-between py-4 border-t border-lp-border">
                   <span className="text-lp-text font-medium">Quantidade</span>
                   <div className="flex items-center gap-4">
@@ -220,7 +241,7 @@ export default function ProductBottomSheet() {
                       <Minus className="w-5 h-5" />
                     </button>
                     <span
-                      className="text-lp-text text-xl font-semibold w-8 text-center"
+                      className={cn('text-xl font-semibold w-8 text-center', !qtyNumColor && 'text-lp-text')}
                       style={qtyNumColor ? { color: qtyNumColor } : undefined}
                     >
                       {quantity}
@@ -238,7 +259,7 @@ export default function ProductBottomSheet() {
                   </div>
                 </div>
 
-                {/* Add to Cart Button */}
+                {/* Add to Cart Button — ISOLATED: uses modalCta* variables */}
                 <button
                   onClick={handleAddToCart}
                   className="w-full py-4 rounded-full bg-lp-btn text-lp-btn-fg font-semibold text-lg flex items-center justify-center gap-3 hover:bg-lp-btn-hover transition-colors"

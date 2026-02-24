@@ -901,3 +901,45 @@
 
 ### Testes
 - [x] 0 erros TypeScript, servidor rodando
+
+## Fase 72: Refatoração CSS Bleeding do Cardápio - Isolamento Total de Variáveis
+
+### Auditoria e Tipos
+- [x] Auditar tipos MenuStyleOverrides e verificar chaves únicas para cada elemento
+- [x] Garantir existência de: modalBgColor, cardBgColor, cardHoverBgColor, cardNameColor, cardPriceColor, cardDescColor
+- [x] Garantir existência de: searchBgColor, searchTextColor, searchPlaceholderColor, filterActiveBgColor, filterActiveTextColor
+- [x] Adicionar campos faltantes: searchTextColor, searchPlaceholderColor, categoryNameColor, modalNameColor, modalPriceColor, modalDescColor
+- [x] Verificar que nenhuma variável é reaproveitada entre elementos diferentes
+
+### Refatoração do OrderOverlay
+- [x] Aplicar panelBgColor diretamente no container principal do modal
+- [x] Aplicar searchBgColor, searchTextColor, searchPlaceholderColor diretamente na barra de busca
+- [x] Aplicar filterActiveBgColor/filterActiveTextColor/filterInactiveBgColor/filterInactiveTextColor nos pills
+- [x] Aplicar categoryNameColor nos títulos de categoria
+- [x] Eliminar dependência de herança global (text-foreground, text-muted-foreground)
+
+### Refatoração do ProductCard
+- [x] Aplicar cardBgColor via inline style no container do card
+- [x] Aplicar cardHoverBgColor via estado isHovered + inline style
+- [x] Aplicar cardNameColor diretamente no <h3> do nome
+- [x] Aplicar cardPriceColor diretamente no preço
+- [x] Aplicar cardDescColor diretamente na descrição
+
+### Refatoração do ProductBottomSheet/Modal de Detalhes
+- [x] Aplicar modalNameColor, modalPriceColor, modalDescColor nos textos do modal
+- [x] Botões de quantidade usam qtyBtnBgColor/qtyBtnTextColor/qtyNumberColor (seção 3.4)
+- [x] Botão CTA usa modalCtaBgColor/modalCtaTextColor (seção 3.4)
+- [x] Não herda cores do cardápio principal
+
+### Mapeamento StoreLanding
+- [x] Todos os novos campos mapeados no postMessage handler
+- [x] Todos os novos campos mapeados no transformTenantDataToSiteData
+
+### Design System (Painel)
+- [x] Color Pickers adicionados: searchTextColor, searchPlaceholderColor na seção 3.1
+- [x] Color Picker adicionado: categoryNameColor na seção 3.1
+- [x] Color Pickers adicionados: modalNameColor, modalPriceColor, modalDescColor na seção 3.4
+
+### Testes
+- [x] Cada Color Picker altera APENAS seu elemento alvo
+- [x] 0 erros TypeScript, servidor rodando

@@ -250,7 +250,10 @@ export interface MenuStyleOverrides {
   headerTextColor?: string;
   searchBorderColor?: string;
   searchBgColor?: string;
+  searchTextColor?: string;
+  searchPlaceholderColor?: string;
   searchIconColor?: string;
+  categoryNameColor?: string;
   // 3.2 Filtros de Categoria
   filterActiveBgColor?: string;
   filterActiveTextColor?: string;
@@ -272,6 +275,9 @@ export interface MenuStyleOverrides {
   menuSectionTitle?: string;
   // 3.4 Modal de Detalhes
   modalBgColor?: string;
+  modalNameColor?: string;
+  modalPriceColor?: string;
+  modalDescColor?: string;
   modalCtaBgColor?: string;
   modalCtaTextColor?: string;
   modalCtaFont?: string;

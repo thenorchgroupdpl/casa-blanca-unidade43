@@ -3,6 +3,9 @@
  * Design: Warm Luxury - Full-screen overlay like Zé Delivery
  * Features: Search, category pills, product grid, floating cart bar
  * Consumes menu_style from SiteData for Design System customization
+ * 
+ * REFACTORED: All styles injected directly via inline styles from menu_style.
+ * No CSS inheritance from global theme — each element uses its own variable.
  */
 
 import { useMemo, useEffect, useRef } from 'react';
@@ -94,7 +97,7 @@ export default function OrderOverlay() {
       }));
   }, [data, selectedCategory, searchQuery, filteredProducts]);
 
-  // Card style from menu_style (passed to ProductCard)
+  // Card style from menu_style (passed to ProductCard) — ISOLATED per-card
   const cardStyle = useMemo(() => {
     if (!ms) return undefined;
     return {
@@ -117,9 +120,24 @@ export default function OrderOverlay() {
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
 
-  // Overlay background with customizable opacity
-  const overlayBg = ms?.panelBgColor || undefined;
-  const headerTextColor = ms?.headerTextColor || undefined;
+  // ===== ISOLATED STYLE VARIABLES =====
+  // Each element gets its OWN color from menu_style, no CSS inheritance
+  const panelBg = ms?.panelBgColor;
+  const headerText = ms?.headerTextColor;
+  const searchBg = ms?.searchBgColor;
+  const searchText = ms?.searchTextColor;
+  const searchBorder = ms?.searchBorderColor;
+  const searchIcon = ms?.searchIconColor;
+  const categoryNameColor = ms?.categoryNameColor;
+  const filterActiveBg = ms?.filterActiveBgColor;
+  const filterActiveText = ms?.filterActiveTextColor;
+  const filterInactiveBg = ms?.filterInactiveBgColor;
+  const filterInactiveText = ms?.filterInactiveTextColor;
+
+  // Dynamic CSS for search placeholder color
+  const searchPlaceholderStyle = ms?.searchPlaceholderColor
+    ? { '--search-placeholder-color': ms.searchPlaceholderColor } as React.CSSProperties
+    : {};
 
   return (
     <AnimatePresence>
@@ -130,37 +148,39 @@ export default function OrderOverlay() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-50 bg-background"
-          style={overlayBg ? { backgroundColor: overlayBg } : undefined}
+          style={panelBg ? { backgroundColor: panelBg } : undefined}
         >
-          {/* Header */}
+          {/* Header — uses panelBg for background, headerText for text */}
           <div
-            className="sticky top-0 z-10 bg-background border-b border-border/50"
-            style={overlayBg ? { backgroundColor: overlayBg } : undefined}
+            className="sticky top-0 z-10 border-b border-border/50"
+            style={{
+              backgroundColor: panelBg || undefined,
+            }}
           >
             <div className="container py-4">
               {/* Top Row */}
               <div className="flex items-center gap-4 mb-4">
                 <button
                   onClick={closeOrderOverlay}
-                  className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
-                  style={headerTextColor ? { color: headerTextColor } : undefined}
+                  className="p-2 -ml-2 transition-colors"
+                  style={{ color: headerText || undefined }}
                 >
                   <X className="w-6 h-6" />
                 </button>
                 
                 <h1
-                  className="font-display text-xl text-foreground flex-1"
-                  style={headerTextColor ? { color: headerTextColor } : undefined}
+                  className="font-display text-xl flex-1"
+                  style={{ color: headerText || undefined }}
                 >
                   {ms?.menuSectionTitle || 'Cardápio'}
                 </h1>
               </div>
 
-              {/* Search Bar */}
-              <div className="relative">
+              {/* Search Bar — ISOLATED: searchBg, searchText, searchBorder, searchIcon */}
+              <div className="relative" style={searchPlaceholderStyle}>
                 <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
-                  style={ms?.searchIconColor ? { color: ms.searchIconColor } : undefined}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{ color: searchIcon || undefined }}
                 />
                 <input
                   ref={searchInputRef}
@@ -171,26 +191,29 @@ export default function OrderOverlay() {
                   className={cn(
                     'w-full pl-12 pr-4 py-3 rounded-xl',
                     'bg-muted/50 border border-border/50',
-                    'text-foreground placeholder:text-muted-foreground',
-                    'focus:outline-none focus:border-lp-highlight/50 focus:ring-1 focus:ring-lp-highlight/20',
-                    'transition-all'
+                    'placeholder:text-muted-foreground',
+                    'focus:outline-none focus:ring-1 focus:ring-lp-highlight/20',
+                    'transition-all',
+                    ms?.searchPlaceholderColor && 'placeholder:[color:var(--search-placeholder-color)]'
                   )}
                   style={{
-                    ...(ms?.searchBgColor ? { backgroundColor: ms.searchBgColor } : {}),
-                    ...(ms?.searchBorderColor ? { borderColor: ms.searchBorderColor } : {}),
+                    ...(searchBg ? { backgroundColor: searchBg } : {}),
+                    ...(searchText ? { color: searchText } : {}),
+                    ...(searchBorder ? { borderColor: searchBorder } : {}),
                   }}
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1"
+                    style={{ color: headerText || undefined }}
                   >
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
 
-              {/* Category Pills */}
+              {/* Category Pills — ISOLATED: filterActiveBg/Text, filterInactiveBg/Text */}
               <div
                 ref={categoryScrollRef}
                 className="flex gap-2 mt-4 overflow-x-auto hide-scrollbar -mx-4 px-4"
@@ -198,7 +221,7 @@ export default function OrderOverlay() {
                 <button
                   onClick={() => setSelectedCategory(null)}
                   className={cn(
-                    'pill flex-shrink-0',
+                    'pill flex-shrink-0 transition-colors',
                     !selectedCategory
                       ? 'bg-lp-highlight text-lp-highlight-fg'
                       : 'bg-muted/50 text-muted-foreground hover:bg-muted'
@@ -206,12 +229,12 @@ export default function OrderOverlay() {
                   style={
                     !selectedCategory
                       ? {
-                          ...(ms?.filterActiveBgColor ? { backgroundColor: ms.filterActiveBgColor } : {}),
-                          ...(ms?.filterActiveTextColor ? { color: ms.filterActiveTextColor } : {}),
+                          ...(filterActiveBg ? { backgroundColor: filterActiveBg } : {}),
+                          ...(filterActiveText ? { color: filterActiveText } : {}),
                         }
                       : {
-                          ...(ms?.filterInactiveBgColor ? { backgroundColor: ms.filterInactiveBgColor } : {}),
-                          ...(ms?.filterInactiveTextColor ? { color: ms.filterInactiveTextColor } : {}),
+                          ...(filterInactiveBg ? { backgroundColor: filterInactiveBg } : {}),
+                          ...(filterInactiveText ? { color: filterInactiveText } : {}),
                         }
                   }
                 >
@@ -223,7 +246,7 @@ export default function OrderOverlay() {
                     data-category={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     className={cn(
-                      'pill flex-shrink-0',
+                      'pill flex-shrink-0 transition-colors',
                       selectedCategory === cat.id
                         ? 'bg-lp-highlight text-lp-highlight-fg'
                         : 'bg-muted/50 text-muted-foreground hover:bg-muted'
@@ -231,12 +254,12 @@ export default function OrderOverlay() {
                     style={
                       selectedCategory === cat.id
                         ? {
-                            ...(ms?.filterActiveBgColor ? { backgroundColor: ms.filterActiveBgColor } : {}),
-                            ...(ms?.filterActiveTextColor ? { color: ms.filterActiveTextColor } : {}),
+                            ...(filterActiveBg ? { backgroundColor: filterActiveBg } : {}),
+                            ...(filterActiveText ? { color: filterActiveText } : {}),
                           }
                         : {
-                            ...(ms?.filterInactiveBgColor ? { backgroundColor: ms.filterInactiveBgColor } : {}),
-                            ...(ms?.filterInactiveTextColor ? { color: ms.filterInactiveTextColor } : {}),
+                            ...(filterInactiveBg ? { backgroundColor: filterInactiveBg } : {}),
+                            ...(filterInactiveText ? { color: filterInactiveText } : {}),
                           }
                     }
                   >
@@ -257,12 +280,15 @@ export default function OrderOverlay() {
                 className="flex flex-col items-center justify-center py-16 text-center"
               >
                 <div className="p-6 rounded-full bg-muted/30 mb-6">
-                  <Package className="w-12 h-12 text-muted-foreground" />
+                  <Package className="w-12 h-12" style={{ color: headerText || undefined }} />
                 </div>
-                <h3 className="font-display text-xl text-foreground mb-2">
+                <h3
+                  className="font-display text-xl mb-2"
+                  style={{ color: headerText || undefined }}
+                >
                   Ops! Nenhum produto encontrado
                 </h3>
-                <p className="text-muted-foreground max-w-sm">
+                <p style={{ color: headerText ? `${headerText}99` : undefined }} className="text-muted-foreground max-w-sm">
                   Não conseguimos encontrar "{searchQuery}". Que tal explorar outras categorias?
                 </p>
                 <button
@@ -280,18 +306,18 @@ export default function OrderOverlay() {
               <div className="space-y-10">
                 {groupedProducts.map((group) => (
                   <div key={group.id}>
-                    {/* Category Header */}
+                    {/* Category Header — ISOLATED: uses categoryNameColor or headerText */}
                     {!searchQuery.trim() && !selectedCategory && (
                       <h2
-                        className="font-display text-2xl text-foreground mb-6"
-                        style={headerTextColor ? { color: headerTextColor } : undefined}
+                        className="font-display text-2xl mb-6"
+                        style={{ color: categoryNameColor || headerText || undefined }}
                       >
                         {group.name}
                       </h2>
                     )}
 
-                    {/* Products Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {/* Products Grid — Each card gets ISOLATED cardStyle */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {group.products.map((product, index) => (
                         <ProductCard
                           key={product.id}
