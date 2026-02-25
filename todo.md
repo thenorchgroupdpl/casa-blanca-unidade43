@@ -966,3 +966,12 @@
 - [x] Adicionar buttonText à interface CardStyleOverrides no ProductCard.tsx
 - [x] Aplicar texto dinâmico e cores via inline styles no botão do ProductCard (showcase variant)
 - [x] Passar buttonText no cardStyle da VitrineSection.tsx
+
+## Fase 76: Color Picker "Unidade de Medida / Peso" na Seção 2.3
+- [x] Adicionar cardUnitColor ao tipo ProductsSection no Design.tsx
+- [x] Adicionar card_unit_color ao tipo IntroSection nos types/index.ts
+- [x] Adicionar unitColor à interface CardStyleOverrides no ProductCard.tsx
+- [x] Adicionar ColorRow "Unidade de Medida / Peso" na seção 2.3 do Design System
+- [x] Mapear card_unit_color no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Passar unitColor no cardStyle da VitrineSection.tsx
+- [x] Aplicar cor via inline style no texto de unidade do ProductCard (showcase variant)

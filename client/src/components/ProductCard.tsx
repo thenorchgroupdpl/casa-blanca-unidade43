@@ -23,6 +23,7 @@ export interface CardStyleOverrides {
   nameColor?: string;
   priceColor?: string;
   descColor?: string;
+  unitColor?: string;
   borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
@@ -169,7 +170,10 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
           >
             {product.name}
             {unitDisplay && (
-              <span className="text-lp-text-muted font-normal text-xs ml-1.5">• {unitDisplay}</span>
+              <span
+                className={cn('font-normal text-xs ml-1.5', !cardStyle?.unitColor && 'text-lp-text-muted')}
+                style={cardStyle?.unitColor ? { color: cardStyle.unitColor } : undefined}
+              >• {unitDisplay}</span>
             )}
           </h3>
           <div className="flex items-center gap-2 mt-1">
@@ -268,9 +272,12 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
         >
           {product.name}
         </h3>
-        {/* Unit of measure below the name */}
+        {/* Unit of measure — ISOLATED: uses cardStyle.unitColor */}
         {unitDisplay && (
-          <p className="text-xs text-gray-400 mt-0.5">{unitDisplay}</p>
+          <p
+            className={cn('text-xs mt-0.5', !cardStyle?.unitColor && 'text-gray-400')}
+            style={cardStyle?.unitColor ? { color: cardStyle.unitColor } : undefined}
+          >{unitDisplay}</p>
         )}
         <p
           className={cn('text-sm mt-0.5 line-clamp-1', !cardStyle?.descColor && 'text-gray-600')}

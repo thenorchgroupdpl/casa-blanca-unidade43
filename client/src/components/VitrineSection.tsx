@@ -127,6 +127,7 @@ function CategoryCarousel({ category, index, intro }: CategoryCarouselProps) {
               nameColor: intro.card_name_color,
               priceColor: intro.card_price_color,
               descColor: intro.card_desc_color,
+              unitColor: intro.card_unit_color,
               borderRadius: intro.card_border_radius,
               borderColor: intro.card_border_color,
               borderWidth: intro.card_border_width,

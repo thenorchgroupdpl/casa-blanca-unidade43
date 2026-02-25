@@ -393,6 +393,7 @@ type LandingDesign = {
     cardNameColor?: string;
     cardPriceColor?: string;
     cardDescColor?: string;
+    cardUnitColor?: string;
     cardBorderRadius?: number; // px
     cardBorderColor?: string;
     cardBorderWidth?: number; // px
@@ -2449,6 +2450,7 @@ function ProductsSection({
         <ColorRow label="Nome do Produto" value={data.cardNameColor} defaultVal="#111827" field="cardNameColor" />
         <ColorRow label="Preço" value={data.cardPriceColor} defaultVal="" field="cardPriceColor" />
         <ColorRow label="Descrição Curta" value={data.cardDescColor} defaultVal="#6b7280" field="cardDescColor" />
+        <ColorRow label="Unidade de Medida / Peso" value={data.cardUnitColor} defaultVal="#ffffff" field="cardUnitColor" />
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Borda</Label>

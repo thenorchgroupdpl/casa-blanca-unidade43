@@ -100,6 +100,7 @@ export interface IntroContent {
   card_name_color?: string;
   card_price_color?: string;
   card_desc_color?: string;
+  card_unit_color?: string;
   card_border_radius?: number;
   card_border_color?: string;
   card_border_width?: number;
