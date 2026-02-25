@@ -274,7 +274,8 @@ export interface MenuStyleOverrides {
   cardFont?: string;
   cardFontSize?: number;
   cardFontWeight?: string;
-  // Botão Adicionar (CTA do Card)
+  // Botão Adicionar (CTA do Card) — ISOLADO da seção 2.3
+  cardButtonText?: string;
   cardButtonBgColor?: string;
   cardButtonTextColor?: string;
   // Título editável do Cardápio

@@ -189,6 +189,24 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
               </span>
             )}
           </div>
+
+          {/* Add Button (CTA) — ISOLATED: uses cardStyle.buttonBgColor/buttonTextColor/buttonText */}
+          {/* These are controlled by section 3.3 of the Design System, NOT section 2.3 */}
+          <button
+            onClick={handleAddToCart}
+            className={cn(
+              'mt-3 w-full py-2 rounded-xl font-medium text-sm',
+              !cardStyle?.buttonBgColor && 'bg-lp-btn',
+              !cardStyle?.buttonTextColor && 'text-lp-btn-fg',
+              'active:scale-[0.98] transition-all'
+            )}
+            style={{
+              ...(cardStyle?.buttonBgColor ? { backgroundColor: cardStyle.buttonBgColor } : {}),
+              ...(cardStyle?.buttonTextColor ? { color: cardStyle.buttonTextColor } : {}),
+            }}
+          >
+            {cardStyle?.buttonText || 'Adicionar'}
+          </button>
         </div>
       </motion.div>
     );

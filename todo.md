@@ -996,3 +996,13 @@
 - [x] Adicionar tipos para cart/sacola no LandingDesign e types/index.ts
 - [x] Mapear variáveis no StoreLanding (postMessage + transformTenantData)
 - [x] Aplicar variáveis via inline styles no CartDrawer.tsx
+
+## Fase 78: Botão CTA "Adicionar" nos Cards do Cardápio (Grid Variant)
+- [x] Auditar ProductCard grid variant para entender layout atual sem botão
+- [x] Adicionar botão "Adicionar" no rodapé do grid variant replicando layout do showcase variant
+- [x] Adicionar campos cardButtonText, cardButtonBgColor, cardButtonTextColor ao tipo MenuSection no Design.tsx
+- [x] Adicionar campos cardButtonText ao tipo MenuStyleOverrides nos types/index.ts
+- [x] Adicionar controles isolados na seção 3.3 do Design System (Input Texto + 2 Color Pickers)
+- [x] Mapear novas variáveis no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Aplicar cores via inline styles no botão do grid variant (isolado do showcase variant)
+- [x] Garantir que personalização da seção 3.3 NÃO afeta botão da seção 2.3

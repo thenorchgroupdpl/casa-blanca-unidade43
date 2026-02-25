@@ -111,6 +111,7 @@ export default function OrderOverlay() {
       font: ms.cardFont,
       fontSize: ms.cardFontSize,
       fontWeight: ms.cardFontWeight,
+      buttonText: ms.cardButtonText,
       buttonBgColor: ms.cardButtonBgColor,
       buttonTextColor: ms.cardButtonTextColor,
     };
