@@ -130,6 +130,8 @@ function CategoryCarousel({ category, index, intro }: CategoryCarouselProps) {
               borderRadius: intro.card_border_radius,
               borderColor: intro.card_border_color,
               borderWidth: intro.card_border_width,
+              buttonBgColor: intro.card_button_bg_color,
+              buttonTextColor: intro.card_button_text_color,
             }}
           />
         ))}

@@ -29,6 +29,8 @@ export interface CardStyleOverrides {
   font?: string;
   fontSize?: number;
   fontWeight?: string;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
 }
 
 interface ProductCardProps {
@@ -139,15 +141,20 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
             </span>
           )}
           
-          {/* Quick Add Button */}
+          {/* Quick Add Button — ISOLATED: uses cardStyle.buttonBgColor/buttonTextColor */}
           <button
             onClick={handleAddToCart}
             className={cn(
               'absolute bottom-3 right-3 p-2 rounded-full',
-              'bg-lp-btn text-lp-btn-fg',
+              !cardStyle?.buttonBgColor && 'bg-lp-btn',
+              !cardStyle?.buttonTextColor && 'text-lp-btn-fg',
               'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
               'hover:scale-110 active:scale-95'
             )}
+            style={{
+              ...(cardStyle?.buttonBgColor ? { backgroundColor: cardStyle.buttonBgColor } : {}),
+              ...(cardStyle?.buttonTextColor ? { color: cardStyle.buttonTextColor } : {}),
+            }}
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -285,14 +292,19 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
           )}
         </div>
 
-        {/* Add Button */}
+        {/* Add Button — ISOLATED: uses cardStyle.buttonBgColor/buttonTextColor */}
         <button
           onClick={handleAddToCart}
           className={cn(
             'mt-3 w-full py-2.5 rounded-xl font-medium text-sm',
-            'bg-lp-surface text-lp-text',
-            'hover:bg-lp-surface-hover active:scale-[0.98] transition-all'
+            !cardStyle?.buttonBgColor && 'bg-lp-surface',
+            !cardStyle?.buttonTextColor && 'text-lp-text',
+            'active:scale-[0.98] transition-all'
           )}
+          style={{
+            ...(cardStyle?.buttonBgColor ? { backgroundColor: cardStyle.buttonBgColor } : {}),
+            ...(cardStyle?.buttonTextColor ? { color: cardStyle.buttonTextColor } : {}),
+          }}
         >
           Adicionar
         </button>

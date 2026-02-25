@@ -947,3 +947,13 @@
 ## Fase 73: Remover Hover dos Cards de Produto no Cardápio
 - [x] Remover completamente efeito de hover (mudança de cor de fundo) nos cards de produto do cardápio (ProductCard, Preview Design System, OrderOverlay)
 - [x] Remover Color Picker e campos relacionados ao hover dos cards no Design System
+
+## Fase 74: Refatoração Urgente - Colisão de Estado + Botão Adicionar
+- [x] PARTE 1: Auditar e corrigir colisão de estado entre Fundo do Painel e Barra de Busca na seção 3.1 do Design System
+- [x] PARTE 1: Garantir que cada Color Picker atualiza APENAS sua variável exclusiva (panelBgColor vs searchBgColor/searchBorderColor/searchTextColor)
+- [x] PARTE 1: Verificar payload de salvamento para garantir chaves corretas no banco
+- [x] PARTE 1: Aplicar cores via inline styles no frontend (OrderOverlay) para evitar CSS bleeding
+- [x] PARTE 2: Adicionar campos card_button_bg_color e card_button_text_color ao schema/tipos
+- [x] PARTE 2: Adicionar Color Pickers do botão Adicionar na seção 3.3 do Design System
+- [x] PARTE 2: Injetar cores do botão via inline styles no ProductCard.tsx
+- [x] PARTE 2: Mapear novas variáveis no StoreLanding.tsx (postMessage + transformTenantData)

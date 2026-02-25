@@ -396,6 +396,9 @@ type LandingDesign = {
     cardBorderRadius?: number; // px
     cardBorderColor?: string;
     cardBorderWidth?: number; // px
+    // 2.3b Botão Adicionar (CTA do Card)
+    cardButtonBgColor?: string;
+    cardButtonTextColor?: string;
     // 2.4 Fundo da Seção
     bgColor?: string;
     bgGradient?: boolean;
@@ -499,6 +502,9 @@ type LandingDesign = {
     cardFont?: string;
     cardFontSize?: number;
     cardFontWeight?: string;
+    // 3.3b Botão Adicionar (CTA do Card)
+    cardButtonBgColor?: string;
+    cardButtonTextColor?: string;
     // 3.4 Modal de Detalhes do Produto
     modalBgColor?: string;
     modalNameColor?: string;
@@ -867,6 +873,7 @@ export default function DesignPage() {
         global: { ...defaultDesign.global, ...ld?.global },
         sectionColors: { ...ld?.sectionColors },
         whatsapp: { ...defaultDesign.whatsapp, ...ld?.whatsapp },
+        menu: { ...ld?.menu },
       });
       const savedColors = (landingData.tenant.themeColors as Partial<ThemeColors>) || {};
       setColors({
@@ -2475,6 +2482,13 @@ function ProductsSection({
           </div>
         </div>
         <ColorRow label="Cor da Borda" value={data.cardBorderColor} defaultVal="" field="cardBorderColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Botão Adicionar (CTA do Card)</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Fundo" value={data.cardButtonBgColor} defaultVal="" field="cardButtonBgColor" />
+          <ColorRow label="Texto" value={data.cardButtonTextColor} defaultVal="" field="cardButtonTextColor" />
+        </div>
       </SubPanel>
 
       {/* ===== 2.4 FUNDO DA SEÇÃO ===== */}
@@ -2837,6 +2851,13 @@ function MenuSection({
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão Adicionar (CTA do Card)</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Fundo" value={data.cardButtonBgColor} defaultVal="" field="cardButtonBgColor" />
+          <ColorRow label="Texto" value={data.cardButtonTextColor} defaultVal="" field="cardButtonTextColor" />
         </div>
       </div>
 

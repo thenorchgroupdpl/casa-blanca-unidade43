@@ -111,6 +111,8 @@ export default function OrderOverlay() {
       font: ms.cardFont,
       fontSize: ms.cardFontSize,
       fontWeight: ms.cardFontWeight,
+      buttonBgColor: ms.cardButtonBgColor,
+      buttonTextColor: ms.cardButtonTextColor,
     };
   }, [ms]);
 
@@ -146,14 +148,14 @@ export default function OrderOverlay() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 bg-background"
-          style={panelBg ? { backgroundColor: panelBg } : undefined}
+          className="fixed inset-0 z-50"
+          style={{ backgroundColor: panelBg || '#0a0a0a' }}
         >
           {/* Header — uses panelBg for background, headerText for text */}
           <div
             className="sticky top-0 z-10 border-b border-border/50"
             style={{
-              backgroundColor: panelBg || undefined,
+              backgroundColor: panelBg || '#0a0a0a',
             }}
           >
             <div className="container py-4">
@@ -188,17 +190,15 @@ export default function OrderOverlay() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={cn(
-                    'w-full pl-12 pr-4 py-3 rounded-xl',
-                    'bg-muted/50 border border-border/50',
-                    'placeholder:text-muted-foreground',
+                    'w-full pl-12 pr-4 py-3 rounded-xl border',
                     'focus:outline-none focus:ring-1 focus:ring-lp-highlight/20',
                     'transition-all',
                     ms?.searchPlaceholderColor && 'placeholder:[color:var(--search-placeholder-color)]'
                   )}
                   style={{
-                    ...(searchBg ? { backgroundColor: searchBg } : {}),
-                    ...(searchText ? { color: searchText } : {}),
-                    ...(searchBorder ? { borderColor: searchBorder } : {}),
+                    backgroundColor: searchBg || '#1a1a1a',
+                    color: searchText || '#ffffff',
+                    borderColor: searchBorder || '#333333',
                   }}
                 />
                 {searchQuery && (

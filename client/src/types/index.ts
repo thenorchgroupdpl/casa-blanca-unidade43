@@ -103,6 +103,9 @@ export interface IntroContent {
   card_border_radius?: number;
   card_border_color?: string;
   card_border_width?: number;
+  // Card button (CTA)
+  card_button_bg_color?: string;
+  card_button_text_color?: string;
   // Section background
   bg_color?: string;
   bg_gradient?: boolean;
@@ -269,6 +272,9 @@ export interface MenuStyleOverrides {
   cardFont?: string;
   cardFontSize?: number;
   cardFontWeight?: string;
+  // Botão Adicionar (CTA do Card)
+  cardButtonBgColor?: string;
+  cardButtonTextColor?: string;
   // Título editável do Cardápio
   menuSectionTitle?: string;
   // 3.4 Modal de Detalhes
