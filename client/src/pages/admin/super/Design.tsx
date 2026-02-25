@@ -397,6 +397,7 @@ type LandingDesign = {
     cardBorderColor?: string;
     cardBorderWidth?: number; // px
     // 2.3b Botão Adicionar (CTA do Card)
+    cardButtonText?: string;
     cardButtonBgColor?: string;
     cardButtonTextColor?: string;
     // 2.4 Fundo da Seção
@@ -2484,10 +2485,19 @@ function ProductsSection({
         <ColorRow label="Cor da Borda" value={data.cardBorderColor} defaultVal="" field="cardBorderColor" />
 
         <Separator className="bg-zinc-800" />
-        <Label className="text-[10px] text-zinc-400 font-medium">Botão Adicionar (CTA do Card)</Label>
+        <Label className="text-[10px] text-zinc-400 font-medium">Botão de Ação (CTA)</Label>
+        <div>
+          <Label className="text-[10px] text-zinc-400">Texto do Botão</Label>
+          <Input
+            value={data.cardButtonText || ''}
+            onChange={(e) => onChange('cardButtonText', e.target.value)}
+            placeholder="Adicionar"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+          />
+        </div>
         <div className="grid grid-cols-2 gap-2">
-          <ColorRow label="Fundo" value={data.cardButtonBgColor} defaultVal="" field="cardButtonBgColor" />
-          <ColorRow label="Texto" value={data.cardButtonTextColor} defaultVal="" field="cardButtonTextColor" />
+          <ColorRow label="Cor de Fundo do Botão" value={data.cardButtonBgColor} defaultVal="" field="cardButtonBgColor" />
+          <ColorRow label="Cor do Texto do Botão" value={data.cardButtonTextColor} defaultVal="" field="cardButtonTextColor" />
         </div>
       </SubPanel>
 

@@ -957,3 +957,12 @@
 - [x] PARTE 2: Adicionar Color Pickers do botão Adicionar na seção 3.3 do Design System
 - [x] PARTE 2: Injetar cores do botão via inline styles no ProductCard.tsx
 - [x] PARTE 2: Mapear novas variáveis no StoreLanding.tsx (postMessage + transformTenantData)
+
+## Fase 75: Customização do Botão CTA nos Cards da Vitrine (Seção 2.3)
+- [x] Adicionar campos cardButtonText, cardButtonBgColor, cardButtonTextColor ao tipo ProductsSection no Design.tsx
+- [x] Adicionar card_button_text, card_button_bg_color, card_button_text_color ao tipo IntroSection nos types/index.ts
+- [x] Adicionar Input de Texto + 2 Color Pickers na seção 2.3 do Design System (sub-bloco "Botão de Ação CTA")
+- [x] Mapear novas variáveis no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Adicionar buttonText à interface CardStyleOverrides no ProductCard.tsx
+- [x] Aplicar texto dinâmico e cores via inline styles no botão do ProductCard (showcase variant)
+- [x] Passar buttonText no cardStyle da VitrineSection.tsx

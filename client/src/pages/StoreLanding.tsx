@@ -223,6 +223,7 @@ export default function StoreLanding() {
               card_border_radius: design.products.cardBorderRadius,
               card_border_color: design.products.cardBorderColor,
               card_border_width: design.products.cardBorderWidth,
+              card_button_text: design.products.cardButtonText,
               card_button_bg_color: design.products.cardButtonBgColor,
               card_button_text_color: design.products.cardButtonTextColor,
               // 2.4 Background
@@ -853,6 +854,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
         card_border_radius: ld?.products?.cardBorderRadius,
         card_border_color: ld?.products?.cardBorderColor,
         card_border_width: ld?.products?.cardBorderWidth,
+        card_button_text: ld?.products?.cardButtonText,
         card_button_bg_color: ld?.products?.cardButtonBgColor,
         card_button_text_color: ld?.products?.cardButtonTextColor,
         // 2.4 Background

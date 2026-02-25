@@ -104,6 +104,7 @@ export interface IntroContent {
   card_border_color?: string;
   card_border_width?: number;
   // Card button (CTA)
+  card_button_text?: string;
   card_button_bg_color?: string;
   card_button_text_color?: string;
   // Section background

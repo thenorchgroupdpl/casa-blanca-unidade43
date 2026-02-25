@@ -29,6 +29,7 @@ export interface CardStyleOverrides {
   font?: string;
   fontSize?: number;
   fontWeight?: string;
+  buttonText?: string;
   buttonBgColor?: string;
   buttonTextColor?: string;
 }
@@ -306,7 +307,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
             ...(cardStyle?.buttonTextColor ? { color: cardStyle.buttonTextColor } : {}),
           }}
         >
-          Adicionar
+          {cardStyle?.buttonText || 'Adicionar'}
         </button>
       </div>
     </motion.div>
