@@ -534,8 +534,30 @@ type LandingDesign = {
     iconBgColor?: string;
     closeButtonColor?: string;
   };
-  // 3.5 Modal da Sacola
-  cart?: {
+  // 3.5 Modal da Sacola — Landing Page
+  cartLanding?: {
+    modalBgColor?: string;
+    headerTextColor?: string;
+    headerCloseColor?: string;
+    itemBgColor?: string;
+    itemBorderColor?: string;
+    itemNameColor?: string;
+    itemPriceColor?: string;
+    itemTrashColor?: string;
+    qtyBtnBgColor?: string;
+    qtyBtnTextColor?: string;
+    qtyNumberColor?: string;
+    obsBgColor?: string;
+    obsBorderColor?: string;
+    obsTextColor?: string;
+    totalLabelColor?: string;
+    totalValueColor?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    clearLinkColor?: string;
+  };
+  // 3.5 Modal da Sacola — Cardápio
+  cartMenu?: {
     modalBgColor?: string;
     headerTextColor?: string;
     headerCloseColor?: string;
@@ -912,7 +934,8 @@ export default function DesignPage() {
         whatsapp: { ...defaultDesign.whatsapp, ...ld?.whatsapp },
         menu: { ...ld?.menu },
         toast: { ...ld?.toast },
-        cart: { ...ld?.cart },
+        cartLanding: { ...ld?.cartLanding },
+        cartMenu: { ...ld?.cartMenu },
       });
       const savedColors = (landingData.tenant.themeColors as Partial<ThemeColors>) || {};
       setColors({
@@ -1324,8 +1347,10 @@ export default function DesignPage() {
                       />
                       <Separator className="bg-zinc-800" />
                       <CartSection
-                        data={design.cart || {}}
-                        onChange={(field, value) => updateDesign("cart", field, value)}
+                        dataLanding={design.cartLanding || {}}
+                        dataMenu={design.cartMenu || {}}
+                        onChangeLanding={(field, value) => updateDesign("cartLanding", field, value)}
+                        onChangeMenu={(field, value) => updateDesign("cartMenu", field, value)}
                       />
                     </>
                   )}
@@ -3050,87 +3075,140 @@ function ToastSection({
 // ============================================
 
 function CartSection({
-  data,
-  onChange,
+  dataLanding,
+  dataMenu,
+  onChangeLanding,
+  onChangeMenu,
 }: {
-  data: NonNullable<LandingDesign["cart"]>;
-  onChange: (field: string, value: unknown) => void;
+  dataLanding: NonNullable<LandingDesign["cartLanding"]>;
+  dataMenu: NonNullable<LandingDesign["cartMenu"]>;
+  onChangeLanding: (field: string, value: unknown) => void;
+  onChangeMenu: (field: string, value: unknown) => void;
 }) {
-  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
-    <div>
-      <Label className="text-[10px] text-zinc-400">{label}</Label>
-      <div className="flex items-center gap-2">
-        <ColorPickerInput
-          value={value || defaultVal}
-          onChange={(v) => onChange(field, v)}
-          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
-        />
-        <Input
-          value={value || defaultVal}
-          onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
-        />
+  const [activeCartTab, setActiveCartTab] = useState<'landing' | 'menu'>('landing');
+
+  const makeColorRow = (onChange: (field: string, value: unknown) => void) => {
+    return ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+      <div>
+        <Label className="text-[10px] text-zinc-400">{label}</Label>
+        <div className="flex items-center gap-2">
+          <ColorPickerInput
+            value={value || defaultVal}
+            onChange={(v) => onChange(field, v)}
+            className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+          />
+          <Input
+            value={value || defaultVal}
+            onChange={(e) => onChange(field, e.target.value)}
+            className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  return (
-    <div className="space-y-4">
-      <SubPanel id="cart-3-5" title="3.5 Modal da Sacola">
-        <p className="text-[9px] text-zinc-600">Personalize o modal lateral 'Sua Sacola' com cores isoladas para cada elemento.</p>
-
+  const renderCartFields = (
+    data: NonNullable<LandingDesign["cartLanding"]>,
+    onChange: (field: string, value: unknown) => void
+  ) => {
+    const ColorRow = makeColorRow(onChange);
+    return (
+      <div className="space-y-3">
         <ColorRow label="Cor de Fundo Geral do Modal" value={data.modalBgColor} defaultVal="#0a0a0a" field="modalBgColor" />
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Cabeçalho</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Texto 'Sua Sacola'" value={data.headerTextColor} defaultVal="#ffffff" field="headerTextColor" />
           <ColorRow label="Ícone Fechar (X)" value={data.headerCloseColor} defaultVal="#ffffff" field="headerCloseColor" />
         </div>
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Card de Item</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Fundo do Card" value={data.itemBgColor} defaultVal="#111111" field="itemBgColor" />
           <ColorRow label="Borda do Card" value={data.itemBorderColor} defaultVal="#222222" field="itemBorderColor" />
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3 mt-2">
           <ColorRow label="Nome do Produto" value={data.itemNameColor} defaultVal="#ffffff" field="itemNameColor" />
           <ColorRow label="Preço" value={data.itemPriceColor} defaultVal="#d4a574" field="itemPriceColor" />
+        </div>
+        <div className="mt-2">
           <ColorRow label="Ícone Lixeira" value={data.itemTrashColor} defaultVal="#ef4444" field="itemTrashColor" />
         </div>
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Controles de Quantidade</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Fundo Botões +/-" value={data.qtyBtnBgColor} defaultVal="#d4a574" field="qtyBtnBgColor" />
           <ColorRow label="Texto Botões +/-" value={data.qtyBtnTextColor} defaultVal="#000000" field="qtyBtnTextColor" />
+        </div>
+        <div className="mt-2">
           <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
         </div>
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Campo de Observações</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Fundo" value={data.obsBgColor} defaultVal="#1a1a1a" field="obsBgColor" />
           <ColorRow label="Borda" value={data.obsBorderColor} defaultVal="#333333" field="obsBorderColor" />
-          <ColorRow label="Texto" value={data.obsTextColor} defaultVal="#ffffff" field="obsTextColor" />
+        </div>
+        <div className="mt-2">
+          <ColorRow label="Texto / Placeholder" value={data.obsTextColor} defaultVal="#ffffff" field="obsTextColor" />
         </div>
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Rodapé / Total</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Texto 'Total'" value={data.totalLabelColor} defaultVal="#ffffff" field="totalLabelColor" />
           <ColorRow label="Valor (R$)" value={data.totalValueColor} defaultVal="#d4a574" field="totalValueColor" />
         </div>
 
         <Separator className="bg-zinc-800" />
-        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão CTA 'Finalizar no WhatsApp'</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão CTA 'Finalizar'</Label>
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="#25D366" field="ctaBgColor" />
           <ColorRow label="Cor do Texto/Ícone" value={data.ctaTextColor} defaultVal="#ffffff" field="ctaTextColor" />
         </div>
 
         <ColorRow label="Cor do Link 'Limpar Sacola'" value={data.clearLinkColor} defaultVal="#ef4444" field="clearLinkColor" />
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <SubPanel id="cart-3-5" title="3.5 Modal da Sacola">
+        <p className="text-[9px] text-zinc-600 mb-3">Personalize as sacolas de compras. Cada aba controla uma visualização independente.</p>
+
+        {/* Sub-tab switcher */}
+        <div className="flex gap-1 p-1 rounded-lg bg-zinc-900/60 border border-zinc-800 mb-4">
+          <button
+            onClick={() => setActiveCartTab('landing')}
+            className={cn(
+              'flex-1 py-1.5 px-3 rounded-md text-[10px] font-medium transition-colors',
+              activeCartTab === 'landing'
+                ? 'bg-amber-600/20 text-amber-400 border border-amber-600/30'
+                : 'text-zinc-500 hover:text-zinc-300'
+            )}
+          >
+            Sacola Landing Page
+          </button>
+          <button
+            onClick={() => setActiveCartTab('menu')}
+            className={cn(
+              'flex-1 py-1.5 px-3 rounded-md text-[10px] font-medium transition-colors',
+              activeCartTab === 'menu'
+                ? 'bg-amber-600/20 text-amber-400 border border-amber-600/30'
+                : 'text-zinc-500 hover:text-zinc-300'
+            )}
+          >
+            Sacola Cardápio
+          </button>
+        </div>
+
+        {activeCartTab === 'landing' && renderCartFields(dataLanding, onChangeLanding)}
+        {activeCartTab === 'menu' && renderCartFields(dataMenu, onChangeMenu)}
       </SubPanel>
     </div>
   );

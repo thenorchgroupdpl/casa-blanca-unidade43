@@ -489,11 +489,38 @@ export default function StoreLanding() {
           };
         }
 
-        // Update cart style overrides
-        if (design?.cart) {
-          const c = design.cart;
-          updatedData.cart_style = {
-            ...updatedData.cart_style,
+        // Update cart landing style overrides
+        if (design?.cartLanding) {
+          const c = design.cartLanding;
+          updatedData.cart_landing_style = {
+            ...updatedData.cart_landing_style,
+            modalBgColor: c.modalBgColor,
+            headerTextColor: c.headerTextColor,
+            headerCloseColor: c.headerCloseColor,
+            itemBgColor: c.itemBgColor,
+            itemBorderColor: c.itemBorderColor,
+            itemNameColor: c.itemNameColor,
+            itemPriceColor: c.itemPriceColor,
+            itemTrashColor: c.itemTrashColor,
+            qtyBtnBgColor: c.qtyBtnBgColor,
+            qtyBtnTextColor: c.qtyBtnTextColor,
+            qtyNumberColor: c.qtyNumberColor,
+            obsBgColor: c.obsBgColor,
+            obsBorderColor: c.obsBorderColor,
+            obsTextColor: c.obsTextColor,
+            totalLabelColor: c.totalLabelColor,
+            totalValueColor: c.totalValueColor,
+            ctaBgColor: c.ctaBgColor,
+            ctaTextColor: c.ctaTextColor,
+            clearLinkColor: c.clearLinkColor,
+          };
+        }
+
+        // Update cart menu style overrides
+        if (design?.cartMenu) {
+          const c = design.cartMenu;
+          updatedData.cart_menu_style = {
+            ...updatedData.cart_menu_style,
             modalBgColor: c.modalBgColor,
             headerTextColor: c.headerTextColor,
             headerCloseColor: c.headerCloseColor,
@@ -1042,26 +1069,47 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       iconBgColor: ld.toast.iconBgColor,
       closeButtonColor: ld.toast.closeButtonColor,
     } : undefined,
-    cart_style: ld?.cart ? {
-      modalBgColor: ld.cart.modalBgColor,
-      headerTextColor: ld.cart.headerTextColor,
-      headerCloseColor: ld.cart.headerCloseColor,
-      itemBgColor: ld.cart.itemBgColor,
-      itemBorderColor: ld.cart.itemBorderColor,
-      itemNameColor: ld.cart.itemNameColor,
-      itemPriceColor: ld.cart.itemPriceColor,
-      itemTrashColor: ld.cart.itemTrashColor,
-      qtyBtnBgColor: ld.cart.qtyBtnBgColor,
-      qtyBtnTextColor: ld.cart.qtyBtnTextColor,
-      qtyNumberColor: ld.cart.qtyNumberColor,
-      obsBgColor: ld.cart.obsBgColor,
-      obsBorderColor: ld.cart.obsBorderColor,
-      obsTextColor: ld.cart.obsTextColor,
-      totalLabelColor: ld.cart.totalLabelColor,
-      totalValueColor: ld.cart.totalValueColor,
-      ctaBgColor: ld.cart.ctaBgColor,
-      ctaTextColor: ld.cart.ctaTextColor,
-      clearLinkColor: ld.cart.clearLinkColor,
+    cart_landing_style: ld?.cartLanding ? {
+      modalBgColor: ld.cartLanding.modalBgColor,
+      headerTextColor: ld.cartLanding.headerTextColor,
+      headerCloseColor: ld.cartLanding.headerCloseColor,
+      itemBgColor: ld.cartLanding.itemBgColor,
+      itemBorderColor: ld.cartLanding.itemBorderColor,
+      itemNameColor: ld.cartLanding.itemNameColor,
+      itemPriceColor: ld.cartLanding.itemPriceColor,
+      itemTrashColor: ld.cartLanding.itemTrashColor,
+      qtyBtnBgColor: ld.cartLanding.qtyBtnBgColor,
+      qtyBtnTextColor: ld.cartLanding.qtyBtnTextColor,
+      qtyNumberColor: ld.cartLanding.qtyNumberColor,
+      obsBgColor: ld.cartLanding.obsBgColor,
+      obsBorderColor: ld.cartLanding.obsBorderColor,
+      obsTextColor: ld.cartLanding.obsTextColor,
+      totalLabelColor: ld.cartLanding.totalLabelColor,
+      totalValueColor: ld.cartLanding.totalValueColor,
+      ctaBgColor: ld.cartLanding.ctaBgColor,
+      ctaTextColor: ld.cartLanding.ctaTextColor,
+      clearLinkColor: ld.cartLanding.clearLinkColor,
+    } : undefined,
+    cart_menu_style: ld?.cartMenu ? {
+      modalBgColor: ld.cartMenu.modalBgColor,
+      headerTextColor: ld.cartMenu.headerTextColor,
+      headerCloseColor: ld.cartMenu.headerCloseColor,
+      itemBgColor: ld.cartMenu.itemBgColor,
+      itemBorderColor: ld.cartMenu.itemBorderColor,
+      itemNameColor: ld.cartMenu.itemNameColor,
+      itemPriceColor: ld.cartMenu.itemPriceColor,
+      itemTrashColor: ld.cartMenu.itemTrashColor,
+      qtyBtnBgColor: ld.cartMenu.qtyBtnBgColor,
+      qtyBtnTextColor: ld.cartMenu.qtyBtnTextColor,
+      qtyNumberColor: ld.cartMenu.qtyNumberColor,
+      obsBgColor: ld.cartMenu.obsBgColor,
+      obsBorderColor: ld.cartMenu.obsBorderColor,
+      obsTextColor: ld.cartMenu.obsTextColor,
+      totalLabelColor: ld.cartMenu.totalLabelColor,
+      totalValueColor: ld.cartMenu.totalValueColor,
+      ctaBgColor: ld.cartMenu.ctaBgColor,
+      ctaTextColor: ld.cartMenu.ctaTextColor,
+      clearLinkColor: ld.cartMenu.clearLinkColor,
     } : undefined,
     feedbacks_style: ld?.reviews ? {
       label: ld.reviews.label,

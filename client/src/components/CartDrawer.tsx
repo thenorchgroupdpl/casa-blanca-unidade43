@@ -19,8 +19,8 @@ export default function CartDrawer() {
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice } = useCart();
   const { data } = useSiteData();
 
-  // Cart style from Design System
-  const cs = data?.cart_style;
+  // Cart style from Design System (Cardápio)
+  const cs = data?.cart_menu_style;
 
   // Listen for cart open event
   useEffect(() => {

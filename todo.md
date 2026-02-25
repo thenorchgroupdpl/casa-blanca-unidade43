@@ -1024,3 +1024,14 @@
 - [x] Adicionar ColorRow "Texto 'Quantidade'" na seção 3.4 do Design System
 - [x] Mapear qtyLabelColor no StoreLanding.tsx (postMessage + transformTenantData)
 - [x] Aplicar qtyLabelColor via inline style no ProductBottomSheet
+
+## Fase 82: Seção 3.5 Modal da Sacola (Landing + Cardápio)
+- [x] Auditar componentes de sacola existentes (CartDrawer, CartPopup, etc.)
+- [x] Adicionar tipos cartLanding e cartMenu ao LandingDesign no Design.tsx
+- [x] Adicionar tipos cart_landing_style e cart_menu_style ao SiteData nos types/index.ts
+- [x] Criar seção 3.5 no Design.tsx com duas sub-abas (Sacola Landing Page + Sacola Cardápio)
+- [x] Cada sub-aba com Color Pickers: Fundo, Cabeçalho/X, Card Item (fundo+borda), Textos Item (nome+preço+lixeira), Controles Qty (+/-/número), Observações (fundo+borda+placeholder), Total+Valor, CTA (fundo+texto), Link Limpar
+- [x] Mapear cartLanding e cartMenu no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Aplicar cartLanding via inline styles no componente de sacola da Landing Page (CartPopup)
+- [x] Aplicar cartMenu via inline styles no componente de sacola do Cardápio (CartDrawer)
+- [x] Restaurar cartLanding e cartMenu no useEffect de carregamento do Design.tsx

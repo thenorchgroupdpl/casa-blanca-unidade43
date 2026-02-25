@@ -431,8 +431,30 @@ export interface SiteData {
     iconBgColor?: string;
     closeButtonColor?: string;
   };
-  // Cart style
-  cart_style?: {
+  // Cart style — Landing Page
+  cart_landing_style?: {
+    modalBgColor?: string;
+    headerTextColor?: string;
+    headerCloseColor?: string;
+    itemBgColor?: string;
+    itemBorderColor?: string;
+    itemNameColor?: string;
+    itemPriceColor?: string;
+    itemTrashColor?: string;
+    qtyBtnBgColor?: string;
+    qtyBtnTextColor?: string;
+    qtyNumberColor?: string;
+    obsBgColor?: string;
+    obsBorderColor?: string;
+    obsTextColor?: string;
+    totalLabelColor?: string;
+    totalValueColor?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    clearLinkColor?: string;
+  };
+  // Cart style — Cardápio
+  cart_menu_style?: {
     modalBgColor?: string;
     headerTextColor?: string;
     headerCloseColor?: string;
