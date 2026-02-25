@@ -291,6 +291,7 @@ export interface MenuStyleOverrides {
   modalCtaFont?: string;
   modalCtaFontSize?: number;
   modalCtaFontWeight?: string;
+  qtyLabelColor?: string;
   qtyBtnBgColor?: string;
   qtyBtnTextColor?: string;
   qtyNumberColor?: string;

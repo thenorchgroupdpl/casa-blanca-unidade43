@@ -519,6 +519,7 @@ type LandingDesign = {
     modalCtaFont?: string;
     modalCtaFontSize?: number;
     modalCtaFontWeight?: string;
+    qtyLabelColor?: string;
     qtyBtnBgColor?: string;
     qtyBtnTextColor?: string;
     qtyNumberColor?: string;
@@ -2979,11 +2980,12 @@ function MenuSection({
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Controles de Quantidade (+/-)</Label>
         <div className="grid grid-cols-2 gap-3">
+          <ColorRow label="Texto 'Quantidade'" value={data.qtyLabelColor} defaultVal="#ffffff" field="qtyLabelColor" />
+          <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-2">
           <ColorRow label="Fundo Botões" value={data.qtyBtnBgColor} defaultVal="#d4a574" field="qtyBtnBgColor" />
           <ColorRow label="Texto Botões" value={data.qtyBtnTextColor} defaultVal="#000000" field="qtyBtnTextColor" />
-        </div>
-        <div className="mt-2">
-          <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
         </div>
       </SubPanel>
     </div>

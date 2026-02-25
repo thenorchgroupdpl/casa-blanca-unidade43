@@ -1017,3 +1017,10 @@
 - [x] Adicionar modalUnitColor ao tipo MenuStyleOverrides nos types/index.ts
 - [x] Mapear modalUnitColor no StoreLanding.tsx (postMessage + transformTenantData)
 - [x] Aplicar modalUnitColor via inline style no componente ProductBottomSheet/modal de detalhes
+
+## Fase 81: Color Picker para texto "Quantidade" na seção 3.4
+- [x] Adicionar qtyLabelColor ao tipo menu no LandingDesign (Design.tsx)
+- [x] Adicionar qtyLabelColor ao tipo MenuStyleOverrides (types/index.ts)
+- [x] Adicionar ColorRow "Texto 'Quantidade'" na seção 3.4 do Design System
+- [x] Mapear qtyLabelColor no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Aplicar qtyLabelColor via inline style no ProductBottomSheet

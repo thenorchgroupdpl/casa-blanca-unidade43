@@ -94,6 +94,7 @@ export default function ProductBottomSheet() {
   const ctaFont = ms?.modalCtaFont;
   const ctaFontSize = ms?.modalCtaFontSize;
   const ctaFontWeight = ms?.modalCtaFontWeight;
+  const qtyLabelColor = ms?.qtyLabelColor;
   const qtyBtnBg = ms?.qtyBtnBgColor;
   const qtyBtnText = ms?.qtyBtnTextColor;
   const qtyNumColor = ms?.qtyNumberColor;
@@ -226,7 +227,10 @@ export default function ProductBottomSheet() {
 
                 {/* Quantity Selector — ISOLATED: uses qtyBtnBg/Text/NumColor */}
                 <div className="flex items-center justify-between py-4 border-t border-lp-border">
-                  <span className="text-lp-text font-medium">Quantidade</span>
+                  <span
+                    className={cn('font-medium', !qtyLabelColor && 'text-lp-text')}
+                    style={qtyLabelColor ? { color: qtyLabelColor } : undefined}
+                  >Quantidade</span>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={decrementQuantity}
