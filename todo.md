@@ -1006,3 +1006,6 @@
 - [x] Mapear novas variáveis no StoreLanding.tsx (postMessage + transformTenantData)
 - [x] Aplicar cores via inline styles no botão do grid variant (isolado do showcase variant)
 - [x] Garantir que personalização da seção 3.3 NÃO afeta botão da seção 2.3
+
+## Fase 79: Remover Botão Circular "+" do Hover nos Cards
+- [x] Remover botão circular com ícone Plus que aparece no hover sobre a imagem (grid variant do ProductCard)

@@ -13,7 +13,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useCart, useUI, useToast } from '@/store/useStore';
 import type { Product } from '@/types';
@@ -142,24 +142,7 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
               {highlightLabel}
             </span>
           )}
-          
-          {/* Quick Add Button — ISOLATED: uses cardStyle.buttonBgColor/buttonTextColor */}
-          <button
-            onClick={handleAddToCart}
-            className={cn(
-              'absolute bottom-3 right-3 p-2 rounded-full',
-              !cardStyle?.buttonBgColor && 'bg-lp-btn',
-              !cardStyle?.buttonTextColor && 'text-lp-btn-fg',
-              'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-              'hover:scale-110 active:scale-95'
-            )}
-            style={{
-              ...(cardStyle?.buttonBgColor ? { backgroundColor: cardStyle.buttonBgColor } : {}),
-              ...(cardStyle?.buttonTextColor ? { color: cardStyle.buttonTextColor } : {}),
-            }}
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+
         </div>
 
         {/* Info — ISOLATED: each text element gets its own color */}
