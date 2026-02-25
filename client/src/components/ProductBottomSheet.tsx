@@ -86,6 +86,7 @@ export default function ProductBottomSheet() {
   // These are SEPARATE from card styles (section 3.3)
   const modalBg = ms?.modalBgColor;
   const modalNameColor = ms?.modalNameColor;
+  const modalUnitColor = ms?.modalUnitColor;
   const modalPriceColor = ms?.modalPriceColor;
   const modalDescColor = ms?.modalDescColor;
   const ctaBg = ms?.modalCtaBgColor;
@@ -190,9 +191,12 @@ export default function ProductBottomSheet() {
                   >
                     {selectedProduct.name}
                   </h2>
-                  {/* Unit of measure below the name */}
+                  {/* Unit of measure below the name — ISOLATED: uses modalUnitColor */}
                   {unitDisplay && (
-                    <p className="text-sm text-lp-text-muted mb-2">{unitDisplay}</p>
+                    <p
+                      className={cn('text-sm mb-2', !modalUnitColor && 'text-lp-text-muted')}
+                      style={modalUnitColor ? { color: modalUnitColor } : undefined}
+                    >{unitDisplay}</p>
                   )}
                   {/* Price — ISOLATED: uses modalPriceColor, NOT cardPriceColor */}
                   <div className="flex items-center gap-3">

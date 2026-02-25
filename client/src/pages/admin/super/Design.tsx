@@ -511,6 +511,7 @@ type LandingDesign = {
     // 3.4 Modal de Detalhes do Produto
     modalBgColor?: string;
     modalNameColor?: string;
+    modalUnitColor?: string;
     modalPriceColor?: string;
     modalDescColor?: string;
     modalCtaBgColor?: string;
@@ -2932,19 +2933,22 @@ function MenuSection({
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Textos do Modal</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Nome do Produto" value={data.modalNameColor} defaultVal="#ffffff" field="modalNameColor" />
           <ColorRow label="Preço" value={data.modalPriceColor} defaultVal="#d4a574" field="modalPriceColor" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <ColorRow label="Unidade de Medida / Peso" value={data.modalUnitColor} defaultVal="#ffffff" field="modalUnitColor" />
           <ColorRow label="Descrição" value={data.modalDescColor} defaultVal="#999999" field="modalDescColor" />
         </div>
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão 'Adicionar ao Carrinho' (CTA)</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Cor de Fundo" value={data.modalCtaBgColor} defaultVal="#d4a574" field="modalCtaBgColor" />
           <ColorRow label="Cor do Texto" value={data.modalCtaTextColor} defaultVal="#000000" field="modalCtaTextColor" />
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3 mt-2">
           <FontSelect label="Fonte" value={data.modalCtaFont} field="modalCtaFont" />
           <div>
             <Label className="text-[10px] text-zinc-400">Tamanho (px)</Label>
@@ -2955,6 +2959,8 @@ function MenuSection({
               className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
             />
           </div>
+        </div>
+        <div className="mt-2">
           <div>
             <Label className="text-[10px] text-zinc-400">Peso</Label>
             <Select value={data.modalCtaFontWeight || "600"} onValueChange={(v) => onChange("modalCtaFontWeight", v)}>
@@ -2972,9 +2978,11 @@ function MenuSection({
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Controles de Quantidade (+/-)</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Fundo Botões" value={data.qtyBtnBgColor} defaultVal="#d4a574" field="qtyBtnBgColor" />
           <ColorRow label="Texto Botões" value={data.qtyBtnTextColor} defaultVal="#000000" field="qtyBtnTextColor" />
+        </div>
+        <div className="mt-2">
           <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
         </div>
       </SubPanel>

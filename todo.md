@@ -1009,3 +1009,11 @@
 
 ## Fase 79: Remover Botão Circular "+" do Hover nos Cards
 - [x] Remover botão circular com ícone Plus que aparece no hover sobre a imagem (grid variant do ProductCard)
+
+## Fase 80: Refinamento da Seção 3.4 - Modal de Detalhes
+- [x] Adicionar Color Picker isolado "Cor da Unidade de Medida / Peso" na seção 3.4
+- [x] Refatorar layout dos inputs "Textos do Modal" e "Controles de Quantidade" para melhor espaçamento
+- [x] Adicionar modalUnitColor ao tipo MenuSection no Design.tsx
+- [x] Adicionar modalUnitColor ao tipo MenuStyleOverrides nos types/index.ts
+- [x] Mapear modalUnitColor no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Aplicar modalUnitColor via inline style no componente ProductBottomSheet/modal de detalhes

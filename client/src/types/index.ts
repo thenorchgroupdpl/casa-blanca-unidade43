@@ -283,6 +283,7 @@ export interface MenuStyleOverrides {
   // 3.4 Modal de Detalhes
   modalBgColor?: string;
   modalNameColor?: string;
+  modalUnitColor?: string;
   modalPriceColor?: string;
   modalDescColor?: string;
   modalCtaBgColor?: string;
