@@ -2,6 +2,9 @@
  * Cart Drawer - Casa Blanca
  * Design: Warm Luxury - Side drawer for cart review and checkout
  * Features: Item list, quantity controls, observation field, WhatsApp checkout
+ * 
+ * REFACTORED: All customizable styles injected via inline styles from cart_style.
+ * Falls back to Tailwind theme classes when no custom color is set.
  */
 
 import { useState, useEffect } from 'react';
@@ -15,6 +18,9 @@ export default function CartDrawer() {
   const [observation, setObservation] = useState('');
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice } = useCart();
   const { data } = useSiteData();
+
+  // Cart style from Design System
+  const cs = data?.cart_style;
 
   // Listen for cart open event
   useEffect(() => {
@@ -64,24 +70,39 @@ export default function CartDrawer() {
             className="fixed inset-0 z-50 bg-lp-overlay backdrop-blur-sm"
           />
 
-          {/* Drawer */}
+          {/* Drawer — ISOLATED: modalBgColor */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-lp-surface shadow-2xl"
-            style={{ fontFamily: 'var(--font-sans, inherit)' }}
+            className={cn(
+              "fixed inset-y-0 right-0 z-50 w-full max-w-md shadow-2xl",
+              !cs?.modalBgColor && "bg-lp-surface"
+            )}
+            style={{
+              fontFamily: 'var(--font-sans, inherit)',
+              ...(cs?.modalBgColor ? { backgroundColor: cs.modalBgColor } : {}),
+            }}
           >
-            {/* Header */}
+            {/* Header — ISOLATED: headerTextColor, headerCloseColor */}
             <div className="flex items-center justify-between p-6 border-b border-lp-border">
               <div className="flex items-center gap-3">
-                <ShoppingBag className="w-6 h-6 text-lp-highlight" />
-                <h2 className="font-display text-xl text-lp-text">Sua Sacola</h2>
+                <ShoppingBag
+                  className="w-6 h-6"
+                  style={{ color: cs?.headerTextColor || undefined }}
+                />
+                <h2
+                  className={cn("font-display text-xl", !cs?.headerTextColor && "text-lp-text")}
+                  style={{ color: cs?.headerTextColor || undefined }}
+                >
+                  Sua Sacola
+                </h2>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 text-lp-text-muted hover:text-lp-text transition-colors"
+                className="p-2 transition-colors"
+                style={{ color: cs?.headerCloseColor || undefined }}
               >
                 <X className="w-6 h-6" />
               </button>
@@ -95,7 +116,10 @@ export default function CartDrawer() {
                   <div className="p-6 rounded-full bg-lp-surface-soft mb-6">
                     <ShoppingBag className="w-12 h-12 text-lp-text-muted" />
                   </div>
-                  <h3 className="font-display text-xl text-lp-text mb-2">
+                  <h3
+                    className={cn("font-display text-xl mb-2", !cs?.headerTextColor && "text-lp-text")}
+                    style={{ color: cs?.headerTextColor || undefined }}
+                  >
                     Sacola vazia
                   </h3>
                   <p className="text-lp-text-muted">
@@ -120,68 +144,105 @@ export default function CartDrawer() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, x: -100 }}
-                          className="flex gap-4 p-4 bg-lp-surface-soft rounded-2xl border border-lp-border"
-                      >
-                        {/* Image */}
-                        {item.product.images[0] ? (
-                          <img
-                            src={item.product.images[0]}
-                            alt={item.product.name}
-                            className="w-20 h-20 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className="w-20 h-20 rounded-xl bg-lp-surface flex items-center justify-center">
-                            <ShoppingBag className="w-8 h-8 text-lp-text-muted" />
-                          </div>
-                        )}
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-lp-text truncate">
-                            {item.product.name}
-                          </h4>
-                          <p className="text-lp-highlight font-semibold mt-1">
-                            {formatPrice(item.product.price * item.quantity)}
-                          </p>
-
-                          {/* Quantity Controls */}
-                          <div className="flex items-center gap-3 mt-2">
-                            <button
-                              onClick={() =>
-                                updateQuantity(item.product.id, item.quantity - 1)
-                              }
-                              className="w-8 h-8 rounded-full bg-lp-surface flex items-center justify-center text-lp-text hover:bg-lp-surface-hover transition-colors"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="font-medium text-lp-text w-6 text-center">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() =>
-                                updateQuantity(item.product.id, item.quantity + 1)
-                              }
-                              className="w-8 h-8 rounded-full bg-lp-btn text-lp-btn-fg flex items-center justify-center hover:bg-lp-btn-hover transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Remove Button */}
-                        <button
-                          onClick={() => removeItem(item.product.id)}
-                          className="p-2 text-lp-text-muted hover:text-destructive transition-colors self-start"
+                          className={cn(
+                            "flex gap-4 p-4 rounded-2xl border",
+                            !cs?.itemBgColor && "bg-lp-surface-soft",
+                            !cs?.itemBorderColor && "border-lp-border"
+                          )}
+                          style={{
+                            ...(cs?.itemBgColor ? { backgroundColor: cs.itemBgColor } : {}),
+                            ...(cs?.itemBorderColor ? { borderColor: cs.itemBorderColor } : {}),
+                          }}
                         >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </motion.div>
+                          {/* Image */}
+                          {item.product.images[0] ? (
+                            <img
+                              src={item.product.images[0]}
+                              alt={item.product.name}
+                              className="w-20 h-20 rounded-xl object-cover"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-xl bg-lp-surface flex items-center justify-center">
+                              <ShoppingBag className="w-8 h-8 text-lp-text-muted" />
+                            </div>
+                          )}
+
+                          {/* Info — ISOLATED: itemNameColor, itemPriceColor */}
+                          <div className="flex-1 min-w-0">
+                            <h4
+                              className={cn("font-medium truncate", !cs?.itemNameColor && "text-lp-text")}
+                              style={{ color: cs?.itemNameColor || undefined }}
+                            >
+                              {item.product.name}
+                            </h4>
+                            <p
+                              className={cn("font-semibold mt-1", !cs?.itemPriceColor && "text-lp-highlight")}
+                              style={{ color: cs?.itemPriceColor || undefined }}
+                            >
+                              {formatPrice(item.product.price * item.quantity)}
+                            </p>
+
+                            {/* Quantity Controls — ISOLATED: qtyBtnBgColor/Text, qtyNumberColor */}
+                            <div className="flex items-center gap-3 mt-2">
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.product.id, item.quantity - 1)
+                                }
+                                className={cn(
+                                  "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                                  !cs?.qtyBtnBgColor && "bg-lp-surface",
+                                  !cs?.qtyBtnTextColor && "text-lp-text"
+                                )}
+                                style={{
+                                  ...(cs?.qtyBtnBgColor ? { backgroundColor: cs.qtyBtnBgColor } : {}),
+                                  ...(cs?.qtyBtnTextColor ? { color: cs.qtyBtnTextColor } : {}),
+                                }}
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <span
+                                className={cn("font-medium w-6 text-center", !cs?.qtyNumberColor && "text-lp-text")}
+                                style={{ color: cs?.qtyNumberColor || undefined }}
+                              >
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.product.id, item.quantity + 1)
+                                }
+                                className={cn(
+                                  "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                                  !cs?.qtyBtnBgColor && "bg-lp-btn",
+                                  !cs?.qtyBtnTextColor && "text-lp-btn-fg"
+                                )}
+                                style={{
+                                  ...(cs?.qtyBtnBgColor ? { backgroundColor: cs.qtyBtnBgColor } : {}),
+                                  ...(cs?.qtyBtnTextColor ? { color: cs.qtyBtnTextColor } : {}),
+                                }}
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Remove Button — ISOLATED: itemTrashColor */}
+                          <button
+                            onClick={() => removeItem(item.product.id)}
+                            className="p-2 transition-colors self-start"
+                            style={{ color: cs?.itemTrashColor || undefined }}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </motion.div>
                       </div>
                     ))}
 
-                    {/* Observation Field */}
+                    {/* Observation Field — ISOLATED: obsBgColor, obsBorderColor, obsTextColor */}
                     <div className="pt-4">
-                      <label className="block text-sm font-medium text-lp-text mb-2">
+                      <label
+                        className={cn("block text-sm font-medium mb-2", !cs?.headerTextColor && "text-lp-text")}
+                        style={{ color: cs?.headerTextColor || undefined }}
+                      >
                         Observações (opcional)
                       </label>
                       <textarea
@@ -191,46 +252,70 @@ export default function CartDrawer() {
                         rows={3}
                         className={cn(
                           'w-full px-4 py-3 rounded-xl resize-none',
-                          'bg-lp-surface-soft border border-lp-border',
-                          'text-lp-text placeholder:text-lp-text-muted',
-                          'focus:outline-none focus:border-lp-highlight-border focus:ring-1 focus:ring-lp-highlight-soft',
-                          'transition-all'
+                          'focus:outline-none focus:ring-1 focus:ring-lp-highlight-soft',
+                          'transition-all',
+                          !cs?.obsBgColor && 'bg-lp-surface-soft',
+                          !cs?.obsBorderColor && 'border border-lp-border',
+                          !cs?.obsTextColor && 'text-lp-text placeholder:text-lp-text-muted'
                         )}
+                        style={{
+                          ...(cs?.obsBgColor ? { backgroundColor: cs.obsBgColor } : {}),
+                          ...(cs?.obsBorderColor ? { borderColor: cs.obsBorderColor, borderWidth: '1px', borderStyle: 'solid' } : {}),
+                          ...(cs?.obsTextColor ? { color: cs.obsTextColor } : {}),
+                        }}
                       />
                     </div>
                   </div>
 
                   {/* Footer */}
                   <div className="p-6 border-t border-lp-border space-y-4">
-                    {/* Total */}
+                    {/* Total — ISOLATED: totalLabelColor, totalValueColor */}
                     <div className="flex items-center justify-between">
-                      <span className="text-lg text-lp-text">Total</span>
-                      <span className="text-2xl font-bold text-lp-highlight">
+                      <span
+                        className={cn("text-lg", !cs?.totalLabelColor && "text-lp-text")}
+                        style={{ color: cs?.totalLabelColor || undefined }}
+                      >
+                        Total
+                      </span>
+                      <span
+                        className={cn("text-2xl font-bold", !cs?.totalValueColor && "text-lp-highlight")}
+                        style={{ color: cs?.totalValueColor || undefined }}
+                      >
                         {formatPrice(totalPrice)}
                       </span>
                     </div>
 
-                    {/* Checkout Button */}
+                    {/* Checkout Button — ISOLATED: ctaBgColor, ctaTextColor */}
                     <button
                       onClick={handleCheckout}
                       className={cn(
                         'w-full flex items-center justify-center gap-3',
                         'py-4 rounded-2xl',
-                        'bg-[#25D366] text-white font-semibold text-lg',
-                        'hover:bg-[#20BD5A] transition-colors'
+                        'font-semibold text-lg',
+                        'transition-colors',
+                        !cs?.ctaBgColor && 'bg-[#25D366]',
+                        !cs?.ctaTextColor && 'text-white'
                       )}
+                      style={{
+                        ...(cs?.ctaBgColor ? { backgroundColor: cs.ctaBgColor } : {}),
+                        ...(cs?.ctaTextColor ? { color: cs.ctaTextColor } : {}),
+                      }}
                     >
                       <MessageCircle className="w-5 h-5" />
                       Finalizar no WhatsApp
                     </button>
 
-                    {/* Clear Cart */}
+                    {/* Clear Cart — ISOLATED: clearLinkColor */}
                     <button
                       onClick={() => {
                         clearCart();
                         setObservation('');
                       }}
-                      className="w-full py-2 text-sm text-lp-text-muted hover:text-destructive transition-colors"
+                      className={cn(
+                        "w-full py-2 text-sm transition-colors",
+                        !cs?.clearLinkColor && "text-lp-text-muted hover:text-destructive"
+                      )}
+                      style={{ color: cs?.clearLinkColor || undefined }}
                     >
                       Limpar sacola
                     </button>

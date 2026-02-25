@@ -418,6 +418,38 @@ export interface SiteData {
     feedbacks?: SectionColors;
     location?: SectionColors;
   };
+  // Toast style
+  toast_style?: {
+    bgColor?: string;
+    borderColor?: string;
+    titleColor?: string;
+    subtitleColor?: string;
+    iconCheckColor?: string;
+    iconBgColor?: string;
+    closeButtonColor?: string;
+  };
+  // Cart style
+  cart_style?: {
+    modalBgColor?: string;
+    headerTextColor?: string;
+    headerCloseColor?: string;
+    itemBgColor?: string;
+    itemBorderColor?: string;
+    itemNameColor?: string;
+    itemPriceColor?: string;
+    itemTrashColor?: string;
+    qtyBtnBgColor?: string;
+    qtyBtnTextColor?: string;
+    qtyNumberColor?: string;
+    obsBgColor?: string;
+    obsBorderColor?: string;
+    obsTextColor?: string;
+    totalLabelColor?: string;
+    totalValueColor?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    clearLinkColor?: string;
+  };
   // WhatsApp Popup attendant info
   whatsapp_avatar?: string;
   whatsapp_name?: string;

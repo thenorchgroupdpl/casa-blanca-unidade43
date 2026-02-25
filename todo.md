@@ -975,3 +975,24 @@
 - [x] Mapear card_unit_color no StoreLanding.tsx (postMessage + transformTenantData)
 - [x] Passar unitColor no cardStyle da VitrineSection.tsx
 - [x] Aplicar cor via inline style no texto de unidade do ProductCard (showcase variant)
+
+## Fase 77: Atualização Completa do Design System
+
+### PARTE 1: Correção de Bugs Críticos
+- [x] Auditar e corrigir colisão de variáveis na seção 3.1 (barra de pesquisa vs fundo do painel) [já corrigido Fase 74]
+- [x] Corrigir função de salvamento para persistir todas as cores corretamente no banco [já corrigido Fase 74]
+
+### PARTE 2: Melhorias de UX/UI
+- [x] Aumentar espaçamento entre categorias no preview do cardápio (mobile-friendly)
+- [x] Transformar subseções do Cardápio em accordions expansíveis (3.1, 3.2, 3.3, etc.)
+
+### PARTE 3a: Novos Controles
+- [x] Verificar/garantir Color Picker "Unidade de Medida / Peso" na seção 2.3 [já implementado Fase 76]
+- [x] Criar seção 2.7 "Notificação de Sucesso (Toast)" com 7 Color Pickers
+- [x] Mapear variáveis do Toast no StoreLanding e aplicar no componente Toast
+
+### PARTE 3b: Modal da Sacola (seção 3.5)
+- [x] Criar seção 3.5 no Design System com todos os controles do Modal da Sacola
+- [x] Adicionar tipos para cart/sacola no LandingDesign e types/index.ts
+- [x] Mapear variáveis no StoreLanding (postMessage + transformTenantData)
+- [x] Aplicar variáveis via inline styles no CartDrawer.tsx

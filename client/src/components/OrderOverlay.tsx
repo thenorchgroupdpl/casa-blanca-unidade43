@@ -215,7 +215,7 @@ export default function OrderOverlay() {
               {/* Category Pills — ISOLATED: filterActiveBg/Text, filterInactiveBg/Text */}
               <div
                 ref={categoryScrollRef}
-                className="flex gap-2 mt-4 overflow-x-auto hide-scrollbar -mx-4 px-4"
+                className="flex gap-3 mt-4 overflow-x-auto hide-scrollbar -mx-4 px-4 pb-1"
               >
                 <button
                   onClick={() => setSelectedCategory(null)}

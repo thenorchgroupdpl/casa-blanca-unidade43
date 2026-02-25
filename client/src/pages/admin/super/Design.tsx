@@ -521,6 +521,38 @@ type LandingDesign = {
     qtyBtnTextColor?: string;
     qtyNumberColor?: string;
   };
+  // 2.7 Toast de Sucesso
+  toast?: {
+    bgColor?: string;
+    borderColor?: string;
+    titleColor?: string;
+    subtitleColor?: string;
+    iconCheckColor?: string;
+    iconBgColor?: string;
+    closeButtonColor?: string;
+  };
+  // 3.5 Modal da Sacola
+  cart?: {
+    modalBgColor?: string;
+    headerTextColor?: string;
+    headerCloseColor?: string;
+    itemBgColor?: string;
+    itemBorderColor?: string;
+    itemNameColor?: string;
+    itemPriceColor?: string;
+    itemTrashColor?: string;
+    qtyBtnBgColor?: string;
+    qtyBtnTextColor?: string;
+    qtyNumberColor?: string;
+    obsBgColor?: string;
+    obsBorderColor?: string;
+    obsTextColor?: string;
+    totalLabelColor?: string;
+    totalValueColor?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    clearLinkColor?: string;
+  };
   reviews?: {
     headline?: string;
     isVisible?: boolean;
@@ -876,6 +908,8 @@ export default function DesignPage() {
         sectionColors: { ...ld?.sectionColors },
         whatsapp: { ...defaultDesign.whatsapp, ...ld?.whatsapp },
         menu: { ...ld?.menu },
+        toast: { ...ld?.toast },
+        cart: { ...ld?.cart },
       });
       const savedColors = (landingData.tenant.themeColors as Partial<ThemeColors>) || {};
       setColors({
@@ -1272,6 +1306,11 @@ export default function DesignPage() {
                           setIsDirty(true);
                         }}
                       />
+                      <Separator className="bg-zinc-800" />
+                      <ToastSection
+                        data={design.toast || {}}
+                        onChange={(field, value) => updateDesign("toast", field, value)}
+                      />
                     </>
                   )}
                   {activeTab === "menu" && (
@@ -1279,6 +1318,11 @@ export default function DesignPage() {
                       <MenuSection
                         data={design.menu || {}}
                         onChange={(field, value) => updateDesign("menu", field, value)}
+                      />
+                      <Separator className="bg-zinc-800" />
+                      <CartSection
+                        data={design.cart || {}}
+                        onChange={(field, value) => updateDesign("cart", field, value)}
                       />
                     </>
                   )}
@@ -2737,8 +2781,7 @@ function MenuSection({
       </p>
 
       {/* TÍTULO DA TELA DE PRODUTOS */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
-        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">TÍTULO DA TELA DE PRODUTOS</h4>
+      <SubPanel id="menu-titulo" title="Título da Tela de Produtos" defaultOpen>
         <p className="text-[9px] text-zinc-600">Texto exibido no cabeçalho do cardápio (ao lado do botão de fechar).</p>
         <div>
           <Label className="text-[10px] text-zinc-400">Título da Tela de Produtos</Label>
@@ -2749,11 +2792,10 @@ function MenuSection({
             className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
           />
         </div>
-      </div>
+      </SubPanel>
 
       {/* 3.1 PAINEL DO CARDÁPIO */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
-        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.1 PAINEL DO CARDÁPIO (DRAWER)</h4>
+      <SubPanel id="menu-3-1-painel" title="3.1 Painel do Cardápio (Drawer)">
 
         <ColorRow label="Cor de Fundo do Painel" value={data.panelBgColor} defaultVal="#0a0a0a" field="panelBgColor" />
 
@@ -2786,11 +2828,10 @@ function MenuSection({
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Títulos de Categoria</Label>
         <ColorRow label="Cor do Nome da Categoria" value={data.categoryNameColor} defaultVal="#ffffff" field="categoryNameColor" />
-      </div>
+      </SubPanel>
 
       {/* 3.2 FILTROS DE CATEGORIA */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
-        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.2 FILTROS DE CATEGORIA (PILLS)</h4>
+      <SubPanel id="menu-3-2-filtros" title="3.2 Filtros de Categoria (Pills)">
 
         <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Fundo (Ativo)" value={data.filterActiveBgColor} defaultVal="#d4a574" field="filterActiveBgColor" />
@@ -2798,11 +2839,10 @@ function MenuSection({
           <ColorRow label="Fundo (Inativo)" value={data.filterInactiveBgColor} defaultVal="#1a1a1a" field="filterInactiveBgColor" />
           <ColorRow label="Texto (Inativo)" value={data.filterInactiveTextColor} defaultVal="#888888" field="filterInactiveTextColor" />
         </div>
-      </div>
+      </SubPanel>
 
       {/* 3.3 CARDS DE PRODUTO NO CARDÁPIO */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
-        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.3 CARDS DE PRODUTO NO CARDÁPIO</h4>
+      <SubPanel id="menu-3-3-cards" title="3.3 Cards de Produto no Cardápio">
         <p className="text-[9px] text-zinc-600">Dados dos produtos (nome, preço, foto) vem do Catálogo — somente o design visual é editável.</p>
 
         <ColorRow label="Cor de Fundo do Card" value={data.cardBgColor} defaultVal="#111111" field="cardBgColor" />
@@ -2871,11 +2911,10 @@ function MenuSection({
           <ColorRow label="Fundo" value={data.cardButtonBgColor} defaultVal="" field="cardButtonBgColor" />
           <ColorRow label="Texto" value={data.cardButtonTextColor} defaultVal="" field="cardButtonTextColor" />
         </div>
-      </div>
+      </SubPanel>
 
       {/* 3.4 MODAL DE DETALHES DO PRODUTO */}
-      <div className="rounded-lg bg-zinc-900/60 border border-zinc-800 p-3 space-y-3">
-        <h4 className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">3.4 MODAL DE DETALHES DO PRODUTO</h4>
+      <SubPanel id="menu-3-4-modal" title="3.4 Modal de Detalhes do Produto">
 
         <ColorRow label="Cor de Fundo do Modal" value={data.modalBgColor} defaultVal="#111111" field="modalBgColor" />
 
@@ -2926,7 +2965,151 @@ function MenuSection({
           <ColorRow label="Texto Botões" value={data.qtyBtnTextColor} defaultVal="#000000" field="qtyBtnTextColor" />
           <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
         </div>
+      </SubPanel>
+    </div>
+  );
+}
+
+// ============================================
+// TOAST SECTION (2.7)
+// ============================================
+
+function ToastSection({
+  data,
+  onChange,
+}: {
+  data: NonNullable<LandingDesign["toast"]>;
+  onChange: (field: string, value: unknown) => void;
+}) {
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPickerInput
+          value={value || defaultVal}
+          onChange={(v) => onChange(field, v)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
+        />
       </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <SubPanel id="toast-2-7" title="2.7 Notificação de Sucesso (Toast)">
+        <p className="text-[9px] text-zinc-600">Personalize o popup de 'Produto adicionado!' que aparece ao adicionar itens ao carrinho.</p>
+        <ColorRow label="Fundo da Notificação" value={data.bgColor} defaultVal="#111111" field="bgColor" />
+        <ColorRow label="Borda" value={data.borderColor} defaultVal="#333333" field="borderColor" />
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Textos</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor do Título" value={data.titleColor} defaultVal="#ffffff" field="titleColor" />
+          <ColorRow label="Cor do Subtítulo" value={data.subtitleColor} defaultVal="#999999" field="subtitleColor" />
+        </div>
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Ícone e Botão</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Cor do Check" value={data.iconCheckColor} defaultVal="#22c55e" field="iconCheckColor" />
+          <ColorRow label="Fundo do Ícone" value={data.iconBgColor} defaultVal="#22c55e20" field="iconBgColor" />
+          <ColorRow label="Botão Fechar (X)" value={data.closeButtonColor} defaultVal="#666666" field="closeButtonColor" />
+        </div>
+      </SubPanel>
+    </div>
+  );
+}
+
+// ============================================
+// CART SECTION (3.5)
+// ============================================
+
+function CartSection({
+  data,
+  onChange,
+}: {
+  data: NonNullable<LandingDesign["cart"]>;
+  onChange: (field: string, value: unknown) => void;
+}) {
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPickerInput
+          value={value || defaultVal}
+          onChange={(v) => onChange(field, v)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <SubPanel id="cart-3-5" title="3.5 Modal da Sacola">
+        <p className="text-[9px] text-zinc-600">Personalize o modal lateral 'Sua Sacola' com cores isoladas para cada elemento.</p>
+
+        <ColorRow label="Cor de Fundo Geral do Modal" value={data.modalBgColor} defaultVal="#0a0a0a" field="modalBgColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Cabeçalho</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Texto 'Sua Sacola'" value={data.headerTextColor} defaultVal="#ffffff" field="headerTextColor" />
+          <ColorRow label="Ícone Fechar (X)" value={data.headerCloseColor} defaultVal="#ffffff" field="headerCloseColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Card de Item</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Fundo do Card" value={data.itemBgColor} defaultVal="#111111" field="itemBgColor" />
+          <ColorRow label="Borda do Card" value={data.itemBorderColor} defaultVal="#222222" field="itemBorderColor" />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Nome do Produto" value={data.itemNameColor} defaultVal="#ffffff" field="itemNameColor" />
+          <ColorRow label="Preço" value={data.itemPriceColor} defaultVal="#d4a574" field="itemPriceColor" />
+          <ColorRow label="Ícone Lixeira" value={data.itemTrashColor} defaultVal="#ef4444" field="itemTrashColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Controles de Quantidade</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Fundo Botões +/-" value={data.qtyBtnBgColor} defaultVal="#d4a574" field="qtyBtnBgColor" />
+          <ColorRow label="Texto Botões +/-" value={data.qtyBtnTextColor} defaultVal="#000000" field="qtyBtnTextColor" />
+          <ColorRow label="Cor do Número" value={data.qtyNumberColor} defaultVal="#ffffff" field="qtyNumberColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Campo de Observações</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <ColorRow label="Fundo" value={data.obsBgColor} defaultVal="#1a1a1a" field="obsBgColor" />
+          <ColorRow label="Borda" value={data.obsBorderColor} defaultVal="#333333" field="obsBorderColor" />
+          <ColorRow label="Texto" value={data.obsTextColor} defaultVal="#ffffff" field="obsTextColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Rodapé / Total</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Texto 'Total'" value={data.totalLabelColor} defaultVal="#ffffff" field="totalLabelColor" />
+          <ColorRow label="Valor (R$)" value={data.totalValueColor} defaultVal="#d4a574" field="totalValueColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão CTA 'Finalizar no WhatsApp'</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <ColorRow label="Cor de Fundo" value={data.ctaBgColor} defaultVal="#25D366" field="ctaBgColor" />
+          <ColorRow label="Cor do Texto/Ícone" value={data.ctaTextColor} defaultVal="#ffffff" field="ctaTextColor" />
+        </div>
+
+        <ColorRow label="Cor do Link 'Limpar Sacola'" value={data.clearLinkColor} defaultVal="#ef4444" field="clearLinkColor" />
+      </SubPanel>
     </div>
   );
 }

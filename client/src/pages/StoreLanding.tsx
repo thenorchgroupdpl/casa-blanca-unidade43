@@ -471,6 +471,48 @@ export default function StoreLanding() {
           };
         }
 
+        // Update toast style overrides
+        if (design?.toast) {
+          const t = design.toast;
+          updatedData.toast_style = {
+            ...updatedData.toast_style,
+            bgColor: t.bgColor,
+            borderColor: t.borderColor,
+            titleColor: t.titleColor,
+            subtitleColor: t.subtitleColor,
+            iconCheckColor: t.iconCheckColor,
+            iconBgColor: t.iconBgColor,
+            closeButtonColor: t.closeButtonColor,
+          };
+        }
+
+        // Update cart style overrides
+        if (design?.cart) {
+          const c = design.cart;
+          updatedData.cart_style = {
+            ...updatedData.cart_style,
+            modalBgColor: c.modalBgColor,
+            headerTextColor: c.headerTextColor,
+            headerCloseColor: c.headerCloseColor,
+            itemBgColor: c.itemBgColor,
+            itemBorderColor: c.itemBorderColor,
+            itemNameColor: c.itemNameColor,
+            itemPriceColor: c.itemPriceColor,
+            itemTrashColor: c.itemTrashColor,
+            qtyBtnBgColor: c.qtyBtnBgColor,
+            qtyBtnTextColor: c.qtyBtnTextColor,
+            qtyNumberColor: c.qtyNumberColor,
+            obsBgColor: c.obsBgColor,
+            obsBorderColor: c.obsBorderColor,
+            obsTextColor: c.obsTextColor,
+            totalLabelColor: c.totalLabelColor,
+            totalValueColor: c.totalValueColor,
+            ctaBgColor: c.ctaBgColor,
+            ctaTextColor: c.ctaTextColor,
+            clearLinkColor: c.clearLinkColor,
+          };
+        }
+
         // Update section colors
         if (sectionColors || design?.sectionColors) {
           updatedData.section_colors = sectionColors || design?.sectionColors || {};
@@ -984,6 +1026,36 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       qtyBtnBgColor: ld.menu.qtyBtnBgColor,
       qtyBtnTextColor: ld.menu.qtyBtnTextColor,
       qtyNumberColor: ld.menu.qtyNumberColor,
+    } : undefined,
+    toast_style: ld?.toast ? {
+      bgColor: ld.toast.bgColor,
+      borderColor: ld.toast.borderColor,
+      titleColor: ld.toast.titleColor,
+      subtitleColor: ld.toast.subtitleColor,
+      iconCheckColor: ld.toast.iconCheckColor,
+      iconBgColor: ld.toast.iconBgColor,
+      closeButtonColor: ld.toast.closeButtonColor,
+    } : undefined,
+    cart_style: ld?.cart ? {
+      modalBgColor: ld.cart.modalBgColor,
+      headerTextColor: ld.cart.headerTextColor,
+      headerCloseColor: ld.cart.headerCloseColor,
+      itemBgColor: ld.cart.itemBgColor,
+      itemBorderColor: ld.cart.itemBorderColor,
+      itemNameColor: ld.cart.itemNameColor,
+      itemPriceColor: ld.cart.itemPriceColor,
+      itemTrashColor: ld.cart.itemTrashColor,
+      qtyBtnBgColor: ld.cart.qtyBtnBgColor,
+      qtyBtnTextColor: ld.cart.qtyBtnTextColor,
+      qtyNumberColor: ld.cart.qtyNumberColor,
+      obsBgColor: ld.cart.obsBgColor,
+      obsBorderColor: ld.cart.obsBorderColor,
+      obsTextColor: ld.cart.obsTextColor,
+      totalLabelColor: ld.cart.totalLabelColor,
+      totalValueColor: ld.cart.totalValueColor,
+      ctaBgColor: ld.cart.ctaBgColor,
+      ctaTextColor: ld.cart.ctaTextColor,
+      clearLinkColor: ld.cart.clearLinkColor,
     } : undefined,
     feedbacks_style: ld?.reviews ? {
       label: ld.reviews.label,

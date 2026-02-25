@@ -3,15 +3,22 @@
  * Design: Warm Luxury - Elegant notification
  * Uses Zustand store for state management
  * Renders directly in React tree (no portal needed since it's in App.tsx)
+ * 
+ * REFACTORED: All customizable styles injected via inline styles from toast_style.
+ * Falls back to CSS custom properties when no custom color is set.
  */
 
 import { useEffect, useRef } from 'react';
 import { Check, X } from 'lucide-react';
-import { useToast } from '@/store/useStore';
+import { useToast, useSiteData } from '@/store/useStore';
 
 export default function GlobalToast() {
   const { isVisible, title, description, hideToast } = useToast();
+  const { data } = useSiteData();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Toast style from Design System
+  const ts = data?.toast_style;
 
   // Debug log
   useEffect(() => {
@@ -36,6 +43,7 @@ export default function GlobalToast() {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
+      {/* Toast Container — ISOLATED: bgColor, borderColor */}
       <div 
         style={{
           display: 'flex',
@@ -43,14 +51,14 @@ export default function GlobalToast() {
           gap: '12px',
           padding: '16px 20px',
           borderRadius: '16px',
-          background: 'linear-gradient(135deg, var(--lp-surface) 0%, var(--lp-surface-hover) 100%)',
-          border: '1px solid var(--lp-success, var(--lp-accent-border))',
+          background: ts?.bgColor || 'linear-gradient(135deg, var(--lp-surface) 0%, var(--lp-surface-hover) 100%)',
+          border: `1px solid ${ts?.borderColor || 'var(--lp-success, var(--lp-accent-border))'}`,
           boxShadow: '0 20px 60px var(--lp-overlay), 0 0 20px var(--lp-success-soft, var(--lp-accent-soft))',
           cursor: 'pointer',
         }}
         onClick={hideToast}
       >
-        {/* Success Icon */}
+        {/* Success Icon — ISOLATED: iconBgColor, iconCheckColor */}
         <div 
           style={{
             flexShrink: 0,
@@ -60,16 +68,16 @@ export default function GlobalToast() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'var(--lp-success-soft)',
+            backgroundColor: ts?.iconBgColor || 'var(--lp-success-soft)',
           }}
         >
-          <Check style={{ width: '22px', height: '22px', color: 'var(--lp-success)' }} />
+          <Check style={{ width: '22px', height: '22px', color: ts?.iconCheckColor || 'var(--lp-success)' }} />
         </div>
 
-        {/* Content */}
+        {/* Content — ISOLATED: titleColor, subtitleColor */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ 
-            color: 'var(--lp-text)', 
+            color: ts?.titleColor || 'var(--lp-text)', 
             fontWeight: 600, 
             fontSize: '16px',
             margin: 0,
@@ -78,7 +86,7 @@ export default function GlobalToast() {
             {title || 'Notificação'}
           </p>
           <p style={{ 
-            color: 'var(--lp-text-muted)', 
+            color: ts?.subtitleColor || 'var(--lp-text-muted)', 
             fontSize: '14px',
             margin: '4px 0 0 0',
             lineHeight: 1.3,
@@ -90,7 +98,7 @@ export default function GlobalToast() {
           </p>
         </div>
 
-        {/* Close Button */}
+        {/* Close Button — ISOLATED: closeButtonColor */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -108,7 +116,7 @@ export default function GlobalToast() {
             flexShrink: 0,
           }}
         >
-          <X style={{ width: '18px', height: '18px', color: 'var(--lp-text-subtle)' }} />
+          <X style={{ width: '18px', height: '18px', color: ts?.closeButtonColor || 'var(--lp-text-subtle)' }} />
         </button>
       </div>
     </div>
