@@ -539,6 +539,7 @@ type LandingDesign = {
     modalBgColor?: string;
     headerTextColor?: string;
     headerCloseColor?: string;
+    headerIconColor?: string;
     itemBgColor?: string;
     itemBorderColor?: string;
     itemNameColor?: string;
@@ -3121,6 +3122,9 @@ function CartSection({
         <div className="grid grid-cols-2 gap-3">
           <ColorRow label="Texto 'Sua Sacola'" value={data.headerTextColor} defaultVal="#ffffff" field="headerTextColor" />
           <ColorRow label="Ícone Fechar (X)" value={data.headerCloseColor} defaultVal="#ffffff" field="headerCloseColor" />
+        </div>
+        <div className="mt-2">
+          <ColorRow label="Ícone Sacola" value={data.headerIconColor} defaultVal="#ffffff" field="headerIconColor" />
         </div>
 
         <Separator className="bg-zinc-800" />

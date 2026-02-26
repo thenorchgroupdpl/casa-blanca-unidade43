@@ -63,7 +63,10 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
             {/* Header — ISOLATED: headerTextColor, headerCloseColor */}
             <div className="flex items-center justify-between p-4 border-b border-lp-border">
               <div className="flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-lp-highlight" />
+                <ShoppingBag
+                  className={cn("w-5 h-5", !cs?.headerIconColor && "text-lp-highlight")}
+                  style={{ color: cs?.headerIconColor || undefined }}
+                />
                 <h3
                   className={cn("font-semibold", !cs?.headerTextColor && "text-lp-text")}
                   style={{ color: cs?.headerTextColor || undefined }}

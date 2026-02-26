@@ -436,6 +436,7 @@ export interface SiteData {
     modalBgColor?: string;
     headerTextColor?: string;
     headerCloseColor?: string;
+    headerIconColor?: string;
     itemBgColor?: string;
     itemBorderColor?: string;
     itemNameColor?: string;

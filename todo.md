@@ -1035,3 +1035,10 @@
 - [x] Aplicar cartLanding via inline styles no componente de sacola da Landing Page (CartPopup)
 - [x] Aplicar cartMenu via inline styles no componente de sacola do Cardápio (CartDrawer)
 - [x] Restaurar cartLanding e cartMenu no useEffect de carregamento do Design.tsx
+
+## Fase 83: Color Picker para Ícone da Sacola (Cabeçalho)
+- [x] Adicionar headerIconColor ao tipo cartLanding no Design.tsx
+- [x] Adicionar headerIconColor ao tipo CartLandingStyle nos types/index.ts
+- [x] Adicionar ColorRow "Ícone Sacola" no cabeçalho da sub-aba Sacola Landing Page (seção 3.5)
+- [x] Mapear headerIconColor no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Aplicar headerIconColor via inline style no ícone da sacola no CartPopup.tsx
