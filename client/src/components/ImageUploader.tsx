@@ -256,6 +256,29 @@ function CircleAvatarPreview({ previewUrl }: { previewUrl: string | null }) {
   );
 }
 
+function SquareProfilePreview({ previewUrl }: { previewUrl: string | null }) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-28 h-28 rounded-lg overflow-hidden border-2 border-amber-500/40 bg-zinc-800 shadow-lg shadow-amber-500/10">
+        {previewUrl ? (
+          <img src={previewUrl} alt="Profile preview" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImagePlus className="w-8 h-8 text-zinc-600" />
+          </div>
+        )}
+      </div>
+      <div className="text-center">
+        <p className="text-xs text-zinc-300 font-medium">Nome do Proprietário</p>
+        <p className="text-[10px] text-zinc-500">Fundador & Chef</p>
+      </div>
+      <p className="text-[10px] text-zinc-600 text-center">
+        Preview quadrado — Seção "Sobre Nós"
+      </p>
+    </div>
+  );
+}
+
 function CardPreview({ previewUrl }: { previewUrl: string | null }) {
   return (
     <div className="w-44 bg-zinc-800 rounded-xl overflow-hidden border border-zinc-700 shadow-lg">
@@ -375,6 +398,7 @@ function LocationCoverPreview({ previewUrl }: { previewUrl: string | null }) {
 const PREVIEW_COMPONENTS: Record<PreviewStyle, React.FC<{ previewUrl: string | null }>> = {
   'banner': BannerPreview,
   'circle-avatar': CircleAvatarPreview,
+  'square-profile': SquareProfilePreview,
   'card': CardPreview,
   'header-logo': HeaderLogoPreview,
   'section-bg': SectionBgPreview,

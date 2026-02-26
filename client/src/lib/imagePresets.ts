@@ -12,7 +12,7 @@
  *  - outputFormat: formato de saída preferido ('png' | 'webp')
  */
 
-export type PreviewStyle = 'banner' | 'circle-avatar' | 'card' | 'header-logo' | 'section-bg' | 'location-cover';
+export type PreviewStyle = 'banner' | 'circle-avatar' | 'square-profile' | 'card' | 'header-logo' | 'section-bg' | 'location-cover';
 
 export type AspectOption = {
   label: string;
@@ -61,7 +61,7 @@ export const IMAGE_PRESETS = {
 
   /**
    * PROFILE_PHOTO — Foto do proprietário / avatar (seção 2.3 Sobre Nós)
-   * Proporção 1:1 obrigatória, preview circular.
+   * Proporção 1:1 obrigatória, preview quadrado com cantos retos.
    */
   PROFILE_PHOTO: {
     aspectRatio: 1,
@@ -70,9 +70,9 @@ export const IMAGE_PRESETS = {
     ],
     maxOutputWidth: 800,
     quality: 0.85,
-    previewStyle: 'circle-avatar' as PreviewStyle,
+    previewStyle: 'square-profile' as PreviewStyle,
     helperText: 'Recomendado: Imagem quadrada (ex: 800×800px)',
-    circularCrop: true,
+    circularCrop: false,
     outputFormat: 'png' as const,
   },
 

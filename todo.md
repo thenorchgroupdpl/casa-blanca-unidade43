@@ -1058,3 +1058,4 @@
 - [ ] Atualizar chamadas de upload de Logo para usar preset LOGO (1:1)
 - [ ] Adaptar modal do cropper com máscara visual dinâmica (circular para perfil, retangular para banner)
 - [ ] Verificar TypeScript, rodar testes e salvar checkpoint
+- [x] Remover corte circular do preset PROFILE_PHOTO — manter 1:1 quadrado com cantos retos
