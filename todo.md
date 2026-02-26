@@ -1074,3 +1074,11 @@
 - [x] Criar subseção 6.9 RODAPÉ (FOOTER) no Design.tsx com ColorPickers e Input de copyright
 - [x] Atualizar StoreLanding postMessage + transformTenantData para footer_*
 - [x] Aplicar inline styles no componente Footer com novas variáveis
+- [x] P1: Adicionar variáveis whatsapp_popup_bg, whatsapp_popup_text_color, whatsapp_button_bg, whatsapp_button_text_color
+- [x] P1: Criar bloco CORES DO POPUP na aba WhatsApp do Design.tsx com 4 ColorPickers
+- [x] P1: Aplicar inline styles no WhatsAppModal com novas variáveis
+- [x] P1: Atualizar StoreLanding postMessage + transformTenantData para whatsapp_popup_*
+- [x] P2: Remover ícones sociais hardcoded do Footer (já existe seção 6.6)
+- [x] P2: Adicionar variáveis footer_headline_text, footer_subheadline_text, footer_cta_text, footer_cta_bg, footer_cta_text_color, footer_show_logo
+- [x] P2: Atualizar painel 6.9 com Inputs de texto, ColorPickers do CTA e Toggle de logo
+- [x] P2: Atualizar Footer com renderização condicional de logo e inline styles do CTA

@@ -714,6 +714,12 @@ type LandingDesign = {
     footerBgColor?: string;
     footerTextColor?: string;
     footerCopyrightText?: string;
+    footerHeadlineText?: string;
+    footerSubheadlineText?: string;
+    footerCtaText?: string;
+    footerCtaBg?: string;
+    footerCtaTextColor?: string;
+    footerShowLogo?: boolean;
     // Visibility toggles
     showMap?: boolean;
     showAddress?: boolean;
@@ -735,6 +741,10 @@ type LandingDesign = {
   whatsapp?: {
     popupTitle?: string;
     buttonText?: string;
+    popupBg?: string;
+    popupTextColor?: string;
+    buttonBg?: string;
+    buttonTextColor?: string;
   };
 };
 
@@ -4462,9 +4472,44 @@ function InfoSection({
 
       {/* ===== 6.9 RODAPÉ (FOOTER) ===== */}
       <SubPanel id="6-9-rodape-footer" title="6.9 Rodapé (Footer)">
+        <Label className="text-[10px] text-zinc-400 font-medium">Textos</Label>
+        <div>
+          <Label className="text-[11px] text-zinc-400 mb-1 block">Headline Principal</Label>
+          <Input
+            value={data.footerHeadlineText || ""}
+            onChange={(e) => onChange("footerHeadlineText", e.target.value)}
+            placeholder="Pronto para pedir?"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+          />
+        </div>
+        <div>
+          <Label className="text-[11px] text-zinc-400 mb-1 block">Subtítulo</Label>
+          <Input
+            value={data.footerSubheadlineText || ""}
+            onChange={(e) => onChange("footerSubheadlineText", e.target.value)}
+            placeholder="Estamos esperando por você"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+          />
+        </div>
+        <div>
+          <Label className="text-[11px] text-zinc-400 mb-1 block">Texto do Botão (CTA)</Label>
+          <Input
+            value={data.footerCtaText || ""}
+            onChange={(e) => onChange("footerCtaText", e.target.value)}
+            placeholder="Mandar Mensagem"
+            className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+          />
+        </div>
+
+        <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
         <ColorRow label="Cor de Fundo" value={data.footerBgColor} defaultVal="" field="footerBgColor" />
         <ColorRow label="Cor do Texto e Ícones" value={data.footerTextColor} defaultVal="" field="footerTextColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Botão CTA</Label>
+        <ColorRow label="Cor de Fundo do Botão" value={data.footerCtaBg} defaultVal="" field="footerCtaBg" />
+        <ColorRow label="Cor do Texto do Botão" value={data.footerCtaTextColor} defaultVal="" field="footerCtaTextColor" />
 
         <Separator className="bg-zinc-800" />
         <Label className="text-[10px] text-zinc-400 font-medium">Direitos Autorais</Label>
@@ -4474,6 +4519,16 @@ function InfoSection({
           placeholder="© 2026 Nome da Loja - Todos os direitos reservados"
           className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Exibição</Label>
+        <div className="flex items-center justify-between py-0.5">
+          <span className="text-xs text-zinc-300">Exibir Logotipo no Rodapé</span>
+          <Switch
+            checked={data.footerShowLogo !== false}
+            onCheckedChange={(v) => onChange("footerShowLogo", v)}
+          />
+        </div>
       </SubPanel>
 
       {/* ===== EXIBIÇÃO (TOGGLES) ===== */}
@@ -4687,6 +4742,24 @@ function WhatsAppPopupSection({
   data: NonNullable<LandingDesign["whatsapp"]>;
   onChange: (field: string, value: unknown) => void;
 }) {
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
+    <div>
+      <Label className="text-[10px] text-zinc-400">{label}</Label>
+      <div className="flex items-center gap-2">
+        <ColorPickerInput
+          value={value || defaultVal}
+          onChange={(v) => onChange(field, v)}
+          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+        />
+        <Input
+          value={value || defaultVal}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       <SubPanel id="whatsapp-texts" title="Textos do Popup" icon={<MessageCircle className="w-4 h-4" />} defaultOpen>
@@ -4723,19 +4796,28 @@ function WhatsAppPopupSection({
         </div>
       </SubPanel>
 
+      <SubPanel id="whatsapp-colors" title="Cores do Popup" icon={<MessageCircle className="w-4 h-4" />}>
+        <ColorRow label="Fundo do Modal" value={data.popupBg} defaultVal="" field="popupBg" />
+        <ColorRow label="Cor do Título e Descrição" value={data.popupTextColor} defaultVal="" field="popupTextColor" />
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Botão de Ação</Label>
+        <ColorRow label="Fundo do Botão" value={data.buttonBg} defaultVal="#25D366" field="buttonBg" />
+        <ColorRow label="Cor do Texto do Botão" value={data.buttonTextColor} defaultVal="" field="buttonTextColor" />
+      </SubPanel>
+
       <SubPanel id="whatsapp-preview" title="Preview" icon={<MessageCircle className="w-4 h-4" />}>
         <div className="bg-zinc-900/60 rounded-xl p-4 border border-zinc-800/50">
-          <div className="bg-zinc-800/80 rounded-2xl p-6 text-center max-w-[280px] mx-auto">
+          <div className="rounded-2xl p-6 text-center max-w-[280px] mx-auto" style={{ backgroundColor: data.popupBg || '#27272a' }}>
             <div className="w-14 h-14 rounded-full bg-zinc-700 mx-auto mb-3 flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-[#25D366]" />
+              <MessageCircle className="w-6 h-6" style={{ color: data.buttonBg || '#25D366' }} />
             </div>
-            <p className="text-white text-sm font-medium mb-1">
+            <p className="text-sm font-medium mb-1" style={{ color: data.popupTextColor || '#ffffff' }}>
               {data.popupTitle || "Olá! Como podemos ajudar?"}
             </p>
-            <p className="text-zinc-500 text-[10px] mb-4">
+            <p className="text-[10px] mb-4" style={{ color: data.popupTextColor ? `${data.popupTextColor}99` : '#71717a' }}>
               Você será redirecionado para o WhatsApp
             </p>
-            <div className="bg-[#25D366] text-white rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2">
+            <div className="rounded-xl py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2" style={{ backgroundColor: data.buttonBg || '#25D366', color: data.buttonTextColor || '#ffffff' }}>
               <MessageCircle className="w-4 h-4" />
               {data.buttonText || "Iniciar Conversa"}
             </div>

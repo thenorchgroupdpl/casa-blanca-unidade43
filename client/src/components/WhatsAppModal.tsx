@@ -2,6 +2,7 @@
  * WhatsApp Confirmation Modal - Casa Blanca
  * Design: Warm Luxury - Glass modal with pulsing CTA
  * Features: Phone number display, avatar, animated button
+ *           + Design System overrides (whatsapp_popup_*)
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +20,12 @@ export default function WhatsAppModal() {
     openWhatsApp(data.contact.whatsapp);
     closeWhatsAppModal();
   };
+
+  // Style overrides from Design System
+  const popupBg = data.whatsapp_popup_bg;
+  const popupTextColor = data.whatsapp_popup_text_color;
+  const buttonBg = data.whatsapp_button_bg || '#25D366';
+  const buttonTextColor = data.whatsapp_button_text_color;
 
   return (
     <AnimatePresence>
@@ -41,11 +48,17 @@ export default function WhatsAppModal() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 mx-auto max-w-sm"
           >
-            <div className="relative bg-lp-surface rounded-3xl p-8 border border-lp-border shadow-2xl">
+            <div
+              className={cn("relative rounded-3xl p-8 border shadow-2xl", !popupBg && "bg-lp-surface border-lp-border")}
+              style={{
+                ...(popupBg ? { backgroundColor: popupBg, borderColor: `${popupBg}40` } : {}),
+              }}
+            >
               {/* Close Button */}
               <button
                 onClick={closeWhatsAppModal}
-                className="absolute top-4 right-4 p-2 text-lp-text-muted hover:text-lp-text transition-colors"
+                className={cn("absolute top-4 right-4 p-2 transition-colors", !popupTextColor && "text-lp-text-muted hover:text-lp-text")}
+                style={popupTextColor ? { color: popupTextColor, opacity: 0.6 } : undefined}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -69,31 +82,40 @@ export default function WhatsAppModal() {
 
                 {/* Attendant Name */}
                 {data.whatsapp_name && (
-                  <p className="text-lp-text font-semibold text-base mb-1">
+                  <p
+                    className={cn("font-semibold text-base mb-1", !popupTextColor && "text-lp-text")}
+                    style={popupTextColor ? { color: popupTextColor } : undefined}
+                  >
                     {data.whatsapp_name}
                   </p>
                 )}
 
                 {/* Title */}
-                <h3 className="font-display text-xl text-lp-text mb-2">
+                <h3
+                  className={cn("font-display text-xl mb-2", !popupTextColor && "text-lp-text")}
+                  style={popupTextColor ? { color: popupTextColor } : undefined}
+                >
                   {data.whatsapp_popup_title || 'Olá! Como podemos ajudar?'}
                 </h3>
-                <p className="text-lp-text-muted text-sm mb-6">
+                <p
+                  className={cn("text-sm mb-6", !popupTextColor && "text-lp-text-muted")}
+                  style={popupTextColor ? { color: popupTextColor, opacity: 0.6 } : undefined}
+                >
                   {`Você será redirecionado para o WhatsApp da ${data.project_name || 'Casa Blanca'}`}
                 </p>
 
                 {/* CTA Button */}
                 <motion.button
                   onClick={handleOpenWhatsApp}
-                  className={cn(
-                    'w-full py-4 rounded-2xl font-semibold text-lp-text',
-                    'bg-[#25D366] hover:bg-[#20BD5A] transition-colors',
-                    'flex items-center justify-center gap-3'
-                  )}
+                  className="w-full py-4 rounded-2xl font-semibold flex items-center justify-center gap-3"
+                  style={{
+                    backgroundColor: buttonBg,
+                    color: buttonTextColor || '#ffffff',
+                  }}
                   animate={{
                     boxShadow: [
-                      '0 0 0 0 rgba(37, 211, 102, 0.4)',
-                      '0 0 0 10px rgba(37, 211, 102, 0)',
+                      `0 0 0 0 ${buttonBg}66`,
+                      `0 0 0 10px ${buttonBg}00`,
                     ],
                   }}
                   transition={{
@@ -109,7 +131,8 @@ export default function WhatsAppModal() {
                 {/* Cancel */}
                 <button
                   onClick={closeWhatsAppModal}
-                  className="mt-4 text-sm text-lp-text-muted hover:text-lp-text transition-colors"
+                  className={cn("mt-4 text-sm transition-colors", !popupTextColor && "text-lp-text-muted hover:text-lp-text")}
+                  style={popupTextColor ? { color: popupTextColor, opacity: 0.5 } : undefined}
                 >
                   Cancelar
                 </button>

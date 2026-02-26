@@ -417,6 +417,12 @@ export interface InfoStyleOverrides {
   footerBgColor?: string;
   footerTextColor?: string;
   footerCopyrightText?: string;
+  footerHeadlineText?: string;
+  footerSubheadlineText?: string;
+  footerCtaText?: string;
+  footerCtaBg?: string;
+  footerCtaTextColor?: string;
+  footerShowLogo?: boolean;
 }
 
 export interface SiteData {
@@ -501,6 +507,11 @@ export interface SiteData {
   whatsapp_name?: string;
   whatsapp_popup_title?: string;
   whatsapp_button_text?: string;
+  // WhatsApp Popup style
+  whatsapp_popup_bg?: string;
+  whatsapp_popup_text_color?: string;
+  whatsapp_button_bg?: string;
+  whatsapp_button_text_color?: string;
   // Delivery fee
   delivery_fee?: number;
   // Google Maps link

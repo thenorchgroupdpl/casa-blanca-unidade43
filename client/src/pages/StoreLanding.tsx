@@ -488,6 +488,12 @@ export default function StoreLanding() {
             footerBgColor: inf.footerBgColor,
             footerTextColor: inf.footerTextColor,
             footerCopyrightText: inf.footerCopyrightText,
+            footerHeadlineText: inf.footerHeadlineText,
+            footerSubheadlineText: inf.footerSubheadlineText,
+            footerCtaText: inf.footerCtaText,
+            footerCtaBg: inf.footerCtaBg,
+            footerCtaTextColor: inf.footerCtaTextColor,
+            footerShowLogo: inf.footerShowLogo,
           };
         }
 
@@ -560,6 +566,17 @@ export default function StoreLanding() {
             clearLinkColor: c.clearLinkColor,
             headerIconColor: c.headerIconColor,
           };
+        }
+
+        // Update WhatsApp popup style
+        if (design?.whatsapp) {
+          const w = design.whatsapp;
+          if (w.popupTitle !== undefined) updatedData.whatsapp_popup_title = w.popupTitle;
+          if (w.buttonText !== undefined) updatedData.whatsapp_button_text = w.buttonText;
+          if (w.popupBg !== undefined) updatedData.whatsapp_popup_bg = w.popupBg;
+          if (w.popupTextColor !== undefined) updatedData.whatsapp_popup_text_color = w.popupTextColor;
+          if (w.buttonBg !== undefined) updatedData.whatsapp_button_bg = w.buttonBg;
+          if (w.buttonTextColor !== undefined) updatedData.whatsapp_button_text_color = w.buttonTextColor;
         }
 
         // Update section colors
@@ -1237,6 +1254,12 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       footerBgColor: ld.info.footerBgColor,
       footerTextColor: ld.info.footerTextColor,
       footerCopyrightText: ld.info.footerCopyrightText,
+      footerHeadlineText: ld.info.footerHeadlineText,
+      footerSubheadlineText: ld.info.footerSubheadlineText,
+      footerCtaText: ld.info.footerCtaText,
+      footerCtaBg: ld.info.footerCtaBg,
+      footerCtaTextColor: ld.info.footerCtaTextColor,
+      footerShowLogo: ld.info.footerShowLogo,
     } : undefined,
     section_colors: ld?.sectionColors || {},
     // WhatsApp Popup attendant info
@@ -1244,6 +1267,10 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     whatsapp_name: settings?.attendantName || '',
     whatsapp_popup_title: (ld as any)?.whatsapp?.popupTitle || '',
     whatsapp_button_text: (ld as any)?.whatsapp?.buttonText || '',
+    whatsapp_popup_bg: (ld as any)?.whatsapp?.popupBg || '',
+    whatsapp_popup_text_color: (ld as any)?.whatsapp?.popupTextColor || '',
+    whatsapp_button_bg: (ld as any)?.whatsapp?.buttonBg || '',
+    whatsapp_button_text_color: (ld as any)?.whatsapp?.buttonTextColor || '',
     // Delivery fee
     delivery_fee: settings?.deliveryFee ? parseFloat(settings.deliveryFee as string) : undefined,
     // Google Maps link
