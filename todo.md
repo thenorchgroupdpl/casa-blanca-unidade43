@@ -1117,3 +1117,11 @@
 - [x] Fix: Renderização de datas na coluna 'Próx. Vencimento' — formatar DD/MM/YYYY ou exibir 'Definir data' se null
 - [x] Fix: Botão 'Notificar' deve disparar criação de notificação manual usando template salvo
 - [x] Fix: Refinar layout geral da tabela de Gestão Financeira
+- [x] Parte 1: Corrigir layout da Gestão Financeira — envolver no layout padrão Super Admin com Sidebar
+- [x] Parte 1: Forçar dark mode na Gestão Financeira (remover bg-white, usar bg-background/bg-[#0a0a0a])
+- [x] Parte 1: Remover caixa de Template de Notificação do final da tela de Gestão Financeira
+- [x] Parte 2: Criar construtor visual de Popups de Cobrança em Config Globais (tela dividida: controles + preview)
+- [x] Parte 2: Implementar 3 estados de popup (Aviso Prévio, Vencido, Bloqueado) com campos editáveis
+- [x] Parte 2: Adicionar controles de cor globais (fundo modal, texto, botão)
+- [x] Parte 3: Backend — lógica automática para determinar estado do lojista baseado em next_billing_date
+- [x] Parte 3: Frontend — popup automático no dashboard do lojista ao fazer login

@@ -22,6 +22,7 @@ import IntegrationsPage from "./pages/admin/super/Integrations";
 import SettingsPage from "./pages/admin/super/Settings";
 import GlobalSettingsPage from "./pages/admin/super/GlobalSettings";
 import BillingPage from "./pages/admin/super/Billing";
+import BillingPopupsPage from "./pages/admin/super/BillingPopups";
 
 // Client Admin Pages
 import ClientDashboard from "./pages/admin/dashboard/Dashboard";
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/admin/super/integrations" component={IntegrationsPage} />
       <Route path="/admin/super/settings" component={SettingsPage} />
       <Route path="/admin/super/billing" component={BillingPage} />
+      <Route path="/admin/super/billing-popups" component={BillingPopupsPage} />
       <Route path="/admin/super/global-settings" component={GlobalSettingsPage} />
       
       {/* Client Admin Routes */}

@@ -34,7 +34,8 @@ import {
   Shield,
   User,
   Globe,
-  DollarSign
+  DollarSign,
+  MessageSquareWarning
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -50,6 +51,7 @@ const menuItems = [
   { icon: Key, label: "Integrações", path: "/admin/super/integrations" },
   { icon: Settings, label: "Configurações", path: "/admin/super/settings" },
   { icon: DollarSign, label: "Financeiro", path: "/admin/super/billing" },
+  { icon: MessageSquareWarning, label: "Popups Cobrança", path: "/admin/super/billing-popups" },
   { icon: Globe, label: "Config. Globais", path: "/admin/super/global-settings" },
 ];
 

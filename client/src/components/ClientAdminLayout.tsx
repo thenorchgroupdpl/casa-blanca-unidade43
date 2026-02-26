@@ -21,6 +21,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
+import BillingPopupModal from "@/components/BillingPopupModal";
 import { useIsMobile } from "@/hooks/useMobile";
 import { 
   LogOut, 
@@ -176,6 +177,7 @@ export default function ClientAdminLayout({
       <ClientAdminLayoutContent setSidebarWidth={setSidebarWidth}>
         {children}
       </ClientAdminLayoutContent>
+      <BillingPopupModal />
     </SidebarProvider>
   );
 }

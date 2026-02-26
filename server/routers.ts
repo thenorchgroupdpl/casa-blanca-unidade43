@@ -13,7 +13,7 @@ import { storeRouter, publicStoreRouter } from "./routers/store";
 import { emailAuthRouter } from "./routers/auth";
 import { usersRouter } from "./routers/users";
 import { globalSettingsRouter, publicGlobalSettingsRouter } from "./routers/globalSettings";
-import { billingRouter, notificationsRouter } from "./routers/billing";
+import { billingRouter, billingPopupRouter, notificationsRouter } from "./routers/billing";
 
 export const appRouter = router({
   // System routes
@@ -111,6 +111,9 @@ export const appRouter = router({
 
   // Notifications (Client Admin / Lojista)
   notifications: notificationsRouter,
+
+  // Billing Popup (Client Admin / Lojista)
+  billingPopup: billingPopupRouter,
 
   // ============================================
   // PUBLIC ROUTES (Landing Page)

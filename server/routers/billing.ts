@@ -181,6 +181,97 @@ export const billingRouter = router({
 });
 
 // ============================================
+// BILLING POPUP ROUTER (Client Admin / Lojista)
+// ============================================
+
+/**
+ * Determine which billing popup (if any) to show the lojista.
+ * Based on next_billing_date and subscription_status.
+ * Returns null if no popup should be shown.
+ */
+export const billingPopupRouter = router({
+  /** Get the billing popup state for the current tenant */
+  getPopup: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.user.tenantId) return null;
+
+    const tenant = await db.getTenantById(ctx.user.tenantId);
+    if (!tenant) return null;
+
+    // Determine popup type based on subscription status and billing date
+    let popupType: "warning" | "overdue" | "suspended" | null = null;
+
+    if (tenant.subscriptionStatus === "suspended") {
+      popupType = "suspended";
+    } else if (tenant.subscriptionStatus === "overdue") {
+      popupType = "overdue";
+    } else if (tenant.subscriptionStatus === "warning") {
+      popupType = "warning";
+    } else if (tenant.nextBillingDate) {
+      // Auto-detect from date even if status hasn't been updated yet
+      const now = new Date();
+      const due = new Date(tenant.nextBillingDate);
+      const diffMs = due.getTime() - now.getTime();
+      const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+      if (daysLeft < 0) {
+        popupType = "overdue";
+      } else if (daysLeft <= 5) {
+        popupType = "warning";
+      }
+    }
+
+    if (!popupType) return null;
+
+    // Fetch popup config from global settings
+    const popupConfigStr = await db.getGlobalSetting(`billing_popup_${popupType}`);
+    const colorsStr = await db.getGlobalSetting("billing_popup_colors");
+
+    // Default popup configs
+    const defaultPopups: Record<string, { title: string; message: string }> = {
+      warning: {
+        title: "Sua mensalidade vence em breve",
+        message: "Faltam poucos dias para o vencimento da sua mensalidade. Regularize seu pagamento para manter sua loja ativa.",
+      },
+      overdue: {
+        title: "Mensalidade Atrasada",
+        message: "Sua mensalidade est\u00e1 vencida. Sua loja pode ser suspensa a qualquer momento. Pague agora para evitar a interrup\u00e7\u00e3o do servi\u00e7o.",
+      },
+      suspended: {
+        title: "Acesso Bloqueado",
+        message: "O acesso ao painel foi restrito por falta de pagamento. Entre em contato com o suporte ou realize o pagamento para reativar sua loja.",
+      },
+    };
+
+    const defaultColors = {
+      bgColor: "#18181b",
+      textColor: "#fafafa",
+      buttonColor: "#f59e0b",
+      buttonTextColor: "#000000",
+    };
+
+    let popupConfig = defaultPopups[popupType];
+    let colors = defaultColors;
+
+    if (popupConfigStr) {
+      try { popupConfig = JSON.parse(popupConfigStr); } catch { /* use default */ }
+    }
+    if (colorsStr) {
+      try { colors = { ...defaultColors, ...JSON.parse(colorsStr) }; } catch { /* use default */ }
+    }
+
+    return {
+      type: popupType,
+      title: popupConfig.title,
+      message: popupConfig.message,
+      colors,
+      daysLeft: tenant.nextBillingDate
+        ? Math.ceil((new Date(tenant.nextBillingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        : null,
+    };
+  }),
+});
+
+// ============================================
 // NOTIFICATIONS ROUTER (Client Admin / Lojista)
 // ============================================
 

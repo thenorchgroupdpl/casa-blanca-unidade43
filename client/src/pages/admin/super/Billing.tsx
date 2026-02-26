@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import SuperAdminLayout from "@/components/SuperAdminLayout";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,6 @@ import {
   Ban,
   Play,
   Send,
-  Info,
   Pencil,
   Bell,
   X,
@@ -72,7 +72,6 @@ interface EditModalState {
 export default function BillingPage() {
   const utils = trpc.useUtils();
   const { data: tenants, isLoading } = trpc.billing.listTenants.useQuery();
-  const { data: templateSetting } = trpc.globalSettings.get.useQuery({ key: "billing_notification_template" });
 
   // Mutations
   const updateDateMutation = trpc.billing.updateBillingDate.useMutation({
@@ -115,25 +114,12 @@ export default function BillingPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  const saveTemplateMutation = trpc.globalSettings.set.useMutation({
-    onSuccess: () => {
-      utils.globalSettings.get.invalidate({ key: "billing_notification_template" });
-      toast.success("Template salvo");
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
   // State
   const [editModal, setEditModal] = useState<EditModalState | null>(null);
   const [notifDialog, setNotifDialog] = useState<{ tenantId: number; tenantName: string } | null>(null);
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
   const [notifType, setNotifType] = useState<"billing" | "system" | "info" | "warning">("billing");
-  const [template, setTemplate] = useState<string | null>(null);
-
-  // Initialize template from server
-  const currentTemplate = template ?? templateSetting ?? "";
-  const defaultTemplate = "Olá {{store_name}}! Seu vencimento é em {{days_left}} dia(s), no dia {{due_date}}. Por favor, regularize seu pagamento para manter sua loja ativa.";
 
   // Stats
   const activeCount = tenants?.filter(t => t.subscriptionStatus === "active").length ?? 0;
@@ -185,7 +171,6 @@ export default function BillingPage() {
     const { tenant, nextBillingDate, billingAmount, subscriptionStatus } = editModal;
 
     try {
-      // Fire all mutations in parallel
       await Promise.all([
         updateDateMutation.mutateAsync({ tenantId: tenant.id, nextBillingDate }),
         updateAmountMutation.mutateAsync({ tenantId: tenant.id, billingAmount }),
@@ -201,489 +186,424 @@ export default function BillingPage() {
     }
   };
 
-  // Open notify dialog with template pre-filled
+  // Open notify dialog — simple manual notification
   const openNotifyDialog = (tenant: TenantBilling) => {
-    const tpl = currentTemplate || defaultTemplate;
     const daysLeft = getDaysUntil(tenant.nextBillingDate);
     const formattedDate = formatDate(tenant.nextBillingDate) || "não definida";
 
-    const processedMessage = tpl
-      .replace(/\{\{store_name\}\}/g, tenant.name)
-      .replace(/\{\{due_date\}\}/g, formattedDate)
-      .replace(/\{\{days_left\}\}/g, daysLeft !== null ? String(daysLeft) : "—");
-
     setNotifDialog({ tenantId: tenant.id, tenantName: tenant.name });
-    setNotifTitle("📋 Lembrete de Pagamento");
-    setNotifMessage(processedMessage);
+    setNotifTitle("Lembrete de Pagamento");
+    setNotifMessage(
+      `Olá ${tenant.name}! Seu vencimento é ${formattedDate !== "" ? `no dia ${formattedDate}` : "não definido"}${daysLeft !== null ? ` (${daysLeft} dia${daysLeft !== 1 ? "s" : ""})` : ""}. Por favor, regularize seu pagamento para manter sua loja ativa.`
+    );
     setNotifType("billing");
   };
 
   const isSaving = updateDateMutation.isPending || updateAmountMutation.isPending || updateStatusMutation.isPending;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Gestão Financeira</h1>
-          <p className="text-sm text-zinc-400 mt-1">Controle de vencimentos e notificações de cobrança</p>
+    <SuperAdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Gestão Financeira</h1>
+            <p className="text-sm text-zinc-400 mt-1">Controle de vencimentos e notificações de cobrança</p>
+          </div>
+          <Button
+            onClick={() => runCheckMutation.mutate()}
+            disabled={runCheckMutation.isPending}
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+          >
+            <Play className="h-4 w-4 mr-2" />
+            {runCheckMutation.isPending ? "Processando..." : "Executar Régua"}
+          </Button>
         </div>
-        <Button
-          onClick={() => runCheckMutation.mutate()}
-          disabled={runCheckMutation.isPending}
-          className="bg-amber-500 hover:bg-amber-600 text-black"
-        >
-          <Play className="h-4 w-4 mr-2" />
-          {runCheckMutation.isPending ? "Processando..." : "Executar Régua"}
-        </Button>
-      </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/10">
-                <CheckCircle className="h-5 w-5 text-emerald-400" />
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-zinc-900/60 border-zinc-800/60">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-emerald-500/10">
+                  <CheckCircle className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">{activeCount}</p>
+                  <p className="text-xs text-zinc-400">Ativos</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{activeCount}</p>
-                <p className="text-xs text-zinc-400">Ativos</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-zinc-900/60 border-zinc-800/60">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                  <AlertTriangle className="h-5 w-5 text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">{warningCount}</p>
+                  <p className="text-xs text-zinc-400">Em Aviso</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <AlertTriangle className="h-5 w-5 text-amber-400" />
+            </CardContent>
+          </Card>
+          <Card className="bg-zinc-900/60 border-zinc-800/60">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <Clock className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">{overdueCount}</p>
+                  <p className="text-xs text-zinc-400">Vencidos</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{warningCount}</p>
-                <p className="text-xs text-zinc-400">Em Aviso</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-zinc-900/60 border-zinc-800/60">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-zinc-500/10">
+                  <Ban className="h-5 w-5 text-zinc-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">{suspendedCount}</p>
+                  <p className="text-xs text-zinc-400">Suspensos</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-500/10">
-                <Clock className="h-5 w-5 text-red-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{overdueCount}</p>
-                <p className="text-xs text-zinc-400">Vencidos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-zinc-500/10">
-                <Ban className="h-5 w-5 text-zinc-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">{suspendedCount}</p>
-                <p className="text-xs text-zinc-400">Suspensos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Tenants Table */}
-      <Card className="bg-zinc-900 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white text-lg">Lojistas</CardTitle>
-          <CardDescription className="text-zinc-400">
-            Gerencie vencimentos e status de assinatura de cada lojista
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-            </div>
-          ) : !tenants?.length ? (
-            <p className="text-zinc-500 text-center py-8">Nenhum lojista cadastrado</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-800">
-                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Lojista</th>
-                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Status</th>
-                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Próx. Vencimento</th>
-                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Valor</th>
-                    <th className="text-right py-3 px-3 text-zinc-400 font-medium">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tenants.map(tenant => {
-                    const statusInfo = STATUS_MAP[tenant.subscriptionStatus || "active"];
-                    const StatusIcon = statusInfo.icon;
-                    const daysUntil = getDaysUntil(tenant.nextBillingDate);
-                    const hasDate = !!tenant.nextBillingDate;
+        {/* Tenants Table */}
+        <Card className="bg-zinc-900/60 border-zinc-800/60">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Lojistas</CardTitle>
+            <CardDescription className="text-zinc-400">
+              Gerencie vencimentos e status de assinatura de cada lojista
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              </div>
+            ) : !tenants?.length ? (
+              <p className="text-zinc-500 text-center py-8">Nenhum lojista cadastrado</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-zinc-800">
+                      <th className="text-left py-3 px-3 text-zinc-400 font-medium">Lojista</th>
+                      <th className="text-left py-3 px-3 text-zinc-400 font-medium">Status</th>
+                      <th className="text-left py-3 px-3 text-zinc-400 font-medium">Próx. Vencimento</th>
+                      <th className="text-left py-3 px-3 text-zinc-400 font-medium">Valor</th>
+                      <th className="text-right py-3 px-3 text-zinc-400 font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tenants.map(tenant => {
+                      const statusInfo = STATUS_MAP[tenant.subscriptionStatus || "active"];
+                      const StatusIcon = statusInfo.icon;
+                      const daysUntil = getDaysUntil(tenant.nextBillingDate);
+                      const hasDate = !!tenant.nextBillingDate;
 
-                    return (
-                      <tr key={tenant.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                        {/* Lojista */}
-                        <td className="py-3 px-3">
-                          <div>
-                            <p className="font-medium text-white">{tenant.name}</p>
-                            <p className="text-xs text-zinc-500">/{tenant.slug}</p>
-                          </div>
-                        </td>
-
-                        {/* Status - Badge only, no ghost button */}
-                        <td className="py-3 px-3">
-                          <Badge variant="outline" className={`${statusInfo.color} text-xs`}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {statusInfo.label}
-                          </Badge>
-                        </td>
-
-                        {/* Próx. Vencimento */}
-                        <td className="py-3 px-3">
-                          {hasDate ? (
-                            <div className="flex items-center gap-1.5">
-                              <Calendar className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-                              <span className="text-white">{formatDate(tenant.nextBillingDate)}</span>
-                              {daysUntil !== null && daysUntil <= 5 && daysUntil >= 0 && (
-                                <span className={`text-xs font-semibold ml-1 ${daysUntil <= 1 ? "text-red-400" : "text-amber-400"}`}>
-                                  ({daysUntil}d)
-                                </span>
-                              )}
-                              {daysUntil !== null && daysUntil < 0 && (
-                                <span className="text-xs font-semibold ml-1 text-red-400">
-                                  (vencido)
-                                </span>
-                              )}
+                      return (
+                        <tr key={tenant.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
+                          {/* Lojista */}
+                          <td className="py-3 px-3">
+                            <div>
+                              <p className="font-medium text-white">{tenant.name}</p>
+                              <p className="text-xs text-zinc-500">/{tenant.slug}</p>
                             </div>
-                          ) : (
-                            <button
-                              onClick={() => openEditModal(tenant)}
-                              className="flex items-center gap-1.5 text-amber-400/70 hover:text-amber-400 transition-colors text-xs"
-                            >
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span className="underline underline-offset-2">Definir data</span>
-                            </button>
-                          )}
-                        </td>
+                          </td>
 
-                        {/* Valor */}
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-1.5">
-                            <DollarSign className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
-                            <span className="text-white">
-                              {tenant.billingAmount ? formatCurrency(tenant.billingAmount) : (
-                                <span className="text-zinc-500 italic">Não definido</span>
-                              )}
-                            </span>
-                          </div>
-                        </td>
+                          {/* Status — clean badge only */}
+                          <td className="py-3 px-3">
+                            <Badge variant="outline" className={`${statusInfo.color} text-xs`}>
+                              <StatusIcon className="h-3 w-3 mr-1" />
+                              {statusInfo.label}
+                            </Badge>
+                          </td>
 
-                        {/* Ações */}
-                        <td className="py-3 px-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0 text-zinc-400 hover:text-white hover:bg-zinc-800"
-                                    onClick={() => openEditModal(tenant)}
-                                  >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
-                                  Editar dados de cobrança
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                          {/* Próx. Vencimento */}
+                          <td className="py-3 px-3">
+                            {hasDate ? (
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                                <span className="text-white">{formatDate(tenant.nextBillingDate)}</span>
+                                {daysUntil !== null && daysUntil <= 5 && daysUntil >= 0 && (
+                                  <span className={`text-xs font-semibold ml-1 ${daysUntil <= 1 ? "text-red-400" : "text-amber-400"}`}>
+                                    ({daysUntil}d)
+                                  </span>
+                                )}
+                                {daysUntil !== null && daysUntil < 0 && (
+                                  <span className="text-xs font-semibold ml-1 text-red-400">
+                                    (vencido)
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => openEditModal(tenant)}
+                                className="flex items-center gap-1.5 text-amber-400/70 hover:text-amber-400 transition-colors text-xs"
+                              >
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span className="underline underline-offset-2">Definir data</span>
+                              </button>
+                            )}
+                          </td>
 
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0 text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10"
-                                    onClick={() => openNotifyDialog(tenant)}
-                                  >
-                                    <Send className="h-3.5 w-3.5" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
-                                  Enviar notificação
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          {/* Valor */}
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-1.5">
+                              <DollarSign className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                              <span className="text-white">
+                                {tenant.billingAmount ? formatCurrency(tenant.billingAmount) : (
+                                  <span className="text-zinc-500 italic">Não definido</span>
+                                )}
+                              </span>
+                            </div>
+                          </td>
 
-      {/* Template de Notificação */}
-      <Card className="bg-zinc-900 border-zinc-800">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-white text-lg">Template de Notificação de Cobrança</CardTitle>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-4 w-4 text-zinc-500" />
-                </TooltipTrigger>
-                <TooltipContent className="bg-zinc-800 text-white border-zinc-700 max-w-xs">
-                  <p>Variáveis disponíveis:</p>
-                  <ul className="text-xs mt-1 space-y-0.5">
-                    <li><code className="bg-zinc-700 px-1 rounded">{"{{store_name}}"}</code> — Nome da loja</li>
-                    <li><code className="bg-zinc-700 px-1 rounded">{"{{due_date}}"}</code> — Data de vencimento</li>
-                    <li><code className="bg-zinc-700 px-1 rounded">{"{{days_left}}"}</code> — Dias restantes</li>
-                  </ul>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <CardDescription className="text-zinc-400">
-            Mensagem padrão enviada automaticamente pela régua de 5 dias antes do vencimento
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            value={currentTemplate}
-            onChange={(e) => setTemplate(e.target.value)}
-            placeholder={defaultTemplate}
-            className="min-h-[120px] bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600"
-          />
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <p className="text-xs text-zinc-500">
-              Use <code className="bg-zinc-800 px-1 rounded">{"{{store_name}}"}</code>,{" "}
-              <code className="bg-zinc-800 px-1 rounded">{"{{due_date}}"}</code> e{" "}
-              <code className="bg-zinc-800 px-1 rounded">{"{{days_left}}"}</code> como variáveis dinâmicas
-            </p>
-            <Button
-              onClick={() =>
-                saveTemplateMutation.mutate({
-                  key: "billing_notification_template",
-                  value: currentTemplate,
-                  description: "Template de notificação de cobrança automática",
-                })
-              }
-              disabled={saveTemplateMutation.isPending}
-              className="bg-amber-500 hover:bg-amber-600 text-black"
-            >
-              {saveTemplateMutation.isPending ? "Salvando..." : "Salvar Template"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                          {/* Ações */}
+                          <td className="py-3 px-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 w-8 p-0 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                                      onClick={() => openEditModal(tenant)}
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
+                                    Editar dados de cobrança
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
 
-      {/* ============================================ */}
-      {/* MODAL: Editar Dados de Cobrança */}
-      {/* ============================================ */}
-      <Dialog open={!!editModal} onOpenChange={(open) => !open && setEditModal(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-amber-400" />
-              Editar Cobrança
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Configurar dados de cobrança de{" "}
-              <span className="text-white font-medium">{editModal?.tenant.name}</span>
-            </DialogDescription>
-          </DialogHeader>
-
-          {editModal && (
-            <div className="space-y-5 py-2">
-              {/* Data de Vencimento */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-amber-400" />
-                  Próximo Vencimento
-                </label>
-                <Input
-                  type="date"
-                  value={editModal.nextBillingDate}
-                  onChange={(e) => setEditModal({ ...editModal, nextBillingDate: e.target.value })}
-                  className="bg-zinc-800 border-zinc-700 text-white h-10"
-                />
-                <p className="text-xs text-zinc-500">
-                  Data em que o lojista será cobrado pela próxima mensalidade
-                </p>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 w-8 p-0 text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10"
+                                      onClick={() => openNotifyDialog(tenant)}
+                                    >
+                                      <Send className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
+                                    Enviar notificação
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
+            )}
+          </CardContent>
+        </Card>
 
-              {/* Valor da Recorrência */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-emerald-400" />
-                  Valor da Recorrência (R$)
-                </label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={editModal.billingAmount}
-                  onChange={(e) => setEditModal({ ...editModal, billingAmount: e.target.value })}
-                  className="bg-zinc-800 border-zinc-700 text-white h-10"
-                  placeholder="150.00"
-                />
-                <p className="text-xs text-zinc-500">
-                  Valor mensal cobrado do lojista (ex: 150.00)
-                </p>
+        {/* ============================================ */}
+        {/* MODAL: Editar Dados de Cobrança */}
+        {/* ============================================ */}
+        <Dialog open={!!editModal} onOpenChange={(open) => !open && setEditModal(null)}>
+          <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-5 w-5 text-amber-400" />
+                Editar Cobrança
+              </DialogTitle>
+              <DialogDescription className="text-zinc-400">
+                Configurar dados de cobrança de{" "}
+                <span className="text-white font-medium">{editModal?.tenant.name}</span>
+              </DialogDescription>
+            </DialogHeader>
+
+            {editModal && (
+              <div className="space-y-5 py-2">
+                {/* Data de Vencimento */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-amber-400" />
+                    Próximo Vencimento
+                  </label>
+                  <Input
+                    type="date"
+                    value={editModal.nextBillingDate}
+                    onChange={(e) => setEditModal({ ...editModal, nextBillingDate: e.target.value })}
+                    className="bg-zinc-800 border-zinc-700 text-white h-10"
+                  />
+                  <p className="text-xs text-zinc-500">
+                    Data em que o lojista será cobrado pela próxima mensalidade
+                  </p>
+                </div>
+
+                {/* Valor da Recorrência */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-emerald-400" />
+                    Valor da Recorrência (R$)
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editModal.billingAmount}
+                    onChange={(e) => setEditModal({ ...editModal, billingAmount: e.target.value })}
+                    className="bg-zinc-800 border-zinc-700 text-white h-10"
+                    placeholder="150.00"
+                  />
+                  <p className="text-xs text-zinc-500">
+                    Valor mensal cobrado do lojista (ex: 150.00)
+                  </p>
+                </div>
+
+                {/* Status da Assinatura */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-blue-400" />
+                    Status da Assinatura
+                  </label>
+                  <Select
+                    value={editModal.subscriptionStatus}
+                    onValueChange={(val) => setEditModal({ ...editModal, subscriptionStatus: val })}
+                  >
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-900 border-zinc-800">
+                      {STATUS_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`w-2 h-2 rounded-full ${
+                                opt.value === "active" ? "bg-emerald-400" :
+                                opt.value === "warning" ? "bg-amber-400" :
+                                opt.value === "overdue" ? "bg-red-400" :
+                                "bg-zinc-400"
+                              }`}
+                            />
+                            {opt.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-zinc-500">
+                    Ativo = em dia &bull; Em Aviso = próximo do vencimento &bull; Vencido = não pagou &bull; Suspenso = loja desativada
+                  </p>
+                </div>
               </div>
+            )}
 
-              {/* Status da Assinatura */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-blue-400" />
-                  Status da Assinatura
-                </label>
-                <Select
-                  value={editModal.subscriptionStatus}
-                  onValueChange={(val) => setEditModal({ ...editModal, subscriptionStatus: val })}
-                >
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setEditModal(null)} className="text-zinc-400 hover:text-white">
+                <X className="h-4 w-4 mr-1.5" />
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={isSaving}
+                className="bg-amber-500 hover:bg-amber-600 text-black"
+              >
+                <Save className="h-4 w-4 mr-1.5" />
+                {isSaving ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============================================ */}
+        {/* MODAL: Enviar Notificação Manual */}
+        {/* ============================================ */}
+        <Dialog open={!!notifDialog} onOpenChange={(open) => !open && setNotifDialog(null)}>
+          <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-amber-400" />
+                Enviar Notificação
+              </DialogTitle>
+              <DialogDescription className="text-zinc-400">
+                Enviar notificação para <span className="text-white font-medium">{notifDialog?.tenantName}</span>.
+                O lojista verá essa notificação no painel dele.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-zinc-300">Tipo</label>
+                <Select value={notifType} onValueChange={(v) => setNotifType(v as typeof notifType)}>
                   <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10">
-                    <SelectValue placeholder="Selecione o status" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-zinc-800">
-                    {STATUS_OPTIONS.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              opt.value === "active" ? "bg-emerald-400" :
-                              opt.value === "warning" ? "bg-amber-400" :
-                              opt.value === "overdue" ? "bg-red-400" :
-                              "bg-zinc-400"
-                            }`}
-                          />
-                          {opt.label}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="billing">Cobrança</SelectItem>
+                    <SelectItem value="system">Sistema</SelectItem>
+                    <SelectItem value="info">Informação</SelectItem>
+                    <SelectItem value="warning">Aviso</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-zinc-500">
-                  Ativo = em dia &bull; Em Aviso = próximo do vencimento &bull; Vencido = não pagou &bull; Suspenso = loja desativada
-                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-zinc-300">Título</label>
+                <Input
+                  value={notifTitle}
+                  onChange={(e) => setNotifTitle(e.target.value)}
+                  placeholder="Ex: Lembrete de pagamento"
+                  className="bg-zinc-800 border-zinc-700 text-white h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-zinc-300">Mensagem</label>
+                <Textarea
+                  value={notifMessage}
+                  onChange={(e) => setNotifMessage(e.target.value)}
+                  placeholder="Digite a mensagem da notificação..."
+                  className="min-h-[120px] bg-zinc-800 border-zinc-700 text-white"
+                />
               </div>
             </div>
-          )}
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => setEditModal(null)} className="text-zinc-400 hover:text-white">
-              <X className="h-4 w-4 mr-1.5" />
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSaveEdit}
-              disabled={isSaving}
-              className="bg-amber-500 hover:bg-amber-600 text-black"
-            >
-              <Save className="h-4 w-4 mr-1.5" />
-              {isSaving ? "Salvando..." : "Salvar Alterações"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ============================================ */}
-      {/* MODAL: Enviar Notificação Manual */}
-      {/* ============================================ */}
-      <Dialog open={!!notifDialog} onOpenChange={(open) => !open && setNotifDialog(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-amber-400" />
-              Enviar Notificação
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Enviar notificação para <span className="text-white font-medium">{notifDialog?.tenantName}</span>.
-              O lojista verá essa notificação no painel dele.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            {/* Tipo */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Tipo</label>
-              <Select value={notifType} onValueChange={(v) => setNotifType(v as typeof notifType)}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-800">
-                  <SelectItem value="billing">Cobrança</SelectItem>
-                  <SelectItem value="system">Sistema</SelectItem>
-                  <SelectItem value="info">Informação</SelectItem>
-                  <SelectItem value="warning">Aviso</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Título */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Título</label>
-              <Input
-                value={notifTitle}
-                onChange={(e) => setNotifTitle(e.target.value)}
-                placeholder="Ex: Lembrete de pagamento"
-                className="bg-zinc-800 border-zinc-700 text-white h-10"
-              />
-            </div>
-
-            {/* Mensagem */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Mensagem</label>
-              <Textarea
-                value={notifMessage}
-                onChange={(e) => setNotifMessage(e.target.value)}
-                placeholder="Digite a mensagem da notificação..."
-                className="min-h-[120px] bg-zinc-800 border-zinc-700 text-white"
-              />
-              <p className="text-xs text-zinc-500">
-                A mensagem foi pré-preenchida com o template salvo. Edite se necessário.
-              </p>
-            </div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => setNotifDialog(null)} className="text-zinc-400 hover:text-white">
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                if (!notifDialog || !notifTitle.trim() || !notifMessage.trim()) {
-                  toast.error("Preencha título e mensagem");
-                  return;
-                }
-                sendNotifMutation.mutate({
-                  tenantId: notifDialog.tenantId,
-                  title: notifTitle,
-                  message: notifMessage,
-                  type: notifType,
-                });
-              }}
-              disabled={sendNotifMutation.isPending}
-              className="bg-amber-500 hover:bg-amber-600 text-black"
-            >
-              <Send className="h-4 w-4 mr-1.5" />
-              {sendNotifMutation.isPending ? "Enviando..." : "Enviar Notificação"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setNotifDialog(null)} className="text-zinc-400 hover:text-white">
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!notifDialog || !notifTitle.trim() || !notifMessage.trim()) {
+                    toast.error("Preencha título e mensagem");
+                    return;
+                  }
+                  sendNotifMutation.mutate({
+                    tenantId: notifDialog.tenantId,
+                    title: notifTitle,
+                    message: notifMessage,
+                    type: notifType,
+                  });
+                }}
+                disabled={sendNotifMutation.isPending}
+                className="bg-amber-500 hover:bg-amber-600 text-black"
+              >
+                <Send className="h-4 w-4 mr-1.5" />
+                {sendNotifMutation.isPending ? "Enviando..." : "Enviar Notificação"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </SuperAdminLayout>
   );
 }
