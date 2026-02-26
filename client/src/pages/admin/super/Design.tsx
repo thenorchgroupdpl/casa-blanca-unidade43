@@ -696,6 +696,7 @@ type LandingDesign = {
     socialBtnLinkUrl?: string;
     socialBtnBtnBgColor?: string;
     socialBtnBtnTextColor?: string;
+    socialBtnShowText?: boolean;
     socialInstagramUrl?: string;
     socialInstagramEnabled?: boolean;
     socialFacebookUrl?: string;
@@ -4405,6 +4406,19 @@ function InfoSection({
         <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
         <ColorRow label="Cor de Fundo do Botão" value={data.socialBtnBtnBgColor} defaultVal="" field="socialBtnBtnBgColor" />
         <ColorRow label="Cor do Texto e Ícone" value={data.socialBtnBtnTextColor} defaultVal="" field="socialBtnBtnTextColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Visibilidade</Label>
+        <div className="flex items-center justify-between py-1">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] text-zinc-300">Exibir texto ao lado do ícone</span>
+            <span className="text-[9px] text-zinc-500 leading-tight">Desative para mostrar apenas o ícone (ideal se você usa vários botões lado a lado para economizar espaço no celular)</span>
+          </div>
+          <Switch
+            checked={data.socialBtnShowText !== false}
+            onCheckedChange={(v) => onChange("socialBtnShowText", v)}
+          />
+        </div>
       </SubPanel>
 
       {/* ===== 6.8 FUNDO DA SEÇÃO E CARDS ===== */}

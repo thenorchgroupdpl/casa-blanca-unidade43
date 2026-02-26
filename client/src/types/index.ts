@@ -398,6 +398,7 @@ export interface InfoStyleOverrides {
   socialBtnLinkUrl?: string;
   socialBtnBtnBgColor?: string;
   socialBtnBtnTextColor?: string;
+  socialBtnShowText?: boolean;
   socialInstagramUrl?: string;
   socialInstagramEnabled?: boolean;
   socialFacebookUrl?: string;

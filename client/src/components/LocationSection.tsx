@@ -489,12 +489,14 @@ export default function LocationSection() {
                       className={cn("w-5 h-5", !s.socialIconColor && "text-lp-highlight")}
                       style={{ color: s.socialIconColor || undefined }}
                     />
-                    <span
-                      className={cn("text-sm hidden sm:inline", !s.socialBtnTextColor && "text-lp-text-muted")}
-                      style={{ color: s.socialBtnTextColor || undefined }}
-                    >
-                      {social.handle}
-                    </span>
+                    {s.socialBtnShowText !== false && (
+                      <span
+                        className={cn("text-sm", !s.socialBtnTextColor && "text-lp-text-muted")}
+                        style={{ color: s.socialBtnTextColor || undefined }}
+                      >
+                        {social.handle}
+                      </span>
+                    )}
                   </a>
                 ))}
               </div>
@@ -521,12 +523,14 @@ export default function LocationSection() {
                   className={cn("w-5 h-5 shrink-0", !s.socialBtnBtnTextColor && "text-lp-highlight")}
                   style={{ color: s.socialBtnBtnTextColor || undefined }}
                 />
-                <span
-                  className={cn("text-sm font-medium", !s.socialBtnBtnTextColor && "text-lp-text")}
-                  style={{ color: s.socialBtnBtnTextColor || undefined }}
-                >
-                  {s.socialBtnLabel}
-                </span>
+                {s.socialBtnShowText !== false && (
+                  <span
+                    className={cn("text-sm font-medium", !s.socialBtnBtnTextColor && "text-lp-text")}
+                    style={{ color: s.socialBtnBtnTextColor || undefined }}
+                  >
+                    {s.socialBtnLabel}
+                  </span>
+                )}
               </a>
             )}
           </motion.div>

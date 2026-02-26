@@ -1086,3 +1086,8 @@
 - [x] Manter compressão otimizada para PRODUCT_CARD e demais presets (maxWidth 800, quality 0.8)
 - [x] Atualizar imagePresets.ts com flags de compressão por preset
 - [x] Atualizar função de processamento no ImageUploader para respeitar presets
+- [x] Remover classes responsivas que ocultam texto do botão social no mobile
+- [x] Adicionar variável social_button_show_text (boolean, default true) ao types e Design.tsx
+- [x] Adicionar Switch/Toggle "Exibir texto ao lado do ícone" na seção 6.7 do Design System
+- [x] Atualizar StoreLanding postMessage + transformTenantData para social_button_show_text
+- [x] Renderização condicional do texto no botão social no LocationSection
