@@ -966,7 +966,7 @@ export default function CatalogPage() {
               <div className="space-y-2">
                 <Label>Imagem do Produto</Label>
                 <ImageUploader
-                  context="product"
+                  presetKey="PRODUCT_CARD"
                   value={productForm.imageUrl || null}
                   onChange={(url) => {
                     setProductForm(prev => ({ ...prev, imageUrl: url }));

@@ -2,6 +2,7 @@ import SuperAdminLayout from "@/components/SuperAdminLayout";
 import React from 'react';
 import { cn } from "@/lib/utils";
 import ImageUploader, { type ImageContext } from "@/components/ImageUploader";
+import { IMAGE_PRESETS, type ImagePresetKey } from "@/lib/imagePresets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1745,6 +1746,7 @@ function ImageUploadField({
   uploading,
   accept = "image/*",
   imageContext = "background",
+  presetKey,
 }: {
   label: string;
   value?: string;
@@ -1754,6 +1756,7 @@ function ImageUploadField({
   uploading: boolean;
   accept?: string;
   imageContext?: ImageContext;
+  presetKey?: ImagePresetKey;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -1774,7 +1777,7 @@ function ImageUploadField({
       <div className="space-y-1.5">
         <Label className="text-[11px] text-zinc-400">{label}</Label>
         <ImageUploader
-          context={imageContext}
+          {...(presetKey ? { presetKey } : { context: imageContext })}
           value={value || null}
           onChange={onChange}
           onRemove={() => onChange("")}
@@ -1992,7 +1995,7 @@ function HomeSection({
               onChange={(url) => onChange("logoUrl", url)}
               onImageUploaderUpload={onImageUploaderUpload}
               uploading={uploading}
-              imageContext="logo"
+              presetKey="LOGO"
             />
             <div className="space-y-1">
               <div className="flex items-center justify-between">
@@ -2272,7 +2275,7 @@ function HomeSection({
           onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
           uploading={uploading}
           accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
-          imageContext="background"
+          presetKey="HERO_BANNER"
         />
 
         {/* Overlay */}
@@ -2621,7 +2624,7 @@ function ProductsSection({
           onChange={(url) => onChange("bgMediaUrl", url)}
           onImageUploaderUpload={onImageUploaderUpload}
           uploading={uploading}
-          imageContext="background"
+          presetKey="SECTION_BG"
         />
 
         <div className="space-y-1">
@@ -3376,12 +3379,12 @@ function AboutSection({
       <SubPanel id="2-3-foto-do-propriet-rio" title="2.3 Foto do Proprietário">
 
         <ImageUploadField
-          label="Imagem"
+          label="Foto do Proprietário"
           value={data.imageUrl}
           onChange={(url) => onChange("imageUrl", url)}
           onImageUploaderUpload={onImageUploaderUpload}
           uploading={uploading}
-          imageContext="background"
+          presetKey="PROFILE_PHOTO"
         />
 
         <div className="space-y-1">
@@ -3599,11 +3602,12 @@ function AboutSection({
         <ImageUploadField
           label={data.bgMediaType === "video" ? "Vídeo de Fundo" : "Imagem de Fundo"}
           value={data.bgMediaUrl}
-          onChange={(url) => onChange("bgMediaUrl", url)}          onUpload={data.bgMediaType === "video" ? onDirectUpload : undefined}
+          onChange={(url) => onChange("bgMediaUrl", url)}
+          onUpload={data.bgMediaType === "video" ? onDirectUpload : undefined}
           onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
           uploading={uploading}
           accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
-          imageContext="background"
+          presetKey="SECTION_BG"
         />
 
         <div className="space-y-1">
@@ -3915,7 +3919,7 @@ function ReviewsSection({
               onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
               uploading={uploading}
               accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
-              imageContext="background"
+              presetKey="SECTION_BG"
             />
 
             <div className="space-y-1">
@@ -4091,7 +4095,7 @@ function InfoSection({
           onChange={(url) => onChange("mapImageUrl", url)}
           onImageUploaderUpload={onImageUploaderUpload}
           uploading={uploading}
-          imageContext="background"
+          presetKey="LOCATION_COVER"
         />
 
         {data.mapImageUrl && (
@@ -4317,7 +4321,7 @@ function InfoSection({
           onImageUploaderUpload={data.bgMediaType === "video" ? undefined : onImageUploaderUpload}
           uploading={uploading}
           accept={data.bgMediaType === "video" ? "video/*" : "image/*"}
-          imageContext="background"
+          presetKey="SECTION_BG"
         />
 
         {data.bgMediaUrl && (

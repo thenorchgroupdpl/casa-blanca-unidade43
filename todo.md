@@ -1048,3 +1048,13 @@
 - [x] Adicionar ColorRow "Ícone Sacola" no cabeçalho da sub-aba Sacola Cardápio (seção 3.5)
 - [x] Mapear headerIconColor no StoreLanding.tsx (postMessage + transformTenantData)
 - [x] Aplicar headerIconColor via inline style no ícone da sacola no CartDrawer.tsx
+## Fase 85: Refatoração Sistema de Upload — Arquitetura de Presets de Imagem
+- [ ] Auditar componentes de upload/crop atuais e todas as chamadas no Design.tsx
+- [x] Criar arquivo de constantes IMAGE_PRESETS com configurações por tipo de imagem
+- [ ] Refatorar ImageCropEditor para aceitar preset dinâmico (aspectRatio, maxOutputWidth, previewStyle, helperText)
+- [ ] Atualizar chamadas de upload na seção Hero para usar preset HERO_BANNER (16:9)
+- [ ] Atualizar chamadas de upload na seção Sobre Nós para usar preset PROFILE_PHOTO (1:1 circular)
+- [ ] Atualizar chamadas de upload na seção Informações para usar preset INFO_BG (16:9)
+- [ ] Atualizar chamadas de upload de Logo para usar preset LOGO (1:1)
+- [ ] Adaptar modal do cropper com máscara visual dinâmica (circular para perfil, retangular para banner)
+- [ ] Verificar TypeScript, rodar testes e salvar checkpoint

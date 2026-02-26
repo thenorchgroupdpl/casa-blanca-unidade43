@@ -1,20 +1,23 @@
 /**
- * ImageUploader - Componente Global de Upload e Crop
- * 
- * Features:
- * - Dropzone com drag & drop
- * - Cropper com aspect ratio locking (1:1, 16:9, presets para logo)
- * - Preview contextual (Header para logo, Card para produto, Seção para backgrounds)
- * - Pipeline: crop no frontend → base64 → backend sharp (resize + webp) → S3
- * 
- * Usage contexts:
- * - "product" → 1:1 (800x800), preview = card de produto
- * - "logo"   → presets (3:1, 4:1, 1:1), preview = header do site
- * - "background" → 16:9, preview = seção com título
- * - "profile" → 1:1, preview = avatar circular
+ * ImageUploader — Componente Global de Upload e Crop com Presets Dinâmicos
+ *
+ * Arquitetura de Presets:
+ * - Cada chamada recebe um `preset` (ou `presetKey`) que define aspectRatio, maxOutputWidth,
+ *   previewStyle, helperText, circularCrop e outputFormat.
+ * - O modal de crop adapta-se dinamicamente ao preset: proporção travada, máscara visual
+ *   (circular para perfil, retangular para banner), e preview contextual.
+ * - Presets definidos em `@/lib/imagePresets.ts`.
+ *
+ * Contextos suportados (via previewStyle):
+ * - 'banner'        → Hero / fundo de seção full-width
+ * - 'circle-avatar' → Foto de perfil / proprietário (máscara circular)
+ * - 'card'          → Card de produto
+ * - 'header-logo'   → Logotipo no header
+ * - 'section-bg'    → Fundo de seções genéricas
+ * - 'location-cover' → Imagem de capa da localização
  */
 
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import ReactCrop, { type Crop, type PixelCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Button } from "@/components/ui/button";
@@ -38,12 +41,20 @@ import {
   ImagePlus,
   Trash2,
 } from "lucide-react";
+import {
+  IMAGE_PRESETS,
+  type ImagePreset,
+  type ImagePresetKey,
+  type PreviewStyle,
+  type AspectOption,
+} from "@/lib/imagePresets";
+
+// Re-export for backward compatibility
+export type ImageContext = "product" | "logo" | "background" | "profile";
 
 // ============================================
 // TYPES
 // ============================================
-
-export type ImageContext = "product" | "logo" | "background" | "profile";
 
 export type ImageUploaderProps = {
   /** Current image URL (for edit mode) */
@@ -52,8 +63,12 @@ export type ImageUploaderProps = {
   onChange: (url: string) => void;
   /** Called when image is removed */
   onRemove?: () => void;
-  /** The context determines aspect ratio and preview style */
-  context: ImageContext;
+  /** The preset key determines aspect ratio, preview style, and output settings */
+  presetKey?: ImagePresetKey;
+  /** Direct preset object (overrides presetKey) */
+  preset?: ImagePreset;
+  /** Legacy: context prop for backward compatibility */
+  context?: ImageContext;
   /** Whether the upload is in progress (external control) */
   uploading?: boolean;
   /** Custom upload handler: receives base64 data (without prefix) and returns URL */
@@ -67,34 +82,28 @@ export type ImageUploaderProps = {
 };
 
 // ============================================
-// ASPECT RATIO PRESETS
+// LEGACY CONTEXT → PRESET MAPPING
 // ============================================
 
-type AspectPreset = {
-  label: string;
-  value: number;
-  description: string;
+const CONTEXT_TO_PRESET: Record<ImageContext, ImagePresetKey> = {
+  product: 'PRODUCT_CARD',
+  logo: 'LOGO',
+  background: 'HERO_BANNER',
+  profile: 'PROFILE_PHOTO',
 };
 
-const ASPECT_PRESETS: Record<ImageContext, AspectPreset[]> = {
-  product: [{ label: "1:1", value: 1, description: "Quadrado" }],
-  profile: [{ label: "1:1", value: 1, description: "Quadrado" }],
-  background: [{ label: "16:9", value: 16 / 9, description: "Widescreen" }],
-  logo: [
-    { label: "4:1", value: 4, description: "Horizontal largo" },
-    { label: "3:1", value: 3, description: "Horizontal" },
-    { label: "2:1", value: 2, description: "Horizontal curto" },
-    { label: "1:1", value: 1, description: "Quadrado" },
-  ],
-};
+function resolvePreset(props: Pick<ImageUploaderProps, 'preset' | 'presetKey' | 'context'>): ImagePreset {
+  if (props.preset) return props.preset;
+  if (props.presetKey) return IMAGE_PRESETS[props.presetKey];
+  if (props.context) return IMAGE_PRESETS[CONTEXT_TO_PRESET[props.context]];
+  return IMAGE_PRESETS.HERO_BANNER;
+}
 
 // ============================================
 // IMAGE COMPRESSION (client-side pre-processing)
 // ============================================
 
-const MAX_DIMENSION = 2000;
-
-async function compressImage(file: File): Promise<string> {
+async function compressImage(file: File, maxDimension: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const reader = new FileReader();
@@ -104,8 +113,8 @@ async function compressImage(file: File): Promise<string> {
         const canvas = document.createElement("canvas");
         let { width, height } = img;
 
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-          const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+        if (width > maxDimension || height > maxDimension) {
+          const ratio = Math.min(maxDimension / width, maxDimension / height);
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
@@ -136,14 +145,11 @@ function getCroppedCanvas(
   crop: PixelCrop,
   zoom: number,
   aspectRatio: number,
-  context: ImageContext = 'product'
+  preset: ImagePreset
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
 
-  // Output dimensions based on aspect ratio and context
-  // Background/Hero images: 1920px max for Full HD quality
-  // Other images: 1200px max for standard quality
-  const maxSize = context === 'background' ? 1920 : 1200;
+  const maxSize = preset.maxOutputWidth;
   let outW: number, outH: number;
   if (aspectRatio >= 1) {
     outW = Math.min(maxSize, Math.round(crop.width));
@@ -160,6 +166,14 @@ function getCroppedCanvas(
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.clearRect(0, 0, outW, outH);
+
+  // Apply circular clipping for avatar presets
+  if (preset.circularCrop) {
+    ctx.beginPath();
+    ctx.ellipse(outW / 2, outH / 2, outW / 2, outH / 2, 0, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+  }
 
   const scaleX = image.naturalWidth / (image.width * zoom);
   const scaleY = image.naturalHeight / (image.height * zoom);
@@ -178,7 +192,71 @@ function getCroppedCanvas(
 // CONTEXTUAL PREVIEW COMPONENTS
 // ============================================
 
-function ProductPreview({ previewUrl }: { previewUrl: string | null }) {
+function BannerPreview({ previewUrl }: { previewUrl: string | null }) {
+  return (
+    <div className="w-full">
+      <div className="relative mx-auto w-[180px] rounded-2xl overflow-hidden border-2 border-zinc-600 bg-zinc-900 shadow-xl">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-zinc-700 rounded-b-full z-10" />
+        <div className="relative aspect-[9/16] overflow-hidden">
+          {previewUrl ? (
+            <img src={previewUrl} alt="Background preview" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
+              <ImagePlus className="w-8 h-8 text-zinc-600" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 flex flex-col">
+            <div className="flex items-center justify-between px-3 pt-4 pb-2">
+              <div className="w-14 h-3 bg-white/30 rounded" />
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 bg-white/20 rounded-full" />
+                <div className="w-3 h-3 bg-white/20 rounded-full" />
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center px-4">
+              <div className="w-16 h-2 bg-white/40 rounded mb-2" />
+              <h3 className="text-white text-sm font-bold text-center">Nome da Loja</h3>
+              <p className="text-zinc-300 text-[8px] mt-1 text-center">Subtítulo da loja</p>
+            </div>
+            <div className="px-4 pb-6">
+              <div className="w-full py-2 rounded-full bg-amber-500/80 flex items-center justify-center">
+                <span className="text-[8px] text-black font-bold">Fazer Pedido</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p className="text-[10px] text-zinc-500 text-center mt-2">
+        Simulação do Hero (object-cover)
+      </p>
+    </div>
+  );
+}
+
+function CircleAvatarPreview({ previewUrl }: { previewUrl: string | null }) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-28 h-28 rounded-full overflow-hidden border-3 border-amber-500/40 bg-zinc-800 shadow-lg shadow-amber-500/10">
+        {previewUrl ? (
+          <img src={previewUrl} alt="Profile preview" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImagePlus className="w-8 h-8 text-zinc-600" />
+          </div>
+        )}
+      </div>
+      <div className="text-center">
+        <p className="text-xs text-zinc-300 font-medium">Nome do Proprietário</p>
+        <p className="text-[10px] text-zinc-500">Fundador & Chef</p>
+      </div>
+      <p className="text-[10px] text-zinc-600 text-center">
+        Preview circular — Seção "Sobre Nós"
+      </p>
+    </div>
+  );
+}
+
+function CardPreview({ previewUrl }: { previewUrl: string | null }) {
   return (
     <div className="w-44 bg-zinc-800 rounded-xl overflow-hidden border border-zinc-700 shadow-lg">
       <div className="aspect-square bg-zinc-700 relative overflow-hidden">
@@ -209,7 +287,7 @@ function ProductPreview({ previewUrl }: { previewUrl: string | null }) {
   );
 }
 
-function LogoPreview({ previewUrl }: { previewUrl: string | null }) {
+function HeaderLogoPreview({ previewUrl }: { previewUrl: string | null }) {
   return (
     <div className="w-full max-w-xs">
       <div className="bg-zinc-800/80 backdrop-blur-sm border border-zinc-700 rounded-xl px-4 py-3 flex items-center justify-between">
@@ -241,90 +319,66 @@ function LogoPreview({ previewUrl }: { previewUrl: string | null }) {
   );
 }
 
-function BackgroundPreview({ previewUrl }: { previewUrl: string | null }) {
+function SectionBgPreview({ previewUrl }: { previewUrl: string | null }) {
   return (
     <div className="w-full">
-      {/* Simula tela de celular para mostrar como a imagem preencherá a seção */}
-      <div className="relative mx-auto w-[180px] rounded-2xl overflow-hidden border-2 border-zinc-600 bg-zinc-900 shadow-xl">
-        {/* Notch simulado */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-zinc-700 rounded-b-full z-10" />
-        
-        {/* Tela do celular - Hero section */}
-        <div className="relative aspect-[9/16] overflow-hidden">
-          {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="Background preview"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
-              <ImagePlus className="w-8 h-8 text-zinc-600" />
-            </div>
-          )}
-          {/* Overlay com elementos simulados */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 flex flex-col">
-            {/* Header simulado */}
-            <div className="flex items-center justify-between px-3 pt-4 pb-2">
-              <div className="w-14 h-3 bg-white/30 rounded" />
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 bg-white/20 rounded-full" />
-                <div className="w-3 h-3 bg-white/20 rounded-full" />
-              </div>
-            </div>
-            {/* Conteúdo central */}
-            <div className="flex-1 flex flex-col items-center justify-center px-4">
-              <div className="w-16 h-2 bg-white/40 rounded mb-2" />
-              <h3 className="text-white text-sm font-bold text-center">Nome da Loja</h3>
-              <p className="text-zinc-300 text-[8px] mt-1 text-center">Subtítulo da loja</p>
-              <div className="flex gap-2 mt-3">
-                <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
-                  <span className="text-[7px] text-white">Localização</span>
-                </div>
-                <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
-                  <span className="text-[7px] text-white">Horários</span>
-                </div>
-              </div>
-            </div>
-            {/* CTA simulado */}
-            <div className="px-4 pb-6">
-              <div className="w-full py-2 rounded-full bg-amber-500/80 flex items-center justify-center">
-                <span className="text-[8px] text-black font-bold">Fazer Pedido</span>
-              </div>
-            </div>
+      <div className="relative rounded-xl overflow-hidden border border-zinc-700 aspect-video bg-zinc-800">
+        {previewUrl ? (
+          <img src={previewUrl} alt="Section bg preview" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImagePlus className="w-8 h-8 text-zinc-600" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-20 h-2 bg-white/40 rounded mx-auto mb-2" />
+            <div className="w-32 h-1.5 bg-white/20 rounded mx-auto" />
           </div>
         </div>
       </div>
       <p className="text-[10px] text-zinc-500 text-center mt-2">
-        Simulação de como a imagem preencherá a tela (object-cover)
+        Preview da seção com overlay
       </p>
     </div>
   );
 }
 
-function ProfilePreview({ previewUrl }: { previewUrl: string | null }) {
+function LocationCoverPreview({ previewUrl }: { previewUrl: string | null }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800">
+    <div className="w-full">
+      <div className="relative rounded-xl overflow-hidden border border-zinc-700 aspect-video bg-zinc-800">
         {previewUrl ? (
-          <img src={previewUrl} alt="Profile preview" className="w-full h-full object-cover" />
+          <img src={previewUrl} alt="Location preview" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ImagePlus className="w-6 h-6 text-zinc-600" />
+            <ImagePlus className="w-8 h-8 text-zinc-600" />
           </div>
         )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-amber-500/60" />
+            <div>
+              <div className="w-20 h-1.5 bg-white/50 rounded mb-1" />
+              <div className="w-28 h-1 bg-white/30 rounded" />
+            </div>
+          </div>
+        </div>
       </div>
-      <p className="text-xs text-zinc-400">Nome do Usuário</p>
-      <p className="text-[10px] text-zinc-600">Simulação de avatar</p>
+      <p className="text-[10px] text-zinc-500 text-center mt-2">
+        Preview — Fachada / Local
+      </p>
     </div>
   );
 }
 
-const PREVIEW_COMPONENTS: Record<ImageContext, React.FC<{ previewUrl: string | null }>> = {
-  product: ProductPreview,
-  logo: LogoPreview,
-  background: BackgroundPreview,
-  profile: ProfilePreview,
+const PREVIEW_COMPONENTS: Record<PreviewStyle, React.FC<{ previewUrl: string | null }>> = {
+  'banner': BannerPreview,
+  'circle-avatar': CircleAvatarPreview,
+  'card': CardPreview,
+  'header-logo': HeaderLogoPreview,
+  'section-bg': SectionBgPreview,
+  'location-cover': LocationCoverPreview,
 };
 
 // ============================================
@@ -335,6 +389,8 @@ export default function ImageUploader({
   value,
   onChange,
   onRemove,
+  presetKey,
+  preset: presetProp,
   context,
   uploading: externalUploading = false,
   onUpload,
@@ -342,6 +398,9 @@ export default function ImageUploader({
   disabled = false,
   className = "",
 }: ImageUploaderProps) {
+  // Resolve the active preset
+  const activePreset = resolvePreset({ preset: presetProp, presetKey, context });
+
   // Dropzone state
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -358,10 +417,15 @@ export default function ImageUploader({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Aspect ratio state (for logo presets)
-  const presets = ASPECT_PRESETS[context];
+  // Aspect ratio state (for presets with multiple options)
+  const aspectPresets = activePreset.aspectPresets;
   const [selectedPresetIdx, setSelectedPresetIdx] = useState(0);
-  const currentAspect = presets[selectedPresetIdx]?.value ?? 1;
+  const currentAspect = aspectPresets[selectedPresetIdx]?.value ?? activePreset.aspectRatio;
+
+  // Reset preset index when preset changes
+  useEffect(() => {
+    setSelectedPresetIdx(0);
+  }, [activePreset]);
 
   // Reset crop when aspect ratio changes
   useEffect(() => {
@@ -378,7 +442,6 @@ export default function ImageUploader({
       cropW = cropH * aspect;
     }
 
-    // Ensure crop fits within image
     cropW = Math.min(cropW, width);
     cropH = Math.min(cropH, height);
 
@@ -396,7 +459,7 @@ export default function ImageUploader({
 
     const rafId = requestAnimationFrame(() => {
       try {
-        const canvas = getCroppedCanvas(imgRef.current!, completedCrop, zoom, currentAspect, context);
+        const canvas = getCroppedCanvas(imgRef.current!, completedCrop, zoom, currentAspect, activePreset);
         setPreviewUrl(canvas.toDataURL("image/png"));
       } catch {
         // Ignore preview errors
@@ -404,17 +467,13 @@ export default function ImageUploader({
     });
 
     return () => cancelAnimationFrame(rafId);
-  }, [completedCrop, zoom, currentAspect]);
+  }, [completedCrop, zoom, currentAspect, activePreset]);
 
   // ---- File handling ----
 
   const processFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      return;
-    }
-    if (file.size > 15 * 1024 * 1024) {
-      return;
-    }
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 15 * 1024 * 1024) return;
 
     setOriginalFileName(file.name);
     setIsCompressing(true);
@@ -425,11 +484,11 @@ export default function ImageUploader({
     setPreviewUrl(null);
 
     try {
-      const dataUrl = await compressImage(file);
+      const maxDim = activePreset.maxOutputWidth > 1200 ? 2500 : 2000;
+      const dataUrl = await compressImage(file, maxDim);
       setImageSrc(dataUrl);
       setCropperOpen(true);
     } catch {
-      // Fallback: read directly
       const reader = new FileReader();
       reader.onload = () => {
         setImageSrc(reader.result as string);
@@ -439,7 +498,7 @@ export default function ImageUploader({
     } finally {
       setIsCompressing(false);
     }
-  }, []);
+  }, [activePreset]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -457,7 +516,6 @@ export default function ImageUploader({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) processFile(file);
-      // Reset input so same file can be re-selected
       e.target.value = "";
     },
     [processFile]
@@ -502,15 +560,13 @@ export default function ImageUploader({
 
     setIsProcessing(true);
     try {
-      // For background/hero: export at higher quality (90% webp)
-      const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom, currentAspect, context);
-      const isHighRes = context === 'background';
-      const base64Full = isHighRes
-        ? canvas.toDataURL("image/webp", 0.92)
+      const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom, currentAspect, activePreset);
+      const isWebp = activePreset.outputFormat === 'webp';
+      const base64Full = isWebp
+        ? canvas.toDataURL("image/webp", activePreset.quality)
         : canvas.toDataURL("image/png");
       const base64Data = base64Full.split(",")[1];
 
-      // Call the external upload handler
       const url = await onUpload(base64Data, originalFileName);
       onChange(url);
       setCropperOpen(false);
@@ -521,7 +577,7 @@ export default function ImageUploader({
     } finally {
       setIsProcessing(false);
     }
-  }, [completedCrop, zoom, currentAspect, onUpload, onChange, originalFileName]);
+  }, [completedCrop, zoom, currentAspect, activePreset, onUpload, onChange, originalFileName]);
 
   const handleCloseCropper = useCallback(() => {
     setCropperOpen(false);
@@ -537,8 +593,10 @@ export default function ImageUploader({
     if (imgRef.current) {
       const { width, height } = imgRef.current;
       const aspect = currentAspect;
-      let cropW = Math.min(width, height * aspect) * 0.8;
-      let cropH = cropW / aspect;
+      let cropW = aspect >= 1
+        ? Math.min(width, height * aspect) * 0.8
+        : Math.min(height, width / aspect) * 0.8 * aspect;
+      let cropH = aspect >= 1 ? cropW / aspect : cropW / aspect;
       cropW = Math.min(cropW, width);
       cropH = Math.min(cropH, height);
       const x = (width - cropW) / 2;
@@ -552,24 +610,19 @@ export default function ImageUploader({
   }, [onRemove]);
 
   // ---- Preview component ----
-  const PreviewComponent = PREVIEW_COMPONENTS[context];
+  const PreviewComponent = PREVIEW_COMPONENTS[activePreset.previewStyle] || SectionBgPreview;
 
   // ---- Placeholder text ----
-  const placeholderText = placeholder || {
-    product: "Arraste a foto do produto ou clique para selecionar",
-    logo: "Arraste o logotipo ou clique para selecionar",
-    background: "Arraste a imagem de fundo ou clique para selecionar",
-    profile: "Arraste a foto de perfil ou clique para selecionar",
-  }[context];
-
-  const subtitleText = {
-    product: "Será recortada em 1:1 e convertida para WebP",
-    logo: "Escolha entre horizontal ou quadrado no editor",
-    background: "Será recortada em 16:9 e convertida para WebP",
-    profile: "Será recortada em 1:1 e convertida para WebP",
-  }[context];
+  const placeholderText = placeholder || activePreset.helperText;
 
   const isUploading = externalUploading || isCompressing;
+
+  // ---- Determine preview column width based on style ----
+  const previewWidth = activePreset.previewStyle === 'banner' || activePreset.previewStyle === 'section-bg' || activePreset.previewStyle === 'location-cover'
+    ? 'w-56'
+    : activePreset.previewStyle === 'header-logo'
+      ? 'w-56'
+      : 'w-48';
 
   return (
     <>
@@ -617,7 +670,11 @@ export default function ImageUploader({
               src={value}
               alt="Imagem atual"
               className={`mx-auto object-contain rounded-lg ${
-                context === "background" ? "max-h-32 w-full object-cover" : "max-h-40"
+                activePreset.previewStyle === 'banner' || activePreset.previewStyle === 'section-bg' || activePreset.previewStyle === 'location-cover'
+                  ? "max-h-32 w-full object-cover"
+                  : activePreset.previewStyle === 'circle-avatar'
+                    ? "max-h-32 rounded-full"
+                    : "max-h-40"
               }`}
             />
             <div className="absolute top-1 right-1 flex gap-1">
@@ -641,7 +698,10 @@ export default function ImageUploader({
           <div className="flex flex-col items-center gap-2 py-6">
             <Upload className="w-8 h-8 text-zinc-500" />
             <p className="text-sm text-zinc-400">{placeholderText}</p>
-            <p className="text-[10px] text-zinc-600">{subtitleText}</p>
+            <p className="text-[10px] text-zinc-600">
+              {activePreset.outputFormat === 'webp' ? 'Será convertida para WebP' : 'Será exportada como PNG'}
+              {' · '}Max {activePreset.maxOutputWidth}px
+            </p>
           </div>
         )}
       </div>
@@ -654,20 +714,20 @@ export default function ImageUploader({
               Editar Imagem
             </DialogTitle>
             <DialogDescription className="text-zinc-400 text-sm">
-              Ajuste o recorte e zoom. A imagem será convertida para WebP automaticamente.
+              {activePreset.helperText}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Aspect Ratio Presets (only for logo) */}
-          {presets.length > 1 && (
+          {/* Aspect Ratio Presets (only when multiple options) */}
+          {aspectPresets.length > 1 && (
             <div className="px-5 pb-3">
               <p className="text-[11px] text-zinc-500 uppercase tracking-wider mb-2">
                 Proporção do Corte
               </p>
               <div className="flex gap-2 flex-wrap">
-                {presets.map((preset, idx) => (
+                {aspectPresets.map((ap: AspectOption, idx: number) => (
                   <button
-                    key={preset.label}
+                    key={ap.label}
                     onClick={() => setSelectedPresetIdx(idx)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ${
                       selectedPresetIdx === idx
@@ -675,9 +735,9 @@ export default function ImageUploader({
                         : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300 border border-zinc-700"
                     }`}
                   >
-                    <span className="font-mono font-bold">{preset.label}</span>
+                    <span className="font-mono font-bold">{ap.label}</span>
                     <span className="text-zinc-500">·</span>
-                    <span>{preset.description}</span>
+                    <span>{ap.description}</span>
                   </button>
                 ))}
               </div>
@@ -702,6 +762,7 @@ export default function ImageUploader({
                     onChange={(c) => setCrop(c)}
                     onComplete={(c) => setCompletedCrop(c)}
                     aspect={currentAspect}
+                    circularCrop={activePreset.circularCrop}
                     className="max-h-[360px]"
                   >
                     <img
@@ -723,7 +784,7 @@ export default function ImageUploader({
             </div>
 
             {/* Right: Contextual Preview */}
-            <div className={`${context === 'background' ? 'w-56' : 'w-48'} shrink-0 flex flex-col items-center gap-3`}>
+            <div className={`${previewWidth} shrink-0 flex flex-col items-center gap-3`}>
               <span className="text-[11px] text-zinc-500 uppercase tracking-wider">
                 Preview
               </span>

@@ -459,7 +459,7 @@ export default function StoreDataPage() {
                           handleChange("attendantPhoto", url);
                         }}
                         onRemove={() => handleChange("attendantPhoto", "")}
-                        context="profile"
+                        presetKey="PROFILE_PHOTO"
                         onUpload={handleImageUpload}
                         placeholder="Foto do atendente (quadrada)"
                       />
