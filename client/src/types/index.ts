@@ -384,6 +384,12 @@ export interface InfoStyleOverrides {
   hoursLinkFontSize?: number;
   hoursLinkFontWeight?: string;
   hoursLinkUrl?: string;
+  // 6.5 Hours - Modal (OUT)
+  scheduleModalBg?: string;
+  scheduleModalTitleColor?: string;
+  scheduleModalTextColor?: string;
+  scheduleModalStatusColor?: string;
+  scheduleModalHighlightBg?: string;
   // 6.6 Social
   socialBtnBgColor?: string;
   socialIconColor?: string;

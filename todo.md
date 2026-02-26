@@ -1065,3 +1065,8 @@
 - [x] Atualizar Design.tsx InfoSection com ColorRows separados
 - [x] Atualizar StoreLanding postMessage + transformTenantData
 - [x] Atualizar LocationSection/InfoCard para aplicar cores separadas e botão social
+- [x] Dividir seção 6.5 em sub-abas HORÁRIOS IN (card) e HORÁRIOS OUT (modal)
+- [x] Criar variáveis schedule_modal_* no types/index.ts e Design.tsx
+- [x] Adicionar ColorPickers para modal: bg, titleColor, textColor, statusColor, highlightBg
+- [x] Atualizar StoreLanding postMessage + transformTenantData para schedule_modal_*
+- [x] Aplicar inline styles no ScheduleModal com novas variáveis

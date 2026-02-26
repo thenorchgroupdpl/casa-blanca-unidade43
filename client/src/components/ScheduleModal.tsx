@@ -1,7 +1,7 @@
 /**
  * Schedule Modal - Casa Blanca
  * Design: Warm Luxury - Business hours table
- * Features: Full week schedule, current day highlight
+ * Features: Full week schedule, current day highlight, customizable via info_style
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +17,14 @@ export default function ScheduleModal() {
 
   const currentDay = new Date().getDay();
   const isOpen = isRestaurantOpen(data.business_hours);
+
+  // Schedule modal style overrides from info_style
+  const s = data.info_style || {};
+  const modalBg = s.scheduleModalBg;
+  const titleColor = s.scheduleModalTitleColor;
+  const textColor = s.scheduleModalTextColor;
+  const statusColor = s.scheduleModalStatusColor;
+  const highlightBg = s.scheduleModalHighlightBg;
 
   return (
     <AnimatePresence>
@@ -39,11 +47,21 @@ export default function ScheduleModal() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 mx-auto max-w-md"
           >
-            <div className="relative bg-lp-surface rounded-3xl p-6 border border-lp-border shadow-2xl">
+            <div
+              className={cn(
+                "relative rounded-3xl p-6 border shadow-2xl",
+                !modalBg && "bg-lp-surface border-lp-border"
+              )}
+              style={modalBg ? { backgroundColor: modalBg, borderColor: 'transparent' } : undefined}
+            >
               {/* Close Button */}
               <button
                 onClick={closeScheduleModal}
-                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
+                className={cn(
+                  "absolute top-4 right-4 p-2 transition-colors",
+                  !titleColor && "text-muted-foreground hover:text-foreground"
+                )}
+                style={{ color: titleColor || undefined }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -51,16 +69,25 @@ export default function ScheduleModal() {
               {/* Header */}
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 rounded-xl bg-lp-highlight-soft">
-                  <Clock className="w-6 h-6 text-lp-highlight" />
+                  <Clock
+                    className={cn("w-6 h-6", !titleColor && "text-lp-highlight")}
+                    style={{ color: titleColor || undefined }}
+                  />
                 </div>
                 <div>
-                  <h3 className="font-display text-xl text-lp-text">
+                  <h3
+                    className={cn("font-display text-xl", !titleColor && "text-lp-text")}
+                    style={{ color: titleColor || undefined }}
+                  >
                     Horário de Funcionamento
                   </h3>
-                  <p className={cn(
-                    'text-sm font-medium',
-                    isOpen ? 'text-green-500' : 'text-red-500'
-                  )}>
+                  <p
+                    className={cn(
+                      'text-sm font-medium',
+                      !statusColor && (isOpen ? 'text-green-500' : 'text-red-500')
+                    )}
+                    style={{ color: statusColor || undefined }}
+                  >
                     {isOpen ? 'Aberto agora' : 'Fechado agora'}
                   </p>
                 </div>
@@ -76,24 +103,43 @@ export default function ScheduleModal() {
                       key={day.day}
                       className={cn(
                         'flex justify-between items-center py-3 px-4 rounded-xl transition-colors',
-                        isToday ? 'bg-lp-highlight-soft border border-lp-highlight-border' : 'hover:bg-lp-surface-soft'
+                        isToday
+                          ? (!highlightBg && 'bg-lp-highlight-soft border border-lp-highlight-border')
+                          : 'hover:bg-lp-surface-soft'
                       )}
+                      style={isToday && highlightBg ? { backgroundColor: highlightBg } : undefined}
                     >
-                      <span className={cn(
-                        'font-medium',
-                        isToday ? 'text-lp-highlight' : 'text-lp-text'
-                      )}>
+                      <span
+                        className={cn(
+                          'font-medium',
+                          !textColor && (isToday ? 'text-lp-highlight' : 'text-lp-text')
+                        )}
+                        style={{ color: textColor || undefined }}
+                      >
                         {day.day}
                         {isToday && (
-                          <span className="ml-2 text-xs text-lp-highlight/70">(Hoje)</span>
+                          <span
+                            className={cn("ml-2 text-xs", !textColor && "text-lp-highlight/70")}
+                            style={{ color: textColor ? `${textColor}b3` : undefined }}
+                          >
+                            (Hoje)
+                          </span>
                         )}
                       </span>
-                      <span className={cn(
-                        'text-right',
-                        isToday ? 'text-lp-highlight' : 'text-lp-text-muted'
-                      )}>
+                      <span
+                        className={cn(
+                          'text-right',
+                          !textColor && (isToday ? 'text-lp-highlight' : 'text-lp-text-muted')
+                        )}
+                        style={{ color: textColor || undefined }}
+                      >
                         {day.closed ? (
-                          <span className="text-red-500/70">Fechado</span>
+                          <span
+                            className={cn(!statusColor && "text-red-500/70")}
+                            style={{ color: statusColor || undefined }}
+                          >
+                            Fechado
+                          </span>
                         ) : (
                           <span className="flex flex-col items-end">
                             <span>{day.open} - {day.close}</span>
@@ -112,9 +158,10 @@ export default function ScheduleModal() {
               <button
                 onClick={closeScheduleModal}
                 className={cn(
-                  'w-full mt-6 py-3 rounded-xl font-medium',
-                  'bg-lp-surface-soft hover:bg-lp-border text-lp-text transition-colors'
+                  'w-full mt-6 py-3 rounded-xl font-medium transition-colors',
+                  !titleColor && 'bg-lp-surface-soft hover:bg-lp-border text-lp-text'
                 )}
+                style={{ color: titleColor || undefined }}
               >
                 Fechar
               </button>

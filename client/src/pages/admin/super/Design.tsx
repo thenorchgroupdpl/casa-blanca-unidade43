@@ -682,6 +682,12 @@ type LandingDesign = {
     hoursLinkFontSize?: number;
     hoursLinkFontWeight?: string;
     hoursLinkUrl?: string;
+    // 6.5 Horários - Modal (OUT)
+    scheduleModalBg?: string;
+    scheduleModalTitleColor?: string;
+    scheduleModalTextColor?: string;
+    scheduleModalStatusColor?: string;
+    scheduleModalHighlightBg?: string;
     // 6.6 Redes Sociais
     socialBtnBgColor?: string;
     socialIconColor?: string;
@@ -3970,6 +3976,8 @@ function InfoSection({
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
+  const [activeHoursTab, setActiveHoursTab] = useState<'in' | 'out'>('in');
+
   // Reusable color picker row
   const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
     <div>
@@ -4203,29 +4211,85 @@ function InfoSection({
       </SubPanel>
 
       {/* ===== 6.5 CARD DE HORÁRIO ===== */}
-      <SubPanel id="6-5-card-de-hor-rio-de-funcion" title="6.5 Card de Horário de Funcionamento">
+      <SubPanel id="6-5-card-de-hor-rio-de-funcion" title="6.5 Horário de Funcionamento">
+        <p className="text-[9px] text-zinc-600 mb-3">Personalize o card da página e o modal completo. Cada aba controla uma visualização independente.</p>
 
-        <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <ColorRow label="Cor do Ícone" value={data.hoursIconColor} defaultVal="" field="hoursIconColor" />
-          <ColorRow label="Fundo do Ícone" value={data.hoursIconBgColor} defaultVal="" field="hoursIconBgColor" />
+        {/* Sub-tab switcher */}
+        <div className="flex gap-1 p-1 rounded-lg bg-zinc-900/60 border border-zinc-800 mb-4">
+          <button
+            onClick={() => setActiveHoursTab('in')}
+            className={cn(
+              'flex-1 py-1.5 px-3 rounded-md text-[10px] font-medium transition-colors',
+              activeHoursTab === 'in'
+                ? 'bg-amber-600/20 text-amber-400 border border-amber-600/30'
+                : 'text-zinc-500 hover:text-zinc-300'
+            )}
+          >
+            Horários IN (Card)
+          </button>
+          <button
+            onClick={() => setActiveHoursTab('out')}
+            className={cn(
+              'flex-1 py-1.5 px-3 rounded-md text-[10px] font-medium transition-colors',
+              activeHoursTab === 'out'
+                ? 'bg-amber-600/20 text-amber-400 border border-amber-600/30'
+                : 'text-zinc-500 hover:text-zinc-300'
+            )}
+          >
+            Horários OUT (Modal)
+          </button>
         </div>
 
-        <Separator className="bg-zinc-800" />
-        <Label className="text-[10px] text-zinc-400 font-medium">Link &lsquo;Ver horário completo&rsquo;</Label>
-        <Input
-          value={data.hoursLinkUrl || ""}
-          onChange={(e) => onChange("hoursLinkUrl", e.target.value)}
-          placeholder="URL ou âncora (ex: #horarios)"
-          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
-        />
-        <TypoBlock fontField="hoursLinkFont" sizeField="hoursLinkFontSize" weightField="hoursLinkFontWeight" defaultSize={14} defaultWeight="600" minSize={10} maxSize={24} />
-        <ColorRow label="Cor do Link" value={data.hoursLinkColor} defaultVal="" field="hoursLinkColor" />
+        {/* HORÁRIOS IN - Card da Página */}
+        {activeHoursTab === 'in' && (
+          <div className="space-y-3">
+            <Label className="text-[10px] text-zinc-400 font-medium">Ícone</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <ColorRow label="Cor do Ícone" value={data.hoursIconColor} defaultVal="" field="hoursIconColor" />
+              <ColorRow label="Fundo do Ícone" value={data.hoursIconBgColor} defaultVal="" field="hoursIconBgColor" />
+            </div>
 
-        <Separator className="bg-zinc-800" />
-        <Label className="text-[10px] text-zinc-400 font-medium">Cores do Card</Label>
-        <ColorRow label="Cor do Título ('Horário de Func.')" value={data.hoursTitleColor} defaultVal="" field="hoursTitleColor" />
-        <ColorRow label="Cor do Conteúdo (dias/horas)" value={data.hoursContentColor} defaultVal="" field="hoursContentColor" />
+            <Separator className="bg-zinc-800" />
+            <Label className="text-[10px] text-zinc-400 font-medium">Link &lsquo;Ver horário completo&rsquo;</Label>
+            <Input
+              value={data.hoursLinkUrl || ""}
+              onChange={(e) => onChange("hoursLinkUrl", e.target.value)}
+              placeholder="URL ou âncora (ex: #horarios)"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+            />
+            <TypoBlock fontField="hoursLinkFont" sizeField="hoursLinkFontSize" weightField="hoursLinkFontWeight" defaultSize={14} defaultWeight="600" minSize={10} maxSize={24} />
+            <ColorRow label="Cor do Link" value={data.hoursLinkColor} defaultVal="" field="hoursLinkColor" />
+
+            <Separator className="bg-zinc-800" />
+            <Label className="text-[10px] text-zinc-400 font-medium">Cores do Card</Label>
+            <ColorRow label="Cor do Título ('Horário de Func.')" value={data.hoursTitleColor} defaultVal="" field="hoursTitleColor" />
+            <ColorRow label="Cor do Conteúdo (dias/horas)" value={data.hoursContentColor} defaultVal="" field="hoursContentColor" />
+          </div>
+        )}
+
+        {/* HORÁRIOS OUT - Modal Completo */}
+        {activeHoursTab === 'out' && (
+          <div className="space-y-3">
+            <Label className="text-[10px] text-zinc-400 font-medium">Fundo do Modal</Label>
+            <ColorRow label="Cor de Fundo" value={data.scheduleModalBg} defaultVal="" field="scheduleModalBg" />
+
+            <Separator className="bg-zinc-800" />
+            <Label className="text-[10px] text-zinc-400 font-medium">Título e Ícones</Label>
+            <ColorRow label="Cor do Título e Botões (X, Fechar)" value={data.scheduleModalTitleColor} defaultVal="" field="scheduleModalTitleColor" />
+
+            <Separator className="bg-zinc-800" />
+            <Label className="text-[10px] text-zinc-400 font-medium">Texto dos Horários</Label>
+            <ColorRow label="Cor do Texto (Dias e Horas)" value={data.scheduleModalTextColor} defaultVal="" field="scheduleModalTextColor" />
+
+            <Separator className="bg-zinc-800" />
+            <Label className="text-[10px] text-zinc-400 font-medium">Status</Label>
+            <ColorRow label="Cor do Status (Aberto/Fechado)" value={data.scheduleModalStatusColor} defaultVal="" field="scheduleModalStatusColor" />
+
+            <Separator className="bg-zinc-800" />
+            <Label className="text-[10px] text-zinc-400 font-medium">Destaque do Dia Atual</Label>
+            <ColorRow label="Fundo do Dia Atual" value={data.scheduleModalHighlightBg} defaultVal="" field="scheduleModalHighlightBg" />
+          </div>
+        )}
       </SubPanel>
 
       {/* ===== 6.6 BOTÕES DE REDES SOCIAIS ===== */}
