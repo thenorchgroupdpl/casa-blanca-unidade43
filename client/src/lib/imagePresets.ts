@@ -37,6 +37,12 @@ export type ImagePreset = {
   circularCrop: boolean;
   /** Formato de saída preferido */
   outputFormat: 'png' | 'webp';
+  /**
+   * Se true, preserva as dimensões originais do crop (sem redimensionamento).
+   * Usado para imagens institucionais (Hero, Foto do Proprietário) que exigem
+   * qualidade máxima. O maxOutputWidth é ignorado quando true.
+   */
+  preserveOriginalSize: boolean;
 };
 
 export const IMAGE_PRESETS = {
@@ -52,11 +58,12 @@ export const IMAGE_PRESETS = {
       { label: '21:9', value: 21 / 9, description: 'Ultra-wide' },
     ],
     maxOutputWidth: 1920,
-    quality: 0.92,
+    quality: 1.0,
     previewStyle: 'banner' as PreviewStyle,
     helperText: 'Recomendado: 1920×1080px (Horizontal, alta resolução)',
     circularCrop: false,
     outputFormat: 'webp' as const,
+    preserveOriginalSize: true,
   },
 
   /**
@@ -69,11 +76,12 @@ export const IMAGE_PRESETS = {
       { label: '1:1', value: 1, description: 'Quadrado' },
     ],
     maxOutputWidth: 800,
-    quality: 0.85,
+    quality: 1.0,
     previewStyle: 'square-profile' as PreviewStyle,
-    helperText: 'Recomendado: Imagem quadrada (ex: 800×800px)',
+    helperText: 'Recomendado: Imagem quadrada (ex: 800×800px) — Qualidade máxima',
     circularCrop: false,
     outputFormat: 'png' as const,
+    preserveOriginalSize: true,
   },
 
   /**
@@ -94,6 +102,7 @@ export const IMAGE_PRESETS = {
     helperText: 'Recomendado: Logo horizontal (ex: 400×100px) ou quadrada',
     circularCrop: false,
     outputFormat: 'png' as const,
+    preserveOriginalSize: false,
   },
 
   /**
@@ -112,6 +121,7 @@ export const IMAGE_PRESETS = {
     helperText: 'Recomendado: 1600×900px (Horizontal)',
     circularCrop: false,
     outputFormat: 'webp' as const,
+    preserveOriginalSize: false,
   },
 
   /**
@@ -130,6 +140,7 @@ export const IMAGE_PRESETS = {
     helperText: 'Recomendado: Foto da fachada ou local (1200×675px)',
     circularCrop: false,
     outputFormat: 'webp' as const,
+    preserveOriginalSize: false,
   },
 
   /**
@@ -142,12 +153,13 @@ export const IMAGE_PRESETS = {
       { label: '1:1', value: 1, description: 'Quadrado' },
       { label: '4:5', value: 4 / 5, description: 'Retrato' },
     ],
-    maxOutputWidth: 1000,
-    quality: 0.85,
+    maxOutputWidth: 800,
+    quality: 0.8,
     previewStyle: 'card' as PreviewStyle,
-    helperText: 'Recomendado: Imagem quadrada (ex: 800×800px)',
+    helperText: 'Recomendado: Imagem quadrada (ex: 800×800px) — Otimizada para performance',
     circularCrop: false,
     outputFormat: 'webp' as const,
+    preserveOriginalSize: false,
   },
 } as const satisfies Record<string, ImagePreset>;
 

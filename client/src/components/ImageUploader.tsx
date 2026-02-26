@@ -103,12 +103,23 @@ function resolvePreset(props: Pick<ImageUploaderProps, 'preset' | 'presetKey' | 
 // IMAGE COMPRESSION (client-side pre-processing)
 // ============================================
 
-async function compressImage(file: File, maxDimension: number): Promise<string> {
+/**
+ * Pre-processes an image file before cropping.
+ * - preserveOriginalSize=true: loads the image at full resolution (no downscale)
+ * - preserveOriginalSize=false: downscales to maxDimension to keep the cropper snappy
+ */
+async function compressImage(file: File, maxDimension: number, preserveOriginal: boolean): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
     const reader = new FileReader();
 
     reader.onload = () => {
+      // If preserving original size, return the raw dataURL without any canvas processing
+      if (preserveOriginal) {
+        resolve(reader.result as string);
+        return;
+      }
+
+      const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let { width, height } = img;
@@ -149,14 +160,28 @@ function getCroppedCanvas(
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
 
-  const maxSize = preset.maxOutputWidth;
+  // Calculate source dimensions (the actual pixels being cropped from the original image)
+  const scaleX = image.naturalWidth / (image.width * zoom);
+  const scaleY = image.naturalHeight / (image.height * zoom);
+  const sourceWidth = crop.width * scaleX;
+  const sourceHeight = crop.height * scaleY;
+
   let outW: number, outH: number;
-  if (aspectRatio >= 1) {
-    outW = Math.min(maxSize, Math.round(crop.width));
-    outH = Math.round(outW / aspectRatio);
+
+  if (preset.preserveOriginalSize) {
+    // Qualidade máxima: usa as dimensões reais do crop na imagem original
+    outW = Math.round(sourceWidth);
+    outH = Math.round(sourceHeight);
   } else {
-    outH = Math.min(maxSize, Math.round(crop.height));
-    outW = Math.round(outH * aspectRatio);
+    // Performance: redimensiona para maxOutputWidth
+    const maxSize = preset.maxOutputWidth;
+    if (aspectRatio >= 1) {
+      outW = Math.min(maxSize, Math.round(sourceWidth));
+      outH = Math.round(outW / aspectRatio);
+    } else {
+      outH = Math.min(maxSize, Math.round(sourceHeight));
+      outW = Math.round(outH * aspectRatio);
+    }
   }
 
   canvas.width = outW;
@@ -175,13 +200,8 @@ function getCroppedCanvas(
     ctx.clip();
   }
 
-  const scaleX = image.naturalWidth / (image.width * zoom);
-  const scaleY = image.naturalHeight / (image.height * zoom);
-
   const sourceX = crop.x * scaleX;
   const sourceY = crop.y * scaleY;
-  const sourceWidth = crop.width * scaleX;
-  const sourceHeight = crop.height * scaleY;
 
   ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outW, outH);
 
@@ -508,8 +528,8 @@ export default function ImageUploader({
     setPreviewUrl(null);
 
     try {
-      const maxDim = activePreset.maxOutputWidth > 1200 ? 2500 : 2000;
-      const dataUrl = await compressImage(file, maxDim);
+      const maxDim = activePreset.preserveOriginalSize ? Infinity : (activePreset.maxOutputWidth > 1200 ? 2500 : 2000);
+      const dataUrl = await compressImage(file, maxDim, activePreset.preserveOriginalSize);
       setImageSrc(dataUrl);
       setCropperOpen(true);
     } catch {
@@ -585,10 +605,15 @@ export default function ImageUploader({
     setIsProcessing(true);
     try {
       const canvas = getCroppedCanvas(imgRef.current, completedCrop, zoom, currentAspect, activePreset);
+      
+      // Quality-aware export:
+      // - preserveOriginalSize presets: quality=1.0, no lossy compression
+      // - Performance presets: use configured quality for smaller file sizes
       const isWebp = activePreset.outputFormat === 'webp';
+      const exportQuality = activePreset.preserveOriginalSize ? 1.0 : activePreset.quality;
       const base64Full = isWebp
-        ? canvas.toDataURL("image/webp", activePreset.quality)
-        : canvas.toDataURL("image/png");
+        ? canvas.toDataURL("image/webp", exportQuality)
+        : canvas.toDataURL("image/png"); // PNG is lossless, quality param ignored
       const base64Data = base64Full.split(",")[1];
 
       const url = await onUpload(base64Data, originalFileName);

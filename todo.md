@@ -1082,3 +1082,7 @@
 - [x] P2: Adicionar variáveis footer_headline_text, footer_subheadline_text, footer_cta_text, footer_cta_bg, footer_cta_text_color, footer_show_logo
 - [x] P2: Atualizar painel 6.9 com Inputs de texto, ColorPickers do CTA e Toggle de logo
 - [x] P2: Atualizar Footer com renderização condicional de logo e inline styles do CTA
+- [x] Ajustar compressão condicional: HERO_BANNER e PROFILE_PHOTO sem redimensionamento, quality 1.0
+- [x] Manter compressão otimizada para PRODUCT_CARD e demais presets (maxWidth 800, quality 0.8)
+- [x] Atualizar imagePresets.ts com flags de compressão por preset
+- [x] Atualizar função de processamento no ImageUploader para respeitar presets
