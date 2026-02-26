@@ -315,7 +315,10 @@ export default function LocationSection() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-medium text-lp-text mb-2">Endereço</h3>
+                  <h3
+                    className={cn("font-medium mb-2", !s.addressTitleColor && "text-lp-text")}
+                    style={{ color: s.addressTitleColor || undefined }}
+                  >Endereço</h3>
                   {addressOverride ? (
                     <p
                       className={cn(!s.addressTextColor && "text-lp-text-muted")}
@@ -375,7 +378,10 @@ export default function LocationSection() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-medium text-lp-text mb-2">Telefone</h3>
+                  <h3
+                    className={cn("font-medium mb-2", !s.phoneTitleColor && "text-lp-text")}
+                    style={{ color: s.phoneTitleColor || undefined }}
+                  >Telefone</h3>
                   <a
                     href={`tel:+55${phoneRaw}`}
                     className={cn("hover:opacity-80 transition-colors", !s.phoneTextColor && "text-lp-text-muted hover:text-lp-highlight")}
@@ -420,12 +426,21 @@ export default function LocationSection() {
                   />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium text-lp-text mb-2">Horário de Funcionamento</h3>
+                  <h3
+                    className={cn("font-medium mb-2", !s.hoursTitleColor && "text-lp-text")}
+                    style={{ color: s.hoursTitleColor || undefined }}
+                  >Horário de Funcionamento</h3>
                   <div className="space-y-1">
                     {business_hours.schedule.slice(0, 3).map((day) => (
                       <div key={day.day} className="flex justify-between text-sm">
-                        <span className="text-lp-text-subtle">{day.day}</span>
-                        <span className="text-lp-text-muted text-right">
+                        <span
+                          className={cn(!s.hoursContentColor && "text-lp-text-subtle")}
+                          style={{ color: s.hoursContentColor || undefined }}
+                        >{day.day}</span>
+                        <span
+                          className={cn("text-right", !s.hoursContentColor && "text-lp-text-muted")}
+                          style={{ color: s.hoursContentColor || undefined }}
+                        >
                           {day.closed ? 'Fechado' : (
                             <>
                               {day.open} - {day.close}
@@ -474,12 +489,45 @@ export default function LocationSection() {
                       className={cn("w-5 h-5", !s.socialIconColor && "text-lp-highlight")}
                       style={{ color: s.socialIconColor || undefined }}
                     />
-                    <span className="text-sm text-lp-text-muted hidden sm:inline">
+                    <span
+                      className={cn("text-sm hidden sm:inline", !s.socialBtnTextColor && "text-lp-text-muted")}
+                      style={{ color: s.socialBtnTextColor || undefined }}
+                    >
                       {social.handle}
                     </span>
                   </a>
                 ))}
               </div>
+            )}
+
+            {/* Botão de Rede Social (Destaque) */}
+            {s.socialBtnLabel && (
+              <a
+                href={s.socialBtnLinkUrl || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex items-center justify-center gap-3 p-4 rounded-2xl border transition-all text-center',
+                  !s.socialBtnBtnBgColor && (hasBgMedia
+                    ? 'bg-black/30 backdrop-blur-sm border-white/10 hover:border-lp-highlight-border'
+                    : 'bg-lp-surface border-lp-border hover:border-lp-highlight-border')
+                )}
+                style={{
+                  backgroundColor: s.socialBtnBtnBgColor || undefined,
+                  borderColor: s.socialBtnBtnBgColor ? 'transparent' : undefined,
+                }}
+              >
+                <Instagram
+                  className={cn("w-5 h-5 shrink-0", !s.socialBtnBtnTextColor && "text-lp-highlight")}
+                  style={{ color: s.socialBtnBtnTextColor || undefined }}
+                />
+                <span
+                  className={cn("text-sm font-medium", !s.socialBtnBtnTextColor && "text-lp-text")}
+                  style={{ color: s.socialBtnBtnTextColor || undefined }}
+                >
+                  {s.socialBtnLabel}
+                </span>
+              </a>
             )}
           </motion.div>
         </div>

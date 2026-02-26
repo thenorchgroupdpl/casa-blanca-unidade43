@@ -1059,3 +1059,9 @@
 - [ ] Adaptar modal do cropper com máscara visual dinâmica (circular para perfil, retangular para banner)
 - [ ] Verificar TypeScript, rodar testes e salvar checkpoint
 - [x] Remover corte circular do preset PROFILE_PHOTO — manter 1:1 quadrado com cantos retos
+- [x] Separar cor do título vs cor do conteúdo nos cards 6.3 (Endereço), 6.4 (Telefone), 6.5 (Horários)
+- [x] Criar subseção 6.7 Botão de Rede Social (texto, link, cor fundo, cor texto/ícone)
+- [x] Atualizar types/index.ts com novos campos info_style
+- [x] Atualizar Design.tsx InfoSection com ColorRows separados
+- [x] Atualizar StoreLanding postMessage + transformTenantData
+- [x] Atualizar LocationSection/InfoCard para aplicar cores separadas e botão social

@@ -658,6 +658,7 @@ type LandingDesign = {
     addressIconColor?: string;
     addressIconBgColor?: string;
     addressText?: string;
+    addressTitleColor?: string;
     addressTextColor?: string;
     addressFont?: string;
     addressFontSize?: number;
@@ -666,6 +667,7 @@ type LandingDesign = {
     phoneIconColor?: string;
     phoneIconBgColor?: string;
     phoneText?: string;
+    phoneTitleColor?: string;
     phoneTextColor?: string;
     phoneFont?: string;
     phoneFontSize?: number;
@@ -673,6 +675,8 @@ type LandingDesign = {
     // 6.5 Card de Horário
     hoursIconColor?: string;
     hoursIconBgColor?: string;
+    hoursTitleColor?: string;
+    hoursContentColor?: string;
     hoursLinkColor?: string;
     hoursLinkFont?: string;
     hoursLinkFontSize?: number;
@@ -681,6 +685,11 @@ type LandingDesign = {
     // 6.6 Redes Sociais
     socialBtnBgColor?: string;
     socialIconColor?: string;
+    socialBtnTextColor?: string;
+    socialBtnLabel?: string;
+    socialBtnLinkUrl?: string;
+    socialBtnBtnBgColor?: string;
+    socialBtnBtnTextColor?: string;
     socialInstagramUrl?: string;
     socialInstagramEnabled?: boolean;
     socialFacebookUrl?: string;
@@ -4160,7 +4169,11 @@ function InfoSection({
           className="bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs min-h-[60px]"
         />
         <TypoBlock fontField="addressFont" sizeField="addressFontSize" weightField="addressFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
-        <ColorRow label="Cor do Texto" value={data.addressTextColor} defaultVal="" field="addressTextColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Cores do Card</Label>
+        <ColorRow label="Cor do Título ('Endereço')" value={data.addressTitleColor} defaultVal="" field="addressTitleColor" />
+        <ColorRow label="Cor do Conteúdo (rua, bairro...)" value={data.addressTextColor} defaultVal="" field="addressTextColor" />
       </SubPanel>
 
       {/* ===== 6.4 CARD DE TELEFONE ===== */}
@@ -4182,7 +4195,11 @@ function InfoSection({
           className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
         />
         <TypoBlock fontField="phoneFont" sizeField="phoneFontSize" weightField="phoneFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
-        <ColorRow label="Cor do Texto" value={data.phoneTextColor} defaultVal="" field="phoneTextColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Cores do Card</Label>
+        <ColorRow label="Cor do Título ('Telefone')" value={data.phoneTitleColor} defaultVal="" field="phoneTitleColor" />
+        <ColorRow label="Cor do Conteúdo (número)" value={data.phoneTextColor} defaultVal="" field="phoneTextColor" />
       </SubPanel>
 
       {/* ===== 6.5 CARD DE HORÁRIO ===== */}
@@ -4204,6 +4221,11 @@ function InfoSection({
         />
         <TypoBlock fontField="hoursLinkFont" sizeField="hoursLinkFontSize" weightField="hoursLinkFontWeight" defaultSize={14} defaultWeight="600" minSize={10} maxSize={24} />
         <ColorRow label="Cor do Link" value={data.hoursLinkColor} defaultVal="" field="hoursLinkColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Cores do Card</Label>
+        <ColorRow label="Cor do Título ('Horário de Func.')" value={data.hoursTitleColor} defaultVal="" field="hoursTitleColor" />
+        <ColorRow label="Cor do Conteúdo (dias/horas)" value={data.hoursContentColor} defaultVal="" field="hoursContentColor" />
       </SubPanel>
 
       {/* ===== 6.6 BOTÕES DE REDES SOCIAIS ===== */}
@@ -4212,6 +4234,7 @@ function InfoSection({
         <Label className="text-[10px] text-zinc-400 font-medium">Estilos Globais</Label>
         <ColorRow label="Fundo dos Botões" value={data.socialBtnBgColor} defaultVal="" field="socialBtnBgColor" />
         <ColorRow label="Cor dos Ícones" value={data.socialIconColor} defaultVal="" field="socialIconColor" />
+        <ColorRow label="Cor do Texto (@handle)" value={data.socialBtnTextColor} defaultVal="" field="socialBtnTextColor" />
 
         <Separator className="bg-zinc-800" />
 
@@ -4280,8 +4303,34 @@ function InfoSection({
         )}
       </SubPanel>
 
-      {/* ===== 6.7 FUNDO DA SEÇÃO E CARDS ===== */}
-      <SubPanel id="6-7-fundo-da-se-o-e-cards" title="6.7 Fundo da Seção e Cards">
+      {/* ===== 6.7 BOTÃO DE REDE SOCIAL (DESTAQUE) ===== */}
+      <SubPanel id="6-7-botao-rede-social" title="6.7 Botão de Rede Social">
+        <p className="text-[9px] text-zinc-600 italic mb-2">Botão de destaque que aparece abaixo dos cards de informação (ex: @mirian.carvalho)</p>
+
+        <Label className="text-[10px] text-zinc-400 font-medium">Texto do Botão</Label>
+        <Input
+          value={data.socialBtnLabel || ""}
+          onChange={(e) => onChange("socialBtnLabel", e.target.value)}
+          placeholder="@seurestaurante"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+        />
+
+        <Label className="text-[10px] text-zinc-400 font-medium">Link da Rede Social</Label>
+        <Input
+          value={data.socialBtnLinkUrl || ""}
+          onChange={(e) => onChange("socialBtnLinkUrl", e.target.value)}
+          placeholder="https://instagram.com/seurestaurante"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+        />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
+        <ColorRow label="Cor de Fundo do Botão" value={data.socialBtnBtnBgColor} defaultVal="" field="socialBtnBtnBgColor" />
+        <ColorRow label="Cor do Texto e Ícone" value={data.socialBtnBtnTextColor} defaultVal="" field="socialBtnBtnTextColor" />
+      </SubPanel>
+
+      {/* ===== 6.8 FUNDO DA SEÇÃO E CARDS ===== */}
+      <SubPanel id="6-8-fundo-da-se-o-e-cards" title="6.8 Fundo da Seção e Cards">
 
         <ColorRow label="Fundo do Rodapé (Seção)" value={data.sectionBgColor} defaultVal="" field="sectionBgColor" />
         <ColorRow label="Fundo dos Cards Flutuantes" value={data.cardsBgColor} defaultVal="" field="cardsBgColor" />

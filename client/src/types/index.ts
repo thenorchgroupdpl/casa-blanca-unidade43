@@ -360,6 +360,7 @@ export interface InfoStyleOverrides {
   addressIconColor?: string;
   addressIconBgColor?: string;
   addressText?: string;
+  addressTitleColor?: string;
   addressTextColor?: string;
   addressFont?: string;
   addressFontSize?: number;
@@ -368,6 +369,7 @@ export interface InfoStyleOverrides {
   phoneIconColor?: string;
   phoneIconBgColor?: string;
   phoneText?: string;
+  phoneTitleColor?: string;
   phoneTextColor?: string;
   phoneFont?: string;
   phoneFontSize?: number;
@@ -375,6 +377,8 @@ export interface InfoStyleOverrides {
   // 6.5 Hours
   hoursIconColor?: string;
   hoursIconBgColor?: string;
+  hoursTitleColor?: string;
+  hoursContentColor?: string;
   hoursLinkColor?: string;
   hoursLinkFont?: string;
   hoursLinkFontSize?: number;
@@ -383,6 +387,11 @@ export interface InfoStyleOverrides {
   // 6.6 Social
   socialBtnBgColor?: string;
   socialIconColor?: string;
+  socialBtnTextColor?: string;
+  socialBtnLabel?: string;
+  socialBtnLinkUrl?: string;
+  socialBtnBtnBgColor?: string;
+  socialBtnBtnTextColor?: string;
   socialInstagramUrl?: string;
   socialInstagramEnabled?: boolean;
   socialFacebookUrl?: string;
