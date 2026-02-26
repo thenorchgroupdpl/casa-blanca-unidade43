@@ -1091,3 +1091,7 @@
 - [x] Adicionar Switch/Toggle "Exibir texto ao lado do ícone" na seção 6.7 do Design System
 - [x] Atualizar StoreLanding postMessage + transformTenantData para social_button_show_text
 - [x] Renderização condicional do texto no botão social no LocationSection
+- [x] Adicionar botão "Ver Minha Loja / Copiar Link" no header do Dashboard
+- [x] Criar procedure tRPC para faturamento do dia (soma de carrinhos enviados hoje)
+- [x] Substituir card "Acessos na LP" por "Faturamento Hoje" com ícone DollarSign e tooltip
+- [x] Formatar valor em R$ usando Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })

@@ -35,6 +35,12 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   Power,
   PowerOff,
   ShoppingBag,
@@ -52,6 +58,10 @@ import {
   Calendar,
   Filter,
   LayoutGrid,
+  ExternalLink,
+  Copy,
+  DollarSign,
+  Info,
 } from 'lucide-react';
 import {
   Accordion,
@@ -84,6 +94,11 @@ export default function ClientDashboard() {
     data: groupedQuery.data?.products || [],
     isLoading: groupedQuery.isLoading,
   };
+
+  // Get today's revenue
+  const revenueQuery = trpc.store.todayRevenue.useQuery(undefined, {
+    enabled: !!tenantId,
+  });
 
   // Get orders
   const ordersQuery = trpc.store.getOrders.useQuery(undefined, {
@@ -377,8 +392,42 @@ export default function ClientDashboard() {
                 </div>
               </div>
 
-              {/* Right: Toggle + Reset */}
-              <div className="flex items-center gap-3">
+              {/* Right: Store Link + Toggle + Reset */}
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+                {/* Ver Minha Loja */}
+                {tenantSlug && (
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const url = `${window.location.origin}/loja/${tenantSlug}`;
+                        window.open(url, '_blank');
+                      }}
+                      className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 hover:text-white text-xs h-8"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                      Ver Loja
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 hover:text-white h-8 w-8"
+                      onClick={() => {
+                        const url = `${window.location.origin}/loja/${tenantSlug}`;
+                        navigator.clipboard.writeText(url).then(() => {
+                          toast.success('Link copiado!', {
+                            description: 'Cole no Instagram, WhatsApp ou onde preferir.',
+                          });
+                        }).catch(() => {
+                          toast.error('Não foi possível copiar o link');
+                        });
+                      }}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
                 {manualOverride && (
                   <Button
                     variant="outline"
@@ -480,17 +529,34 @@ export default function ClientDashboard() {
             </CardContent>
           </Card>
 
-          {/* Acessos LP */}
+          {/* Faturamento Hoje */}
           <Card className="border-zinc-800/60 bg-zinc-900/60">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Acessos na LP</p>
-                  <p className="text-2xl font-bold text-white mt-1">—</p>
-                  <p className="text-[10px] text-zinc-600 mt-0.5">Em breve</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-[11px] text-zinc-500 uppercase tracking-wider font-medium">Faturamento Hoje</p>
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="w-3 h-3 text-zinc-600 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[220px] text-xs">
+                          Soma do valor dos carrinhos enviados para o seu WhatsApp hoje.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <p className="text-2xl font-bold text-emerald-400 mt-1">
+                    {revenueQuery.isLoading ? (
+                      <span className="text-zinc-500">—</span>
+                    ) : (
+                      formatCurrency(revenueQuery.data?.revenue ?? 0)
+                    )}
+                  </p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-zinc-500" />
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-emerald-400" />
                 </div>
               </div>
             </CardContent>

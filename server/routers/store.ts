@@ -186,6 +186,12 @@ export const storeRouter = router({
   // ============================================
   // ORDERS LOG
   // ============================================
+  todayRevenue: clientAdminProcedure.query(async ({ ctx }) => {
+    const tenantId = getTenantIdFromUser(ctx.user);
+    const revenue = await db.getTodayRevenue(tenantId);
+    return { revenue };
+  }),
+
   getOrders: clientAdminProcedure.query(async ({ ctx }) => {
     const tenantId = getTenantIdFromUser(ctx.user);
     return db.getOrdersByTenant(tenantId);

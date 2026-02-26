@@ -1,4 +1,4 @@
-import { eq, and, asc, desc, like, inArray, sql, isNotNull } from "drizzle-orm";
+import { eq, and, asc, desc, like, inArray, sql, isNotNull, gte, sum } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
@@ -651,6 +651,23 @@ export async function createOrder(data: {
   if (!db) throw new Error("Database not available");
   const result = await db.insert(orders).values(data);
   return Number(result[0].insertId);
+}
+
+export async function getTodayRevenue(tenantId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const result = await db
+    .select({ total: sum(orders.totalValue) })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.tenantId, tenantId),
+        gte(orders.createdAt, today)
+      )
+    );
+  return parseFloat(result[0]?.total || '0');
 }
 
 export async function toggleOrderCompleted(orderId: number, isCompleted: boolean) {
