@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
+import { injectSSRMeta } from "./ssrMeta";
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -38,6 +39,10 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
       );
+      
+      // Inject dynamic meta tags based on the request URL (tenant slug detection)
+      template = await injectSSRMeta(template, url);
+      
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
@@ -61,7 +66,11 @@ export function serveStatic(app: Express) {
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // Also inject SSR meta tags in production
+  app.use("*", async (_req, res) => {
+    const htmlPath = path.resolve(distPath, "index.html");
+    let html = await fs.promises.readFile(htmlPath, "utf-8");
+    html = await injectSSRMeta(html, _req.originalUrl);
+    res.status(200).set({ "Content-Type": "text/html" }).end(html);
   });
 }

@@ -1096,3 +1096,7 @@
 - [x] Substituir card "Acessos na LP" por "Faturamento Hoje" com ícone DollarSign e tooltip
 - [x] Formatar valor em R$ usando Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 - [x] Corrigir roteamento do botão "Ver Loja / Copiar Link" para usar URL correta da landing page do tenant
+- [x] Eliminar Flash of Default Title nas Landing Pages dos tenants
+- [x] Remover título estático 'Casa Blanca' do index.html — substituído por placeholders SSR
+- [x] Injetar título dinâmico do tenant server-side antes do HTML chegar ao browser (ssrMeta.ts)
+- [x] Simplificar document.title client-side como reforço (sem restaurar título padrão no cleanup)
