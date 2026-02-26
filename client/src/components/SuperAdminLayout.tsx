@@ -33,7 +33,8 @@ import {
   Key,
   Shield,
   User,
-  Globe
+  Globe,
+  DollarSign
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -48,6 +49,7 @@ const menuItems = [
   { icon: Palette, label: "Design System", path: "/admin/super/design" },
   { icon: Key, label: "Integrações", path: "/admin/super/integrations" },
   { icon: Settings, label: "Configurações", path: "/admin/super/settings" },
+  { icon: DollarSign, label: "Financeiro", path: "/admin/super/billing" },
   { icon: Globe, label: "Config. Globais", path: "/admin/super/global-settings" },
 ];
 

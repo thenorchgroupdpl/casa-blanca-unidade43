@@ -21,10 +21,12 @@ import DesignPage from "./pages/admin/super/Design";
 import IntegrationsPage from "./pages/admin/super/Integrations";
 import SettingsPage from "./pages/admin/super/Settings";
 import GlobalSettingsPage from "./pages/admin/super/GlobalSettings";
+import BillingPage from "./pages/admin/super/Billing";
 
 // Client Admin Pages
 import ClientDashboard from "./pages/admin/dashboard/Dashboard";
 import CatalogPage from "./pages/admin/dashboard/Catalog";
+import NotificationsPage from "./pages/admin/dashboard/Notifications";
 import VitrinePage from "./pages/admin/dashboard/Vitrine";
 import StoreDataPage from "./pages/admin/dashboard/StoreData";
 
@@ -50,11 +52,13 @@ function Router() {
       <Route path="/admin/super/design" component={DesignPage} />
       <Route path="/admin/super/integrations" component={IntegrationsPage} />
       <Route path="/admin/super/settings" component={SettingsPage} />
+      <Route path="/admin/super/billing" component={BillingPage} />
       <Route path="/admin/super/global-settings" component={GlobalSettingsPage} />
       
       {/* Client Admin Routes */}
       <Route path="/admin/dashboard" component={ClientDashboard} />
       <Route path="/admin/dashboard/catalog" component={CatalogPage} />
+      <Route path="/admin/dashboard/notifications" component={NotificationsPage} />
       <Route path="/admin/dashboard/vitrine" component={VitrinePage} />
       <Route path="/admin/dashboard/store" component={StoreDataPage} />
       

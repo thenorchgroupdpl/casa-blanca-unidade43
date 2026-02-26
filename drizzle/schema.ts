@@ -87,6 +87,13 @@ export const tenants = mysqlTable("tenants", {
   // Status (legacy - kept for backward compatibility, use clientStatus instead)
   isActive: boolean("isActive").default(true).notNull(),
   
+  // ============================================
+  // BILLING & SUBSCRIPTION
+  // ============================================
+  nextBillingDate: timestamp("nextBillingDate"),
+  billingAmount: decimal("billingAmount", { precision: 10, scale: 2 }).default("150.00"),
+  subscriptionStatus: mysqlEnum("subscriptionStatus", ["active", "warning", "overdue", "suspended"]).default("active"),
+  
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -382,3 +389,27 @@ export const globalSettings = mysqlTable("global_settings", {
 
 export type GlobalSetting = typeof globalSettings.$inferSelect;
 export type InsertGlobalSetting = typeof globalSettings.$inferInsert;
+
+// ============================================
+// NOTIFICATIONS TABLE - Tenant Notifications
+// ============================================
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  
+  // Notification Content
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  
+  // Type for visual categorization
+  type: mysqlEnum("type", ["billing", "system", "info", "warning"]).default("info").notNull(),
+  
+  // Read status
+  isRead: boolean("isRead").default(false).notNull(),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

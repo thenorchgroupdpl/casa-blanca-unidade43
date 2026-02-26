@@ -31,7 +31,8 @@ import {
   Store,
   ExternalLink,
   ArrowLeft,
-  User
+  User,
+  Bell
 } from "lucide-react";
 import { toast } from "sonner";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: Package, label: "Catálogo", path: "/admin/dashboard/catalog" },
   { icon: LayoutGrid, label: "Vitrine", path: "/admin/dashboard/vitrine" },
   { icon: Store, label: "Dados da Loja", path: "/admin/dashboard/store" },
+  { icon: Bell, label: "Notificações", path: "/admin/dashboard/notifications" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "client-admin-sidebar-width";
@@ -196,6 +198,7 @@ function ClientAdminLayoutContent({
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
   const { data: roleData } = trpc.auth.getRole.useQuery();
+  const { data: unreadCount } = trpc.notifications.unreadCount.useQuery();
   const utils = trpc.useUtils();
 
   // Mutation para liberar tenant (Super Admin volta ao modo sem tenant)
@@ -297,7 +300,12 @@ function ClientAdminLayoutContent({
                       <item.icon
                         className={`h-4 w-4 ${isActive ? "text-amber-500" : ""}`}
                       />
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {item.path === '/admin/dashboard/notifications' && (unreadCount ?? 0) > 0 && (
+                        <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-black bg-amber-500 rounded-full">
+                          {unreadCount! > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -404,6 +412,17 @@ function ClientAdminLayoutContent({
                 </div>
               </div>
             </div>
+            <button
+              onClick={() => setLocation('/admin/dashboard/notifications')}
+              className="relative p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            >
+              <Bell className="h-5 w-5 text-zinc-400" />
+              {(unreadCount ?? 0) > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-black bg-amber-500 rounded-full">
+                  {unreadCount! > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
           </div>
         )}
         <main className="flex-1 p-4 overflow-auto bg-[#0A0A0A] min-h-screen w-full">{children}</main>

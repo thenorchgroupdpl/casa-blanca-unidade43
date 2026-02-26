@@ -1100,3 +1100,15 @@
 - [x] Remover título estático 'Casa Blanca' do index.html — substituído por placeholders SSR
 - [x] Injetar título dinâmico do tenant server-side antes do HTML chegar ao browser (ssrMeta.ts)
 - [x] Simplificar document.title client-side como reforço (sem restaurar título padrão no cleanup)
+- [x] Pilar 1: Adicionar colunas billing (next_billing_date, billing_amount, subscription_status) na tabela tenants
+- [x] Pilar 1: Criar tabela notifications (id, tenant_id, title, message, is_read, created_at)
+- [x] Pilar 1: Adicionar billing_notification_template e billing_webhook_url ao globalSettings
+- [x] Pilar 1: Rodar pnpm db:push para sincronizar schema
+- [x] Pilar 4: Criar função utilitária de régua de 5 dias (checkBillingNotifications)
+- [x] Pilar 4: Criar procedure tRPC para disparar verificação de billing (admin only)
+- [x] Pilar 2: Criar aba Gestão Financeira no Super Admin com tabela de lojistas e edição de vencimento
+- [x] Pilar 2: Criar campo de template de notificação com variáveis dinâmicas no Super Admin
+- [x] Pilar 3: Criar aba Notificações no menu lateral do Dashboard do lojista
+- [x] Pilar 3: Implementar sininho no header com badge de não lidas
+- [x] Pilar 3: Criar procedure tRPC para listar e marcar notificações como lidas
+- [x] Testes: 21 novos testes para notificações e billing (access control, cross-tenant security, billing automation)

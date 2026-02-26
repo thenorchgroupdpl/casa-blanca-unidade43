@@ -13,6 +13,7 @@ import { storeRouter, publicStoreRouter } from "./routers/store";
 import { emailAuthRouter } from "./routers/auth";
 import { usersRouter } from "./routers/users";
 import { globalSettingsRouter, publicGlobalSettingsRouter } from "./routers/globalSettings";
+import { billingRouter, notificationsRouter } from "./routers/billing";
 
 export const appRouter = router({
   // System routes
@@ -94,6 +95,9 @@ export const appRouter = router({
   // Global settings (Super Admin only)
   globalSettings: globalSettingsRouter,
 
+  // Billing management (Super Admin only)
+  billing: billingRouter,
+
   // ============================================
   // CLIENT ADMIN ROUTES
   // ============================================
@@ -104,6 +108,9 @@ export const appRouter = router({
   
   // Store settings (Client Admin)
   store: storeRouter,
+
+  // Notifications (Client Admin / Lojista)
+  notifications: notificationsRouter,
 
   // ============================================
   // PUBLIC ROUTES (Landing Page)

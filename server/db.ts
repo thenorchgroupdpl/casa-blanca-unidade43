@@ -1,4 +1,4 @@
-import { eq, and, asc, desc, like, inArray, sql, isNotNull, gte, sum } from "drizzle-orm";
+import { eq, and, asc, desc, like, inArray, sql, isNotNull, gte, lte, sum, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
@@ -9,7 +9,8 @@ import {
   InsertHomeRow, homeRows, HomeRow,
   InsertReview, reviews, Review,
   orders, Order, InsertOrder,
-  globalSettings, GlobalSetting, InsertGlobalSetting
+  globalSettings, GlobalSetting, InsertGlobalSetting,
+  notifications, Notification, InsertNotification
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -797,4 +798,132 @@ export async function deleteGlobalSetting(key: string): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.delete(globalSettings).where(eq(globalSettings.key, key));
+}
+
+
+// ============================================
+// BILLING & SUBSCRIPTION HELPERS
+// ============================================
+
+/** Get all tenants with billing data for admin management */
+export async function getAllTenantsWithBilling(): Promise<Tenant[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(tenants).orderBy(tenants.name);
+}
+
+/** Update billing date for a specific tenant */
+export async function updateTenantBillingDate(tenantId: number, nextBillingDate: Date): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants).set({ nextBillingDate }).where(eq(tenants.id, tenantId));
+}
+
+/** Update billing amount for a specific tenant */
+export async function updateTenantBillingAmount(tenantId: number, billingAmount: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants).set({ billingAmount }).where(eq(tenants.id, tenantId));
+}
+
+/** Update subscription status for a specific tenant */
+export async function updateTenantSubscriptionStatus(tenantId: number, status: "active" | "warning" | "overdue" | "suspended"): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants).set({ subscriptionStatus: status }).where(eq(tenants.id, tenantId));
+}
+
+/** Get tenants approaching billing date (within N days) */
+export async function getTenantsApproachingBilling(daysAhead: number): Promise<Tenant[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const now = new Date();
+  const futureDate = new Date();
+  futureDate.setDate(now.getDate() + daysAhead);
+  
+  return await db.select().from(tenants)
+    .where(
+      and(
+        isNotNull(tenants.nextBillingDate),
+        gte(tenants.nextBillingDate, now),
+        lte(tenants.nextBillingDate, futureDate),
+        eq(tenants.isActive, true)
+      )
+    );
+}
+
+// ============================================
+// NOTIFICATIONS HELPERS
+// ============================================
+
+/** Create a notification for a tenant */
+export async function createNotification(data: InsertNotification): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(notifications).values(data);
+}
+
+/** Get notifications for a tenant (ordered by newest first) */
+export async function getNotificationsByTenant(tenantId: number, limit = 50): Promise<Notification[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(notifications)
+    .where(eq(notifications.tenantId, tenantId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+
+/** Count unread notifications for a tenant */
+export async function getUnreadNotificationCount(tenantId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: count() }).from(notifications)
+    .where(
+      and(
+        eq(notifications.tenantId, tenantId),
+        eq(notifications.isRead, false)
+      )
+    );
+  return result[0]?.count ?? 0;
+}
+
+/** Mark a single notification as read */
+export async function markNotificationAsRead(notificationId: number, tenantId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ isRead: true })
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.tenantId, tenantId)
+      )
+    );
+}
+
+/** Mark all notifications as read for a tenant */
+export async function markAllNotificationsAsRead(tenantId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ isRead: true })
+    .where(eq(notifications.tenantId, tenantId));
+}
+
+/** Check if a billing notification was already sent today for a tenant */
+export async function hasBillingNotificationToday(tenantId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  
+  const result = await db.select({ count: count() }).from(notifications)
+    .where(
+      and(
+        eq(notifications.tenantId, tenantId),
+        eq(notifications.type, "billing"),
+        gte(notifications.createdAt, todayStart)
+      )
+    );
+  return (result[0]?.count ?? 0) > 0;
 }
