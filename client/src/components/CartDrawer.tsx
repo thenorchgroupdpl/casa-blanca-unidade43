@@ -90,7 +90,7 @@ export default function CartDrawer() {
               <div className="flex items-center gap-3">
                 <ShoppingBag
                   className="w-6 h-6"
-                  style={{ color: cs?.headerTextColor || undefined }}
+                  style={{ color: cs?.headerIconColor || cs?.headerTextColor || undefined }}
                 />
                 <h2
                   className={cn("font-display text-xl", !cs?.headerTextColor && "text-lp-text")}

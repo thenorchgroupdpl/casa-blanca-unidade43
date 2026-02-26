@@ -1042,3 +1042,9 @@
 - [x] Adicionar ColorRow "Ícone Sacola" no cabeçalho da sub-aba Sacola Landing Page (seção 3.5)
 - [x] Mapear headerIconColor no StoreLanding.tsx (postMessage + transformTenantData)
 - [x] Aplicar headerIconColor via inline style no ícone da sacola no CartPopup.tsx
+## Fase 84: Color Picker para Ícone da Sacola (Sacola Cardápio)
+- [x] Adicionar headerIconColor ao tipo cartMenu no Design.tsx
+- [x] Adicionar headerIconColor ao tipo CartMenuStyle nos types/index.ts
+- [x] Adicionar ColorRow "Ícone Sacola" no cabeçalho da sub-aba Sacola Cardápio (seção 3.5)
+- [x] Mapear headerIconColor no StoreLanding.tsx (postMessage + transformTenantData)
+- [x] Aplicar headerIconColor via inline style no ícone da sacola no CartDrawer.tsx

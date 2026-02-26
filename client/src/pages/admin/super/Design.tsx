@@ -578,6 +578,7 @@ type LandingDesign = {
     ctaBgColor?: string;
     ctaTextColor?: string;
     clearLinkColor?: string;
+    headerIconColor?: string;
   };
   reviews?: {
     headline?: string;

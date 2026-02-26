@@ -475,6 +475,7 @@ export interface SiteData {
     ctaBgColor?: string;
     ctaTextColor?: string;
     clearLinkColor?: string;
+    headerIconColor?: string;
   };
   // WhatsApp Popup attendant info
   whatsapp_avatar?: string;

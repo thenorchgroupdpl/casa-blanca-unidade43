@@ -541,6 +541,7 @@ export default function StoreLanding() {
             ctaBgColor: c.ctaBgColor,
             ctaTextColor: c.ctaTextColor,
             clearLinkColor: c.clearLinkColor,
+            headerIconColor: c.headerIconColor,
           };
         }
 
@@ -1112,6 +1113,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       ctaBgColor: ld.cartMenu.ctaBgColor,
       ctaTextColor: ld.cartMenu.ctaTextColor,
       clearLinkColor: ld.cartMenu.clearLinkColor,
+      headerIconColor: ld.cartMenu.headerIconColor,
     } : undefined,
     feedbacks_style: ld?.reviews ? {
       label: ld.reviews.label,
