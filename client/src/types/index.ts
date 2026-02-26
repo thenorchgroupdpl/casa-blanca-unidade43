@@ -413,6 +413,10 @@ export interface InfoStyleOverrides {
   bgMediaType?: 'image' | 'video';
   bgOverlayOpacity?: number;
   bgOverlayColor?: string;
+  // 6.9 Footer
+  footerBgColor?: string;
+  footerTextColor?: string;
+  footerCopyrightText?: string;
 }
 
 export interface SiteData {

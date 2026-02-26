@@ -710,6 +710,10 @@ type LandingDesign = {
     bgMediaType?: "image" | "video";
     bgOverlayOpacity?: number;
     bgOverlayColor?: string;
+    // 6.9 Footer
+    footerBgColor?: string;
+    footerTextColor?: string;
+    footerCopyrightText?: string;
     // Visibility toggles
     showMap?: boolean;
     showAddress?: boolean;
@@ -4454,6 +4458,22 @@ function InfoSection({
           </div>
         )}
         <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="rgba(0,0,0,0.5)" field="bgOverlayColor" />
+      </SubPanel>
+
+      {/* ===== 6.9 RODAPÉ (FOOTER) ===== */}
+      <SubPanel id="6-9-rodape-footer" title="6.9 Rodapé (Footer)">
+        <Label className="text-[10px] text-zinc-400 font-medium">Cores</Label>
+        <ColorRow label="Cor de Fundo" value={data.footerBgColor} defaultVal="" field="footerBgColor" />
+        <ColorRow label="Cor do Texto e Ícones" value={data.footerTextColor} defaultVal="" field="footerTextColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 font-medium">Direitos Autorais</Label>
+        <Input
+          value={data.footerCopyrightText || ""}
+          onChange={(e) => onChange("footerCopyrightText", e.target.value)}
+          placeholder="© 2026 Nome da Loja - Todos os direitos reservados"
+          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+        />
       </SubPanel>
 
       {/* ===== EXIBIÇÃO (TOGGLES) ===== */}

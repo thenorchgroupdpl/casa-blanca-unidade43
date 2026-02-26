@@ -2,7 +2,7 @@
  * Footer Component - Casa Blanca
  * Design: Warm Luxury - CTA section with social icons and legal info
  * Features: Final WhatsApp CTA, social media icons, copyright, dynamic company name
- *           + info_style overrides from Design System
+ *           + info_style overrides from Design System (6.9 Footer)
  */
 
 import { useMemo } from 'react';
@@ -47,8 +47,15 @@ export default function Footer() {
   const firstName = nameParts[0] || '';
   const restName = nameParts.slice(1).join(' ');
 
-  // Use sectionBgColor from info_style for footer background
-  const footerBg = s.sectionBgColor;
+  // Footer style overrides from info_style (6.9)
+  const footerBg = s.footerBgColor;
+  const footerText = s.footerTextColor;
+  const copyrightText = s.footerCopyrightText;
+
+  // Use sectionBgColor from info_style for footer background (legacy fallback)
+  const sectionBg = s.sectionBgColor;
+  // Priority: footerBgColor > sectionBgColor > default class
+  const resolvedBg = footerBg || sectionBg;
 
   // Build social links array
   const socialLinks = [
@@ -80,8 +87,11 @@ export default function Footer() {
 
   return (
     <footer
-      className={cn(!footerBg && "bg-lp-surface-soft", "border-t border-lp-border")}
-      style={footerBg ? { backgroundColor: footerBg } : undefined}
+      className={cn(!resolvedBg && "bg-lp-surface-soft", "border-t border-lp-border")}
+      style={{
+        ...(resolvedBg ? { backgroundColor: resolvedBg } : {}),
+        ...(footerText ? { color: footerText } : {}),
+      }}
     >
       {/* CTA Section */}
       <motion.div
@@ -91,10 +101,16 @@ export default function Footer() {
         viewport={{ once: true, margin: '-100px' }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className="font-display text-2xl md:text-3xl lg:text-4xl text-lp-text mb-4">
+        <h2
+          className={cn("font-display text-2xl md:text-3xl lg:text-4xl mb-4", !footerText && "text-lp-text")}
+          style={footerText ? { color: footerText } : undefined}
+        >
           {footer.cta_headline}
         </h2>
-        <p className="text-lp-text-muted mb-8 max-w-md mx-auto">
+        <p
+          className={cn("mb-8 max-w-md mx-auto", !footerText && "text-lp-text-muted")}
+          style={footerText ? { color: footerText, opacity: 0.7 } : undefined}
+        >
           {footer.cta_subheadline}
         </p>
         
@@ -113,11 +129,17 @@ export default function Footer() {
       </motion.div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-lp-border">
+      <div
+        className="border-t border-lp-border"
+        style={footerText ? { borderColor: `${footerText}20` } : undefined}
+      >
         <div className="container py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Logo */}
-            <div className="font-display text-xl text-lp-text">
+            <div
+              className={cn("font-display text-xl", !footerText && "text-lp-text")}
+              style={footerText ? { color: footerText } : undefined}
+            >
               {data.logo_type === 'image' && data.logo_url ? (
                 <img
                   src={data.logo_url}
@@ -126,7 +148,13 @@ export default function Footer() {
                 />
               ) : (
                 <>
-                  {firstName}{restName ? ' ' : ''}<span className="text-lp-highlight">{restName}</span>
+                  {firstName}{restName ? ' ' : ''}
+                  <span
+                    className={cn(!footerText && "text-lp-highlight")}
+                    style={footerText ? { color: footerText } : undefined}
+                  >
+                    {restName}
+                  </span>
                 </>
               )}
             </div>
@@ -140,7 +168,11 @@ export default function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-lp-text-muted hover:text-lp-highlight transition-colors duration-200"
+                    className={cn(
+                      "transition-colors duration-200",
+                      !footerText && "text-lp-text-muted hover:text-lp-highlight"
+                    )}
+                    style={footerText ? { color: footerText } : undefined}
                     aria-label={social.label}
                     title={social.label}
                   >
@@ -151,8 +183,11 @@ export default function Footer() {
             )}
 
             {/* Copyright */}
-            <p className="text-sm text-lp-text-subtle">
-              {footer.copyright || `© ${currentYear} ${companyName}. Todos os direitos reservados.`}
+            <p
+              className={cn("text-sm", !footerText && "text-lp-text-subtle")}
+              style={footerText ? { color: footerText, opacity: 0.6 } : undefined}
+            >
+              {copyrightText || footer.copyright || `© ${currentYear} ${companyName}. Todos os direitos reservados.`}
             </p>
           </div>
         </div>

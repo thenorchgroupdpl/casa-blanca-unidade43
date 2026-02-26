@@ -485,6 +485,9 @@ export default function StoreLanding() {
             bgMediaType: inf.bgMediaType,
             bgOverlayOpacity: inf.bgOverlayOpacity,
             bgOverlayColor: inf.bgOverlayColor,
+            footerBgColor: inf.footerBgColor,
+            footerTextColor: inf.footerTextColor,
+            footerCopyrightText: inf.footerCopyrightText,
           };
         }
 
@@ -1231,6 +1234,9 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       bgMediaType: ld.info.bgMediaType,
       bgOverlayOpacity: ld.info.bgOverlayOpacity,
       bgOverlayColor: ld.info.bgOverlayColor,
+      footerBgColor: ld.info.footerBgColor,
+      footerTextColor: ld.info.footerTextColor,
+      footerCopyrightText: ld.info.footerCopyrightText,
     } : undefined,
     section_colors: ld?.sectionColors || {},
     // WhatsApp Popup attendant info

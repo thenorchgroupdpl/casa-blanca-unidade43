@@ -1070,3 +1070,7 @@
 - [x] Adicionar ColorPickers para modal: bg, titleColor, textColor, statusColor, highlightBg
 - [x] Atualizar StoreLanding postMessage + transformTenantData para schedule_modal_*
 - [x] Aplicar inline styles no ScheduleModal com novas variáveis
+- [x] Criar variáveis footer_bg_color, footer_text_color, footer_copyright_text no types/index.ts e Design.tsx
+- [x] Criar subseção 6.9 RODAPÉ (FOOTER) no Design.tsx com ColorPickers e Input de copyright
+- [x] Atualizar StoreLanding postMessage + transformTenantData para footer_*
+- [x] Aplicar inline styles no componente Footer com novas variáveis
