@@ -401,7 +401,7 @@ export default function ClientDashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const url = `${window.location.origin}/loja/${tenantSlug}`;
+                        const url = `${window.location.origin}/${tenantSlug}`;
                         window.open(url, '_blank');
                       }}
                       className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 hover:text-white text-xs h-8"
@@ -414,7 +414,7 @@ export default function ClientDashboard() {
                       size="icon"
                       className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 hover:text-white h-8 w-8"
                       onClick={() => {
-                        const url = `${window.location.origin}/loja/${tenantSlug}`;
+                        const url = `${window.location.origin}/${tenantSlug}`;
                         navigator.clipboard.writeText(url).then(() => {
                           toast.success('Link copiado!', {
                             description: 'Cole no Instagram, WhatsApp ou onde preferir.',

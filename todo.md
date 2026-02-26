@@ -1095,3 +1095,4 @@
 - [x] Criar procedure tRPC para faturamento do dia (soma de carrinhos enviados hoje)
 - [x] Substituir card "Acessos na LP" por "Faturamento Hoje" com ícone DollarSign e tooltip
 - [x] Formatar valor em R$ usando Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+- [x] Corrigir roteamento do botão "Ver Loja / Copiar Link" para usar URL correta da landing page do tenant
