@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,20 +21,60 @@ import {
   Info,
   Pencil,
   Bell,
+  X,
+  Save,
 } from "lucide-react";
+
+// ============================================
+// STATUS CONFIG
+// ============================================
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   active: { label: "Ativo", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: CheckCircle },
-  warning: { label: "Aviso", color: "bg-amber-500/10 text-amber-400 border-amber-500/20", icon: AlertTriangle },
+  warning: { label: "Em Aviso", color: "bg-amber-500/10 text-amber-400 border-amber-500/20", icon: AlertTriangle },
   overdue: { label: "Vencido", color: "bg-red-500/10 text-red-400 border-red-500/20", icon: Clock },
   suspended: { label: "Suspenso", color: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20", icon: Ban },
 };
+
+const STATUS_OPTIONS = [
+  { value: "active", label: "Ativo" },
+  { value: "warning", label: "Em Aviso" },
+  { value: "overdue", label: "Vencido" },
+  { value: "suspended", label: "Suspenso" },
+];
+
+// ============================================
+// TYPES
+// ============================================
+
+interface TenantBilling {
+  id: number;
+  name: string;
+  slug: string;
+  clientStatus: string | null;
+  subscriptionPlan: string | null;
+  nextBillingDate: Date | string | null;
+  billingAmount: string | null;
+  subscriptionStatus: string | null;
+}
+
+interface EditModalState {
+  tenant: TenantBilling;
+  nextBillingDate: string;
+  billingAmount: string;
+  subscriptionStatus: string;
+}
+
+// ============================================
+// COMPONENT
+// ============================================
 
 export default function BillingPage() {
   const utils = trpc.useUtils();
   const { data: tenants, isLoading } = trpc.billing.listTenants.useQuery();
   const { data: templateSetting } = trpc.globalSettings.get.useQuery({ key: "billing_notification_template" });
 
+  // Mutations
   const updateDateMutation = trpc.billing.updateBillingDate.useMutation({
     onSuccess: () => {
       utils.billing.listTenants.invalidate();
@@ -61,6 +101,7 @@ export default function BillingPage() {
 
   const runCheckMutation = trpc.billing.runBillingCheck.useMutation({
     onSuccess: (result) => {
+      utils.billing.listTenants.invalidate();
       toast.success(`Verificação concluída: ${result.notified} notificados, ${result.skipped} já notificados hoje`);
     },
     onError: (err) => toast.error(err.message),
@@ -68,7 +109,7 @@ export default function BillingPage() {
 
   const sendNotifMutation = trpc.billing.sendNotification.useMutation({
     onSuccess: () => {
-      toast.success("Notificação enviada");
+      toast.success("Notificação enviada com sucesso! O lojista verá no painel dele.");
       setNotifDialog(null);
     },
     onError: (err) => toast.error(err.message),
@@ -82,17 +123,17 @@ export default function BillingPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  // Edit states
-  const [editingDate, setEditingDate] = useState<{ tenantId: number; date: string } | null>(null);
-  const [editingAmount, setEditingAmount] = useState<{ tenantId: number; amount: string } | null>(null);
+  // State
+  const [editModal, setEditModal] = useState<EditModalState | null>(null);
   const [notifDialog, setNotifDialog] = useState<{ tenantId: number; tenantName: string } | null>(null);
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
-  const [notifType, setNotifType] = useState<"billing" | "system" | "info" | "warning">("info");
+  const [notifType, setNotifType] = useState<"billing" | "system" | "info" | "warning">("billing");
   const [template, setTemplate] = useState<string | null>(null);
 
   // Initialize template from server
   const currentTemplate = template ?? templateSetting ?? "";
+  const defaultTemplate = "Olá {{store_name}}! Seu vencimento é em {{days_left}} dia(s), no dia {{due_date}}. Por favor, regularize seu pagamento para manter sua loja ativa.";
 
   // Stats
   const activeCount = tenants?.filter(t => t.subscriptionStatus === "active").length ?? 0;
@@ -100,13 +141,14 @@ export default function BillingPage() {
   const overdueCount = tenants?.filter(t => t.subscriptionStatus === "overdue").length ?? 0;
   const suspendedCount = tenants?.filter(t => t.subscriptionStatus === "suspended").length ?? 0;
 
+  // Helpers
   const formatCurrency = (value: string | null) => {
     const num = parseFloat(value || "0");
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(num);
   };
 
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return "—";
+  const formatDate = (date: Date | string | null): string => {
+    if (!date) return "";
     return new Date(date).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -122,10 +164,66 @@ export default function BillingPage() {
     return diff;
   };
 
+  const toISODate = (date: Date | string | null): string => {
+    if (!date) return new Date().toISOString().split("T")[0];
+    return new Date(date).toISOString().split("T")[0];
+  };
+
+  // Open edit modal
+  const openEditModal = (tenant: TenantBilling) => {
+    setEditModal({
+      tenant,
+      nextBillingDate: toISODate(tenant.nextBillingDate),
+      billingAmount: tenant.billingAmount || "150.00",
+      subscriptionStatus: tenant.subscriptionStatus || "active",
+    });
+  };
+
+  // Save all fields from edit modal
+  const handleSaveEdit = async () => {
+    if (!editModal) return;
+    const { tenant, nextBillingDate, billingAmount, subscriptionStatus } = editModal;
+
+    try {
+      // Fire all mutations in parallel
+      await Promise.all([
+        updateDateMutation.mutateAsync({ tenantId: tenant.id, nextBillingDate }),
+        updateAmountMutation.mutateAsync({ tenantId: tenant.id, billingAmount }),
+        updateStatusMutation.mutateAsync({
+          tenantId: tenant.id,
+          status: subscriptionStatus as "active" | "warning" | "overdue" | "suspended",
+        }),
+      ]);
+      toast.success(`Dados de "${tenant.name}" atualizados com sucesso`);
+      setEditModal(null);
+    } catch {
+      // Individual mutation errors are already handled by onError
+    }
+  };
+
+  // Open notify dialog with template pre-filled
+  const openNotifyDialog = (tenant: TenantBilling) => {
+    const tpl = currentTemplate || defaultTemplate;
+    const daysLeft = getDaysUntil(tenant.nextBillingDate);
+    const formattedDate = formatDate(tenant.nextBillingDate) || "não definida";
+
+    const processedMessage = tpl
+      .replace(/\{\{store_name\}\}/g, tenant.name)
+      .replace(/\{\{due_date\}\}/g, formattedDate)
+      .replace(/\{\{days_left\}\}/g, daysLeft !== null ? String(daysLeft) : "—");
+
+    setNotifDialog({ tenantId: tenant.id, tenantName: tenant.name });
+    setNotifTitle("📋 Lembrete de Pagamento");
+    setNotifMessage(processedMessage);
+    setNotifType("billing");
+  };
+
+  const isSaving = updateDateMutation.isPending || updateAmountMutation.isPending || updateStatusMutation.isPending;
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Gestão Financeira</h1>
           <p className="text-sm text-zinc-400 mt-1">Controle de vencimentos e notificações de cobrança</p>
@@ -216,11 +314,11 @@ export default function BillingPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zinc-800">
-                    <th className="text-left py-3 px-2 text-zinc-400 font-medium">Lojista</th>
-                    <th className="text-left py-3 px-2 text-zinc-400 font-medium">Status</th>
-                    <th className="text-left py-3 px-2 text-zinc-400 font-medium">Próx. Vencimento</th>
-                    <th className="text-left py-3 px-2 text-zinc-400 font-medium">Valor</th>
-                    <th className="text-right py-3 px-2 text-zinc-400 font-medium">Ações</th>
+                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Lojista</th>
+                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Status</th>
+                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Próx. Vencimento</th>
+                    <th className="text-left py-3 px-3 text-zinc-400 font-medium">Valor</th>
+                    <th className="text-right py-3 px-3 text-zinc-400 font-medium">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -228,168 +326,105 @@ export default function BillingPage() {
                     const statusInfo = STATUS_MAP[tenant.subscriptionStatus || "active"];
                     const StatusIcon = statusInfo.icon;
                     const daysUntil = getDaysUntil(tenant.nextBillingDate);
+                    const hasDate = !!tenant.nextBillingDate;
 
                     return (
                       <tr key={tenant.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                        <td className="py-3 px-2">
+                        {/* Lojista */}
+                        <td className="py-3 px-3">
                           <div>
                             <p className="font-medium text-white">{tenant.name}</p>
-                            <p className="text-xs text-zinc-500">{tenant.slug}</p>
+                            <p className="text-xs text-zinc-500">/{tenant.slug}</p>
                           </div>
                         </td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={`${statusInfo.color} text-xs`}>
-                              <StatusIcon className="h-3 w-3 mr-1" />
-                              {statusInfo.label}
-                            </Badge>
-                            <Select
-                              value={tenant.subscriptionStatus || "active"}
-                              onValueChange={(val) =>
-                                updateStatusMutation.mutate({
-                                  tenantId: tenant.id,
-                                  status: val as "active" | "warning" | "overdue" | "suspended",
-                                })
-                              }
-                            >
-                              <SelectTrigger className="w-8 h-8 p-0 border-none bg-transparent">
-                                <Pencil className="h-3 w-3 text-zinc-500" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-zinc-900 border-zinc-800">
-                                <SelectItem value="active">Ativo</SelectItem>
-                                <SelectItem value="warning">Aviso</SelectItem>
-                                <SelectItem value="overdue">Vencido</SelectItem>
-                                <SelectItem value="suspended">Suspenso</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+
+                        {/* Status - Badge only, no ghost button */}
+                        <td className="py-3 px-3">
+                          <Badge variant="outline" className={`${statusInfo.color} text-xs`}>
+                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {statusInfo.label}
+                          </Badge>
                         </td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            {editingDate?.tenantId === tenant.id ? (
-                              <div className="flex items-center gap-1">
-                                <Input
-                                  type="date"
-                                  value={editingDate.date}
-                                  onChange={(e) => setEditingDate({ ...editingDate, date: e.target.value })}
-                                  className="h-8 w-36 bg-zinc-800 border-zinc-700 text-white text-xs"
-                                />
-                                <Button
-                                  size="sm"
-                                  className="h-8 bg-amber-500 hover:bg-amber-600 text-black text-xs"
-                                  onClick={() => {
-                                    updateDateMutation.mutate({
-                                      tenantId: tenant.id,
-                                      nextBillingDate: editingDate.date,
-                                    });
-                                    setEditingDate(null);
-                                  }}
-                                >
-                                  OK
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-8 text-xs text-zinc-400"
-                                  onClick={() => setEditingDate(null)}
-                                >
-                                  ✕
-                                </Button>
-                              </div>
-                            ) : (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      onClick={() =>
-                                        setEditingDate({
-                                          tenantId: tenant.id,
-                                          date: tenant.nextBillingDate
-                                            ? new Date(tenant.nextBillingDate).toISOString().split("T")[0]
-                                            : new Date().toISOString().split("T")[0],
-                                        })
-                                      }
-                                      className="flex items-center gap-1.5 text-white hover:text-amber-400 transition-colors"
-                                    >
-                                      <Calendar className="h-3.5 w-3.5 text-zinc-500" />
-                                      <span>{formatDate(tenant.nextBillingDate)}</span>
-                                      {daysUntil !== null && daysUntil <= 5 && daysUntil >= 0 && (
-                                        <span className={`text-xs font-medium ${daysUntil <= 1 ? "text-red-400" : "text-amber-400"}`}>
-                                          ({daysUntil}d)
-                                        </span>
-                                      )}
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
-                                    Clique para editar a data
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          {editingAmount?.tenantId === tenant.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                step="0.01"
-                                value={editingAmount.amount}
-                                onChange={(e) => setEditingAmount({ ...editingAmount, amount: e.target.value })}
-                                className="h-8 w-24 bg-zinc-800 border-zinc-700 text-white text-xs"
-                              />
-                              <Button
-                                size="sm"
-                                className="h-8 bg-amber-500 hover:bg-amber-600 text-black text-xs"
-                                onClick={() => {
-                                  updateAmountMutation.mutate({
-                                    tenantId: tenant.id,
-                                    billingAmount: editingAmount.amount,
-                                  });
-                                  setEditingAmount(null);
-                                }}
-                              >
-                                OK
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 text-xs text-zinc-400"
-                                onClick={() => setEditingAmount(null)}
-                              >
-                                ✕
-                              </Button>
+
+                        {/* Próx. Vencimento */}
+                        <td className="py-3 px-3">
+                          {hasDate ? (
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                              <span className="text-white">{formatDate(tenant.nextBillingDate)}</span>
+                              {daysUntil !== null && daysUntil <= 5 && daysUntil >= 0 && (
+                                <span className={`text-xs font-semibold ml-1 ${daysUntil <= 1 ? "text-red-400" : "text-amber-400"}`}>
+                                  ({daysUntil}d)
+                                </span>
+                              )}
+                              {daysUntil !== null && daysUntil < 0 && (
+                                <span className="text-xs font-semibold ml-1 text-red-400">
+                                  (vencido)
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <button
-                              onClick={() =>
-                                setEditingAmount({
-                                  tenantId: tenant.id,
-                                  amount: tenant.billingAmount || "150.00",
-                                })
-                              }
-                              className="flex items-center gap-1.5 text-white hover:text-amber-400 transition-colors"
+                              onClick={() => openEditModal(tenant)}
+                              className="flex items-center gap-1.5 text-amber-400/70 hover:text-amber-400 transition-colors text-xs"
                             >
-                              <DollarSign className="h-3.5 w-3.5 text-zinc-500" />
-                              <span>{formatCurrency(tenant.billingAmount)}</span>
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span className="underline underline-offset-2">Definir data</span>
                             </button>
                           )}
                         </td>
-                        <td className="py-3 px-2 text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 text-zinc-400 hover:text-amber-400"
-                            onClick={() => {
-                              setNotifDialog({ tenantId: tenant.id, tenantName: tenant.name });
-                              setNotifTitle("");
-                              setNotifMessage("");
-                              setNotifType("info");
-                            }}
-                          >
-                            <Send className="h-3.5 w-3.5 mr-1" />
-                            Notificar
-                          </Button>
+
+                        {/* Valor */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-1.5">
+                            <DollarSign className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                            <span className="text-white">
+                              {tenant.billingAmount ? formatCurrency(tenant.billingAmount) : (
+                                <span className="text-zinc-500 italic">Não definido</span>
+                              )}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Ações */}
+                        <td className="py-3 px-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                                    onClick={() => openEditModal(tenant)}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
+                                  Editar dados de cobrança
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10"
+                                    onClick={() => openNotifyDialog(tenant)}
+                                  >
+                                    <Send className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
+                                  Enviar notificação
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -430,10 +465,10 @@ export default function BillingPage() {
           <Textarea
             value={currentTemplate}
             onChange={(e) => setTemplate(e.target.value)}
-            placeholder="Olá {{store_name}}! Seu vencimento é em {{days_left}} dia(s), no dia {{due_date}}. Por favor, regularize seu pagamento para manter sua loja ativa."
+            placeholder={defaultTemplate}
             className="min-h-[120px] bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-600"
           />
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <p className="text-xs text-zinc-500">
               Use <code className="bg-zinc-800 px-1 rounded">{"{{store_name}}"}</code>,{" "}
               <code className="bg-zinc-800 px-1 rounded">{"{{due_date}}"}</code> e{" "}
@@ -456,23 +491,137 @@ export default function BillingPage() {
         </CardContent>
       </Card>
 
-      {/* Dialog: Enviar Notificação Manual */}
+      {/* ============================================ */}
+      {/* MODAL: Editar Dados de Cobrança */}
+      {/* ============================================ */}
+      <Dialog open={!!editModal} onOpenChange={(open) => !open && setEditModal(null)}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-amber-400" />
+              Editar Cobrança
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Configurar dados de cobrança de{" "}
+              <span className="text-white font-medium">{editModal?.tenant.name}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          {editModal && (
+            <div className="space-y-5 py-2">
+              {/* Data de Vencimento */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-amber-400" />
+                  Próximo Vencimento
+                </label>
+                <Input
+                  type="date"
+                  value={editModal.nextBillingDate}
+                  onChange={(e) => setEditModal({ ...editModal, nextBillingDate: e.target.value })}
+                  className="bg-zinc-800 border-zinc-700 text-white h-10"
+                />
+                <p className="text-xs text-zinc-500">
+                  Data em que o lojista será cobrado pela próxima mensalidade
+                </p>
+              </div>
+
+              {/* Valor da Recorrência */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-emerald-400" />
+                  Valor da Recorrência (R$)
+                </label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editModal.billingAmount}
+                  onChange={(e) => setEditModal({ ...editModal, billingAmount: e.target.value })}
+                  className="bg-zinc-800 border-zinc-700 text-white h-10"
+                  placeholder="150.00"
+                />
+                <p className="text-xs text-zinc-500">
+                  Valor mensal cobrado do lojista (ex: 150.00)
+                </p>
+              </div>
+
+              {/* Status da Assinatura */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-blue-400" />
+                  Status da Assinatura
+                </label>
+                <Select
+                  value={editModal.subscriptionStatus}
+                  onValueChange={(val) => setEditModal({ ...editModal, subscriptionStatus: val })}
+                >
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-zinc-800">
+                    {STATUS_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              opt.value === "active" ? "bg-emerald-400" :
+                              opt.value === "warning" ? "bg-amber-400" :
+                              opt.value === "overdue" ? "bg-red-400" :
+                              "bg-zinc-400"
+                            }`}
+                          />
+                          {opt.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-zinc-500">
+                  Ativo = em dia &bull; Em Aviso = próximo do vencimento &bull; Vencido = não pagou &bull; Suspenso = loja desativada
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setEditModal(null)} className="text-zinc-400 hover:text-white">
+              <X className="h-4 w-4 mr-1.5" />
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={isSaving}
+              className="bg-amber-500 hover:bg-amber-600 text-black"
+            >
+              <Save className="h-4 w-4 mr-1.5" />
+              {isSaving ? "Salvando..." : "Salvar Alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================ */}
+      {/* MODAL: Enviar Notificação Manual */}
+      {/* ============================================ */}
       <Dialog open={!!notifDialog} onOpenChange={(open) => !open && setNotifDialog(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-amber-400" />
               Enviar Notificação
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Enviar notificação para <span className="text-white font-medium">{notifDialog?.tenantName}</span>
+              Enviar notificação para <span className="text-white font-medium">{notifDialog?.tenantName}</span>.
+              O lojista verá essa notificação no painel dele.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm text-zinc-400 mb-1.5 block">Tipo</label>
+            {/* Tipo */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-300">Tipo</label>
               <Select value={notifType} onValueChange={(v) => setNotifType(v as typeof notifType)}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-zinc-800">
@@ -483,27 +632,34 @@ export default function BillingPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="text-sm text-zinc-400 mb-1.5 block">Título</label>
+
+            {/* Título */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-300">Título</label>
               <Input
                 value={notifTitle}
                 onChange={(e) => setNotifTitle(e.target.value)}
                 placeholder="Ex: Lembrete de pagamento"
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-zinc-800 border-zinc-700 text-white h-10"
               />
             </div>
-            <div>
-              <label className="text-sm text-zinc-400 mb-1.5 block">Mensagem</label>
+
+            {/* Mensagem */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-zinc-300">Mensagem</label>
               <Textarea
                 value={notifMessage}
                 onChange={(e) => setNotifMessage(e.target.value)}
                 placeholder="Digite a mensagem da notificação..."
-                className="min-h-[100px] bg-zinc-800 border-zinc-700 text-white"
+                className="min-h-[120px] bg-zinc-800 border-zinc-700 text-white"
               />
+              <p className="text-xs text-zinc-500">
+                A mensagem foi pré-preenchida com o template salvo. Edite se necessário.
+              </p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNotifDialog(null)} className="text-zinc-400">
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setNotifDialog(null)} className="text-zinc-400 hover:text-white">
               Cancelar
             </Button>
             <Button
@@ -522,8 +678,8 @@ export default function BillingPage() {
               disabled={sendNotifMutation.isPending}
               className="bg-amber-500 hover:bg-amber-600 text-black"
             >
-              <Send className="h-4 w-4 mr-2" />
-              {sendNotifMutation.isPending ? "Enviando..." : "Enviar"}
+              <Send className="h-4 w-4 mr-1.5" />
+              {sendNotifMutation.isPending ? "Enviando..." : "Enviar Notificação"}
             </Button>
           </DialogFooter>
         </DialogContent>

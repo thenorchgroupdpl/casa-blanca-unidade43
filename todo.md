@@ -1112,3 +1112,8 @@
 - [x] Pilar 3: Implementar sininho no header com badge de não lidas
 - [x] Pilar 3: Criar procedure tRPC para listar e marcar notificações como lidas
 - [x] Testes: 21 novos testes para notificações e billing (access control, cross-tenant security, billing automation)
+- [x] Fix: Remover botão 'fantasma' (quadrado cinza vazio) ao lado do badge de status na tabela de Gestão Financeira
+- [x] Fix: Criar modal de edição CRUD com Datepicker (next_billing_date), Input numérico (billing_amount) e Select (subscription_status)
+- [x] Fix: Renderização de datas na coluna 'Próx. Vencimento' — formatar DD/MM/YYYY ou exibir 'Definir data' se null
+- [x] Fix: Botão 'Notificar' deve disparar criação de notificação manual usando template salvo
+- [x] Fix: Refinar layout geral da tabela de Gestão Financeira
