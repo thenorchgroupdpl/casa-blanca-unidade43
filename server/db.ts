@@ -1,4 +1,4 @@
-import { eq, and, asc, desc, like, inArray, sql, isNotNull, gte, lte, sum, count } from "drizzle-orm";
+import { eq, and, asc, desc, like, inArray, sql, isNotNull, gte, lte, sum, count, ne, between, avg } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
@@ -1147,4 +1147,346 @@ export async function generateOnboardingTokenForExistingTenant(tenantId: number)
     .set({ onboardingToken: token, onboardingStatus: 'pending' })
     .where(eq(tenants.id, tenantId));
   return token;
+}
+
+
+// ============================================
+// ANALYTICS FUNCTIONS
+// ============================================
+
+/**
+ * Get dashboard summary metrics for a tenant.
+ * Uses SQL aggregations for efficiency — no large result sets.
+ */
+export async function getDashboardSummary(tenantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  
+  // Start of today (UTC)
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  // Start of yesterday
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+  // Start of this month
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Start of last month
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+  // Revenue today (concluido only)
+  const [revTodayRow] = await db
+    .select({ total: sum(orders.totalValue), cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      eq(orders.status, 'concluido'),
+      gte(orders.createdAt, todayStart)
+    ));
+
+  // Revenue yesterday (concluido only)
+  const [revYesterdayRow] = await db
+    .select({ total: sum(orders.totalValue) })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      eq(orders.status, 'concluido'),
+      gte(orders.createdAt, yesterdayStart),
+      lte(orders.createdAt, todayStart)
+    ));
+
+  // Orders today (all except cancelado)
+  const [ordersTodayRow] = await db
+    .select({ cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      ne(orders.status, 'cancelado'),
+      gte(orders.createdAt, todayStart)
+    ));
+
+  // Orders in progress (novo, em_preparacao, saiu_entrega)
+  const [ordersInProgressRow] = await db
+    .select({ cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      inArray(orders.status, ['novo', 'em_preparacao', 'saiu_entrega'])
+    ));
+
+  // Revenue this month (concluido only)
+  const [revMonthRow] = await db
+    .select({ total: sum(orders.totalValue), cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      eq(orders.status, 'concluido'),
+      gte(orders.createdAt, monthStart)
+    ));
+
+  // Revenue last month (concluido only)
+  const [revLastMonthRow] = await db
+    .select({ total: sum(orders.totalValue), cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      eq(orders.status, 'concluido'),
+      gte(orders.createdAt, lastMonthStart),
+      lte(orders.createdAt, lastMonthEnd)
+    ));
+
+  // Orders this month (all except cancelado)
+  const [ordersMonthRow] = await db
+    .select({ cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      ne(orders.status, 'cancelado'),
+      gte(orders.createdAt, monthStart)
+    ));
+
+  // Orders last month (all except cancelado)
+  const [ordersLastMonthRow] = await db
+    .select({ cnt: count() })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      ne(orders.status, 'cancelado'),
+      gte(orders.createdAt, lastMonthStart),
+      lte(orders.createdAt, lastMonthEnd)
+    ));
+
+  const revenueToday = parseFloat(revTodayRow?.total || '0');
+  const revenueYesterday = parseFloat(revYesterdayRow?.total || '0');
+  const revenueMonth = parseFloat(revMonthRow?.total || '0');
+  const revenueLastMonth = parseFloat(revLastMonthRow?.total || '0');
+  const ordersToday = Number(ordersTodayRow?.cnt || 0);
+  const ordersInProgress = Number(ordersInProgressRow?.cnt || 0);
+  const ordersMonth = Number(ordersMonthRow?.cnt || 0);
+  const ordersLastMonth = Number(ordersLastMonthRow?.cnt || 0);
+  const completedMonth = Number(revMonthRow?.cnt || 0);
+  const completedLastMonth = Number(revLastMonthRow?.cnt || 0);
+
+  const ticketMediaMonth = completedMonth > 0 ? revenueMonth / completedMonth : 0;
+  const ticketMediaLastMonth = completedLastMonth > 0 ? revenueLastMonth / completedLastMonth : 0;
+
+  // Daily average for this month
+  const dayOfMonth = now.getDate();
+  const dailyAverage = dayOfMonth > 0 ? ordersMonth / dayOfMonth : 0;
+
+  return {
+    revenueToday,
+    revenueYesterday,
+    ordersToday,
+    ordersInProgress,
+    ticketMediaMonth,
+    ticketMediaLastMonth,
+    revenueMonth,
+    revenueLastMonth,
+    ordersMonth,
+    ordersLastMonth,
+    dailyAverage,
+  };
+}
+
+/**
+ * Get revenue by day for the last N days.
+ * Returns array of { date, revenue, orders } sorted by date ascending.
+ */
+export async function getRevenueByDay(tenantId: number, days: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  startDate.setHours(0, 0, 0, 0);
+
+  const dateExpr = sql`DATE(\`createdAt\`)`;
+  const rows = await db
+    .select({
+      date: sql<string>`DATE(\`createdAt\`)`.as('date'),
+      revenue: sql<string>`COALESCE(SUM(CASE WHEN \`status\` = 'concluido' THEN \`totalValue\` ELSE 0 END), 0)`.as('revenue'),
+      orderCount: sql<number>`COUNT(CASE WHEN \`status\` != 'cancelado' THEN 1 END)`.as('order_count'),
+    })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      gte(orders.createdAt, startDate)
+    ))
+    .groupBy(sql`DATE(\`createdAt\`)`)
+    .orderBy(sql`DATE(\`createdAt\`)`);
+
+  // Fill in missing dates with zeros
+  const result: Array<{ date: string; revenue: number; orders: number }> = [];
+  const dataMap = new Map(rows.map(r => [r.date, { revenue: parseFloat(r.revenue || '0'), orders: Number(r.orderCount || 0) }]));
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - (days - 1 - i));
+    const dateStr = d.toISOString().split('T')[0];
+    const entry = dataMap.get(dateStr);
+    result.push({
+      date: dateStr,
+      revenue: entry?.revenue || 0,
+      orders: entry?.orders || 0,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Get average orders by weekday for the last 30 days.
+ * Returns array of { weekday, average } (0=Sunday ... 6=Saturday).
+ */
+export async function getOrdersByWeekday(tenantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
+  startDate.setHours(0, 0, 0, 0);
+
+  const rows = await db
+    .select({
+      weekday: sql<number>`DAYOFWEEK(\`createdAt\`)`.as('weekday'),
+      total: sql<number>`COUNT(*)`.as('total'),
+    })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      ne(orders.status, 'cancelado'),
+      gte(orders.createdAt, startDate)
+    ))
+    .groupBy(sql`DAYOFWEEK(\`createdAt\`)`);
+
+
+  // MySQL DAYOFWEEK: 1=Sunday, 2=Monday, ..., 7=Saturday
+  // Count how many of each weekday exist in the last 30 days
+  const weekdayCounts: number[] = [0, 0, 0, 0, 0, 0, 0]; // Sun-Sat
+  for (let i = 0; i < 30; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    weekdayCounts[d.getDay()]++;
+  }
+
+  const weekdayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const dataMap = new Map(rows.map(r => [Number(r.weekday), Number(r.total)]));
+
+  return weekdayNames.map((name, index) => {
+    // MySQL DAYOFWEEK is 1-indexed (1=Sunday)
+    const mysqlDow = index + 1;
+    const totalOrders = dataMap.get(mysqlDow) || 0;
+    const occurrences = weekdayCounts[index] || 1;
+    return {
+      weekday: name,
+      weekdayIndex: index,
+      average: Math.round((totalOrders / occurrences) * 10) / 10,
+      total: totalOrders,
+    };
+  });
+}
+
+/**
+ * Get top N products by order count for a given period.
+ * Parses the JSON items field to count product occurrences.
+ */
+export async function getTopProducts(tenantId: number, period: 'today' | '7d' | '30d' | 'month', limit: number = 5) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const now = new Date();
+  let startDate: Date;
+
+  switch (period) {
+    case 'today':
+      startDate = new Date(now);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+    case '7d':
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+    case '30d':
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 30);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+    case 'month':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+  }
+
+  // Get all completed orders in the period with their items
+  const orderRows = await db
+    .select({ items: orders.items })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      ne(orders.status, 'cancelado'),
+      gte(orders.createdAt, startDate)
+    ));
+
+  // Count product occurrences from JSON items
+  const productCounts = new Map<number, { count: number; name: string }>();
+  for (const row of orderRows) {
+    const items = row.items as Array<{ productId: number; name: string; quantity: number; price: number }> | null;
+    if (!items) continue;
+    for (const item of items) {
+      const existing = productCounts.get(item.productId);
+      if (existing) {
+        existing.count += item.quantity;
+      } else {
+        productCounts.set(item.productId, { count: item.quantity, name: item.name });
+      }
+    }
+  }
+
+  // Sort by count descending and take top N
+  const sorted = Array.from(productCounts.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, limit);
+
+  if (sorted.length === 0) return [];
+
+  // Fetch product details (image, category)
+  const productIds = sorted.map(([id]) => id);
+  const productDetails = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      imageUrl: products.imageUrl,
+      categoryId: products.categoryId,
+    })
+    .from(products)
+    .where(inArray(products.id, productIds));
+
+  // Fetch category names
+  const categoryIds = Array.from(new Set(productDetails.map(p => p.categoryId)));
+  const categoryDetails = categoryIds.length > 0
+    ? await db
+        .select({ id: categories.id, name: categories.name })
+        .from(categories)
+        .where(inArray(categories.id, categoryIds))
+    : [];
+
+  const productMap = new Map(productDetails.map(p => [p.id, p]));
+  const categoryMap = new Map(categoryDetails.map(c => [c.id, c.name]));
+
+  return sorted.map(([productId, { count, name }]) => {
+    const product = productMap.get(productId);
+    return {
+      productId,
+      name: product?.name || name,
+      imageUrl: product?.imageUrl || null,
+      category: product ? (categoryMap.get(product.categoryId) || 'Sem categoria') : 'Sem categoria',
+      count,
+    };
+  });
 }

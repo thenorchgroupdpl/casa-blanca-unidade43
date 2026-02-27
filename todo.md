@@ -1212,3 +1212,25 @@
 - [x] Super Admin: Painel de briefing (aba no modal de gerenciamento) com dados organizados por seção
 - [x] Super Admin: Botão "Marcar como Revisado" no painel de briefing
 - [x] Design: Visual "Warm Luxury" dark mode, mobile-first (320px+)
+
+## Dashboard Analítico do Lojista (Parte 4)
+- [x] Backend: Criar analyticsRouter em server/routers/analytics.ts
+- [x] Backend: Procedure getDashboardSummary (6 cards em query única otimizada)
+- [x] Backend: Procedure getRevenueByDay (faturamento diário últimos N dias)
+- [x] Backend: Procedure getOrdersByWeekday (média pedidos por dia da semana)
+- [x] Backend: Procedure getTopProducts (top 5 produtos por período)
+- [x] Backend: Registrar analyticsRouter no routers.ts
+- [x] Frontend: Card 1 — Faturamento Hoje (soma concluídos + variação vs ontem)
+- [x] Frontend: Card 2 — Pedidos Hoje (total exceto cancelados + em andamento)
+- [x] Frontend: Card 3 — Ticket Médio (mês atual + variação vs mês anterior)
+- [x] Frontend: Card 4 — Faturamento do Mês (soma concluídos + comparativo %)
+- [x] Frontend: Card 5 — Total Pedidos do Mês (exceto cancelados + média diária)
+- [x] Frontend: Card 6 — Status da Loja (aberta/fechada + próximo horário)
+- [x] Frontend: Gráfico de Faturamento (AreaChart Recharts, últimos 30 dias, tooltip, gradiente)
+- [x] Frontend: Gráfico de Pedidos por Dia da Semana (BarChart, destaque dia atual)
+- [x] Frontend: Ranking Top 5 Produtos (foto, categoria, barra proporcional, medalha)
+- [x] Frontend: Seletor de Período (Hoje, 7d, 30d, Este mês) — atualiza gráficos e ranking
+- [x] Frontend: Loading skeletons em todos os componentes de analytics
+- [x] Frontend: Mover widget de disponibilidade rápida para abaixo dos analytics
+- [x] Frontend: Valores em R$ formato brasileiro, datas em DD/MM
+- [x] Testes: Cobertura para getDashboardSummary, getRevenueByDay, getOrdersByWeekday, getTopProducts (25 testes passando)

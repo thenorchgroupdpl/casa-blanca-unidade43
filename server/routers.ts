@@ -15,7 +15,8 @@ import { usersRouter } from "./routers/users";
 import { globalSettingsRouter, publicGlobalSettingsRouter } from "./routers/globalSettings";
 import { billingRouter, billingPopupRouter, notificationsRouter } from "./routers/billing";
 import { ordersRouter, upsellsRouter, deliveryZonesRouter } from "./routers/orders";
-import { onboardingRouter } from "./routers/onboarding";
+import { onboardingRouter } from './routers/onboarding';
+import { analyticsRouter } from './routers/analytics';
 
 export const appRouter = router({
   // System routes
@@ -116,6 +117,9 @@ export const appRouter = router({
 
   // Billing Popup (Client Admin / Lojista)
   billingPopup: billingPopupRouter,
+
+  // Analytics (Dashboard charts & metrics)
+  analytics: analyticsRouter,
 
   // Orders (Kanban)
   orders: ordersRouter,
