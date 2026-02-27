@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useUI, useCart, useToast, useSiteData } from '@/store/useStore';
+import { trackViewItem, trackAddToCart } from '@/lib/analytics';
 import { useUpsell } from './UpsellProvider';
 
 // Map highlight tag values to display labels
@@ -43,10 +44,17 @@ export default function ProductBottomSheet() {
 
   const ms = data?.menu_style;
 
-  // Reset quantity when product changes
+  // Reset quantity when product changes + GA4 view_item
   useEffect(() => {
     setQuantity(1);
     setCurrentImageIndex(0);
+    if (selectedProduct) {
+      trackViewItem({
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: selectedProduct.price,
+      });
+    }
   }, [selectedProduct]);
 
   // Lock body scroll when sheet is open
@@ -71,6 +79,14 @@ export default function ProductBottomSheet() {
   const handleAddToCart = () => {
     if (!selectedProduct) return;
     
+    // GA4: add_to_cart event
+    trackAddToCart({
+      id: selectedProduct.id,
+      name: selectedProduct.name,
+      price: selectedProduct.price,
+      quantity,
+    });
+
     addItem(selectedProduct, quantity);
     
     showToast(

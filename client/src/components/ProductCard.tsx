@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useCart, useUI, useToast } from '@/store/useStore';
+import { trackAddToCart } from '@/lib/analytics';
 import { useUpsell } from './UpsellProvider';
 import type { Product } from '@/types';
 
@@ -90,6 +91,13 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    // GA4: add_to_cart event
+    trackAddToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+    });
     addItem(product, 1);
     showToast('Produto adicionado!', `${product.name} adicionado à sacola.`);
     // Trigger upsell check

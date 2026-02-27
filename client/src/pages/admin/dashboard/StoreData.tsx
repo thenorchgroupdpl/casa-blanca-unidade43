@@ -26,6 +26,9 @@ import {
   Share2,
   Plus,
   Trash2,
+  Globe,
+  BarChart3,
+  MapPinned,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -286,6 +289,10 @@ export default function StoreDataPage() {
               <TabsTrigger value="sharing" className="data-[state=active]:bg-zinc-700 text-zinc-300 data-[state=active]:text-white">
                 <Share2 className="h-4 w-4 mr-2" />
                 Compartilhar
+              </TabsTrigger>
+              <TabsTrigger value="google" className="data-[state=active]:bg-zinc-700 text-zinc-300 data-[state=active]:text-white">
+                <Globe className="h-4 w-4 mr-2" />
+                Google
               </TabsTrigger>
             </TabsList>
 
@@ -733,6 +740,13 @@ export default function StoreDataPage() {
             <TabsContent value="sharing" className="mt-6">
               <ShareStoreCard />
             </TabsContent>
+
+            {/* ============================================ */}
+            {/* TAB 5: INTEGRAÇÕES GOOGLE                     */}
+            {/* ============================================ */}
+            <TabsContent value="google" className="mt-6">
+              <GoogleIntegrationsCard />
+            </TabsContent>
           </Tabs>
         )}
 
@@ -903,6 +917,192 @@ function ShareStoreCard() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function GoogleIntegrationsCard() {
+  const { data: googleData, isLoading } = trpc.store.getGoogleIntegrations.useQuery();
+  const utils = trpc.useUtils();
+  const updateMutation = trpc.store.updateGoogleIntegrations.useMutation({
+    onSuccess: () => {
+      toast.success("Integrações Google salvas com sucesso!");
+      utils.store.getGoogleIntegrations.invalidate();
+      setHasChanges(false);
+    },
+    onError: (err) => {
+      toast.error("Erro ao salvar: " + err.message);
+    },
+  });
+
+  const [googlePlaceId, setGooglePlaceId] = useState("");
+  const [ga4MeasurementId, setGa4MeasurementId] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (googleData) {
+      setGooglePlaceId(googleData.googlePlaceId || "");
+      setGa4MeasurementId(googleData.ga4MeasurementId || "");
+    }
+  }, [googleData]);
+
+  const handleSave = () => {
+    updateMutation.mutate({
+      googlePlaceId: googlePlaceId.trim() || undefined,
+      ga4MeasurementId: ga4MeasurementId.trim() || undefined,
+    });
+  };
+
+  if (isLoading) {
+    return <div className="text-zinc-500 text-center py-12">Carregando...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Google Place ID */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <MapPinned className="h-5 w-5 text-blue-400" />
+            Google Place ID
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            Conecte sua loja ao Google Maps para exibir avaliações reais dos clientes na sua Landing Page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-zinc-300">Place ID</Label>
+            <Input
+              value={googlePlaceId}
+              onChange={(e) => {
+                setGooglePlaceId(e.target.value);
+                setHasChanges(true);
+              }}
+              placeholder="Ex: ChIJN1t_tDeuEmsRUsoyG83frY4"
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+            />
+            <p className="text-xs text-zinc-500">
+              Encontre seu Place ID em{" "}
+              <a
+                href="https://developers.google.com/maps/documentation/places/web-service/place-id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                Google Place ID Finder
+              </a>
+            </p>
+          </div>
+
+          {/* Status indicator */}
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+            {googlePlaceId ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-sm text-zinc-300">Place ID configurado</span>
+                <span className="text-xs text-zinc-500 ml-auto font-mono truncate max-w-[200px]">
+                  {googlePlaceId}
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 rounded-full bg-zinc-600" />
+                <span className="text-sm text-zinc-500">Não configurado — usando avaliações de exemplo</span>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Google Analytics */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-amber-400" />
+            Google Analytics (GA4)
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            Acompanhe o tráfego e as conversões da sua loja com o Google Analytics 4.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-zinc-300">Measurement ID</Label>
+            <Input
+              value={ga4MeasurementId}
+              onChange={(e) => {
+                setGa4MeasurementId(e.target.value);
+                setHasChanges(true);
+              }}
+              placeholder="Ex: G-XXXXXXXXXX"
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+            />
+            <p className="text-xs text-zinc-500">
+              Encontre seu Measurement ID em{" "}
+              <a
+                href="https://analytics.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                Google Analytics
+              </a>
+              {" "}→ Admin → Data Streams → Web
+            </p>
+          </div>
+
+          {/* Status indicator */}
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+            {ga4MeasurementId ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-sm text-zinc-300">Analytics ativo</span>
+                <span className="text-xs text-zinc-500 ml-auto font-mono">{ga4MeasurementId}</span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 rounded-full bg-zinc-600" />
+                <span className="text-sm text-zinc-500">Não configurado — sem rastreamento</span>
+              </>
+            )}
+          </div>
+
+          {/* Events tracked info */}
+          <div className="p-4 rounded-lg bg-zinc-800/30 border border-zinc-700/30">
+            <h4 className="text-sm font-medium text-zinc-300 mb-3">Eventos rastreados automaticamente:</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { event: "view_item", desc: "Visualização de produto" },
+                { event: "add_to_cart", desc: "Adição à sacola" },
+                { event: "begin_checkout", desc: "Abertura da sacola" },
+                { event: "purchase_whatsapp", desc: "Envio do pedido" },
+              ].map((item) => (
+                <div key={item.event} className="flex items-center gap-2 text-xs">
+                  <code className="px-1.5 py-0.5 rounded bg-zinc-700 text-amber-400 font-mono">
+                    {item.event}
+                  </code>
+                  <span className="text-zinc-500">{item.desc}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      {hasChanges && (
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSave}
+            disabled={updateMutation.isPending}
+            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {updateMutation.isPending ? "Salvando..." : "Salvar Integrações"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

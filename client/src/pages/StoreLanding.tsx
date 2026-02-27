@@ -830,39 +830,51 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     };
   });
 
-  // Transform feedbacks (mock for now, would come from Google Places API)
-  const transformedFeedbacks: Feedback[] = [
-    {
-      id: '1',
-      author_name: 'Maria S.',
-      author_photo: '',
-      rating: 5,
-      date: '2 semanas atrás',
-      text: 'Excelente! Comida deliciosa e atendimento impecável.',
-      verified: true,
-      photos: [],
-    },
-    {
-      id: '2',
-      author_name: 'João P.',
-      author_photo: '',
-      rating: 5,
-      date: '1 mês atrás',
-      text: 'Melhor restaurante da região. Ambiente acolhedor.',
-      verified: true,
-      photos: [],
-    },
-    {
-      id: '3',
-      author_name: 'Ana C.',
-      author_photo: '',
-      rating: 4,
-      date: '1 mês atrás',
-      text: 'Muito bom! Voltarei com certeza.',
-      verified: true,
-      photos: [],
-    },
-  ];
+  // Transform feedbacks from real reviews data (from DB) or use defaults
+  const { reviews = [] } = tenantData;
+  const transformedFeedbacks: Feedback[] = reviews.length > 0
+    ? reviews.map((r: any) => ({
+        id: r.id?.toString() || String(Math.random()),
+        author_name: r.authorName || 'Cliente',
+        author_photo: r.authorPhoto || '',
+        rating: r.rating || 5,
+        date: r.relativeTime || 'Recentemente',
+        text: r.text || '',
+        verified: r.isFromGoogle ?? true,
+        photos: r.photos || [],
+      }))
+    : [
+        {
+          id: '1',
+          author_name: 'Maria S.',
+          author_photo: 'https://ui-avatars.com/api/?name=Maria+S&background=D4AF37&color=fff&size=100',
+          rating: 5,
+          date: '2 semanas atrás',
+          text: 'Excelente! Comida deliciosa e atendimento impecável.',
+          verified: true,
+          photos: [],
+        },
+        {
+          id: '2',
+          author_name: 'João P.',
+          author_photo: 'https://ui-avatars.com/api/?name=Joao+P&background=B8860B&color=fff&size=100',
+          rating: 5,
+          date: '1 mês atrás',
+          text: 'Melhor restaurante da região. Ambiente acolhedor.',
+          verified: true,
+          photos: [],
+        },
+        {
+          id: '3',
+          author_name: 'Ana C.',
+          author_photo: 'https://ui-avatars.com/api/?name=Ana+C&background=8B4513&color=fff&size=100',
+          rating: 4,
+          date: '1 mês atrás',
+          text: 'Muito bom! Voltarei com certeza.',
+          verified: true,
+          photos: [],
+        },
+      ];
 
   return {
     project_name: ld?.home?.companyName || tenant.name,

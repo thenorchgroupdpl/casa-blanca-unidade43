@@ -244,6 +244,33 @@ export const storeRouter = router({
     }),
 
   // ============================================
+  // GOOGLE INTEGRATIONS (Client Admin)
+  // ============================================
+  getGoogleIntegrations: clientAdminProcedure.query(async ({ ctx }) => {
+    const tenantId = getTenantIdFromUser(ctx.user);
+    const tenant = await db.getTenantById(tenantId);
+    if (!tenant) throw new TRPCError({ code: "NOT_FOUND", message: "Tenant não encontrado" });
+    return {
+      googlePlaceId: tenant.googlePlaceId || '',
+      ga4MeasurementId: tenant.ga4MeasurementId || '',
+    };
+  }),
+
+  updateGoogleIntegrations: clientAdminProcedure
+    .input(z.object({
+      googlePlaceId: z.string().optional(),
+      ga4MeasurementId: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      await db.updateTenant(tenantId, {
+        googlePlaceId: input.googlePlaceId || null,
+        ga4MeasurementId: input.ga4MeasurementId || null,
+      });
+      return { success: true };
+    }),
+
+  // ============================================
   // QUICK PRODUCT AVAILABILITY TOGGLE
   // ============================================
   toggleProductAvailability: clientAdminProcedure

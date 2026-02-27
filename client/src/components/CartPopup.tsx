@@ -11,6 +11,7 @@ import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/ut
 import { useCart, useSiteData } from '@/store/useStore';
 import { trpc } from '@/lib/trpc';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
+import { trackBeginCheckout, trackPurchaseWhatsApp } from '@/lib/analytics';
 
 interface CartPopupProps {
   isOpen: boolean;
@@ -18,8 +19,19 @@ interface CartPopupProps {
 }
 
 export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
-  const { items, updateQuantity, removeItem, clearCart, getTotalPrice, tenantId } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, getTotalPrice, getTotalItems, tenantId } = useCart();
   const { data } = useSiteData();
+
+  // GA4: begin_checkout when popup opens
+  const prevOpenRef = useState(false);
+  if (isOpen && !prevOpenRef[0]) {
+    const total = getTotalPrice();
+    const count = getTotalItems();
+    if (count > 0) {
+      trackBeginCheckout({ totalValue: total, itemCount: count });
+    }
+  }
+  prevOpenRef[0] = isOpen;
 
   // Cart Landing style from Design System
   const cs = data?.cart_landing_style;
@@ -88,7 +100,15 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
       return;
     }
 
-    // 2. Only open WhatsApp AFTER order is saved
+    // 2. GA4: purchase_whatsapp event
+    trackPurchaseWhatsApp({
+      totalValue: total,
+      itemCount: items.reduce((sum, i) => sum + i.quantity, 0),
+      couponCode: appliedCoupon?.code,
+      discountValue: couponDiscount,
+    });
+
+    // 3. Only open WhatsApp AFTER order is saved
     openWhatsApp(data.contact.whatsapp, message);
 
     // 3. Clear cart after success

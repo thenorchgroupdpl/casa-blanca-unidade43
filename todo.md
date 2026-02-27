@@ -1402,3 +1402,21 @@
 - [x] Garantir incremento de usage_count no momento do checkout (antes do WhatsApp)
 - [x] Testes unitários: 58 testes para validação, mensagens de erro, cálculo e incremento
 - [x] 0 erros TypeScript e todos os 544 testes passando (26 arquivos)
+
+## Integrações Google (Places + Analytics)
+- [x] Schema: campos googlePlaceId e ga4MeasurementId já existem na tabela tenants
+- [x] Backend: endpoints getGoogleIntegration e updateGoogleIntegration no store router
+- [x] Backend: serviço getGoogleReviews com mock (useMock=true) e fetch real comentado/pronto
+- [x] Backend: endpoint público getGoogleReviews por tenantId no store router
+- [x] Frontend: seção "Integrações Google" na aba Configurações do Dashboard (StoreData.tsx)
+- [x] Frontend: campos Google Place ID e Google Analytics ID com salvamento e feedback
+- [x] Frontend: FeedbacksSection já exibe avaliações na Landing Page (carrossel)
+- [x] Frontend: dados mockados (3 avaliações com foto, nome, estrelas, texto elogiando)
+- [x] Frontend: GA4 gtag.js injetado dinamicamente via StoreLanding com Analytics ID do tenant
+- [x] Frontend: função utilitária trackEvent com console.log estilizado para debug
+- [x] Frontend: evento view_item (ProductBottomSheet ao abrir produto)
+- [x] Frontend: evento add_to_cart (ProductBottomSheet + ProductCard ao adicionar)
+- [x] Frontend: evento begin_checkout (CartDrawer + CartPopup ao abrir sacola)
+- [x] Frontend: evento purchase_whatsapp (CartDrawer + CartPopup ao finalizar pedido)
+- [x] Testes: 18 testes (10 mock reviews + 8 analytics) — todos passando
+- [x] 0 erros TypeScript e todos os 562 testes passando (27 arquivos)

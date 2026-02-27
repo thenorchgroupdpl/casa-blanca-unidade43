@@ -14,6 +14,7 @@ import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/ut
 import { useCart, useSiteData } from '@/store/useStore';
 import { trpc } from '@/lib/trpc';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
+import { trackBeginCheckout, trackPurchaseWhatsApp } from '@/lib/analytics';
 
 export default function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +62,15 @@ export default function CartDrawer() {
 
   // Listen for cart open event
   useEffect(() => {
-    const handleOpenCart = () => setIsOpen(true);
+    const handleOpenCart = () => {
+      setIsOpen(true);
+      // GA4: begin_checkout event
+      const total = useCart.getState().getTotalPrice();
+      const count = useCart.getState().getTotalItems();
+      if (count > 0) {
+        trackBeginCheckout({ totalValue: total, itemCount: count });
+      }
+    };
     window.addEventListener('openCart', handleOpenCart);
     return () => window.removeEventListener('openCart', handleOpenCart);
   }, []);
@@ -137,7 +146,15 @@ export default function CartDrawer() {
       return;
     }
 
-    // 2. Only open WhatsApp AFTER order is saved successfully
+    // 2. GA4: purchase_whatsapp event
+    trackPurchaseWhatsApp({
+      totalValue: totalWithDelivery,
+      itemCount: items.reduce((sum, i) => sum + i.quantity, 0),
+      couponCode: appliedCoupon?.code,
+      discountValue: couponDiscount,
+    });
+
+    // 3. Only open WhatsApp AFTER order is saved successfully
     openWhatsApp(data.contact.whatsapp, message);
     
     // 3. Clear cart after successful checkout
