@@ -1349,7 +1349,7 @@ export default function DesignPage() {
 
               {/* Presets Panel (collapsible) */}
               {showPresets && (
-                <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60">
+                <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60 max-h-[50vh] overflow-y-auto scrollbar-thin">
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center gap-2">
@@ -1382,7 +1382,7 @@ export default function DesignPage() {
                           </div>
                           <div className="px-2 py-1.5 bg-zinc-800/80">
                             <p className="text-[9px] text-zinc-400 leading-tight truncate">{preset.description}</p>
-                            <p className="text-[8px] text-zinc-600 mt-0.5">{preset.fontFamily} + {preset.fontDisplay}</p>
+                            <p className="text-[8px] text-amber-600/60 mt-0.5 truncate">{preset.niche}</p>
                           </div>
                         </button>
                       ))}

@@ -1520,3 +1520,20 @@
 - [x] Preview dinâmico: alterações refletem instantaneamente no preview via inline styles
 - [x] Sincronização com schema do banco de dados (campos já existentes no MenuStyleOverrides)
 - [x] 0 erros TypeScript e todos os 570 testes passando
+
+## 12 Novos Presets Visuais no Design System
+- [x] Ler designPresets.ts existente e entender estrutura/tipagem
+- [x] Tema 7 — Churrascaria | Dark Brown & Ember
+- [x] Tema 8 — Padaria & Café | Warm Beige
+- [x] Tema 9 — Marmitaria | Orange Comfort
+- [x] Tema 10 — Boteco & Petiscos | Dark Amber
+- [x] Tema 11 — Sorvete & Gelato | Pastel Blue
+- [x] Tema 12 — Frango & Fast Food | Golden Yellow
+- [x] Tema 13 — Vegano & Natural | Earthy Green
+- [x] Tema 14 — Frutos do Mar | Deep Ocean
+- [x] Tema 15 — Mexicano | Vibrant Fiesta (ajustado)
+- [x] Tema 16 — Árabe & Esfiha | Warm Spice (ajustado)
+- [x] Tema 17 — Italiano | Classic Olive (ajustado)
+- [x] Tema 18 — Food Truck | Neon Street (ajustado)
+- [x] Verificar layout da seção 'Aplicar Tema Rápido' para 18 cards (max-h + scroll)
+- [x] 0 erros TypeScript e 570 testes passando
