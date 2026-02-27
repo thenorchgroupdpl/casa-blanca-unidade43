@@ -1467,3 +1467,16 @@
 - [x] Frontend: título dinâmico (currentPeriodLabel) refletindo intervalo customizado
 - [x] Testes: 6 testes para custom period (com datas, sem datas, clamp epoch)
 - [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
+
+## Modal de Produto Centralizado + Design System
+- [x] Schema: campos já existem no MenuStyleOverrides (modalBgColor, modalNameColor, modalPriceColor, etc.)
+- [x] Backend: endpoints de Design System já suportam todos os campos do modal
+- [x] Frontend: criado componente ProductModal centralizado (substituiu bottom sheet)
+- [x] Frontend: layout responsivo (desktop: lado a lado imagem+info, mobile: empilhado)
+- [x] Frontend: overlay escuro com backdrop-blur, botão X, fechar com Escape, animação spring
+- [x] Frontend: nome, descrição completa (sem truncamento), preço destaque, seletor quantidade, botão adicionar
+- [x] Frontend: consome variáveis do Design System via inline styles (13 variáveis)
+- [x] Frontend: mantém badge highlight, preço original riscado, upsell trigger, GA4 events
+- [x] Frontend: color pickers já existem na seção 3.4 do Design System Super Admin (verificado)
+- [x] Frontend: substituído ProductBottomSheet por ProductModal em Home.tsx e StoreLanding.tsx
+- [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)

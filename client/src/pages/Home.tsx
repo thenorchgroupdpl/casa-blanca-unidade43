@@ -20,7 +20,7 @@ import LocationSection from '@/components/LocationSection';
 
 // Overlay & Modal Components
 import OrderOverlay from '@/components/OrderOverlay';
-import ProductBottomSheet from '@/components/ProductBottomSheet';
+import ProductModal from '@/components/ProductModal';
 import CartDrawer from '@/components/CartDrawer';
 import WhatsAppModal from '@/components/WhatsAppModal';
 import ScheduleModal from '@/components/ScheduleModal';
@@ -106,7 +106,7 @@ export default function Home() {
 
       {/* Overlays & Modals */}
       <OrderOverlay />
-      <ProductBottomSheet />
+      <ProductModal />
       <CartDrawer />
       <WhatsAppModal />
       <ScheduleModal />
