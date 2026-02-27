@@ -9,6 +9,12 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startBillingCron } from "../billingCron";
 import { registerSSERoutes } from "../sse";
+import {
+  authLimiter,
+  orderCreateLimiter,
+  onboardingLimiter,
+  publicReadLimiter,
+} from "../middleware/rateLimiter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -39,6 +45,27 @@ async function startServer() {
   registerOAuthRoutes(app);
   // SSE endpoint for real-time order notifications
   registerSSERoutes(app);
+
+  // ============================================
+  // RATE LIMITING
+  // ============================================
+
+  // Auth login: 10 attempts per IP every 15 minutes
+  app.use("/api/trpc/emailAuth.login", authLimiter);
+
+  // Order creation (public checkout): 20 per IP per hour
+  app.use("/api/trpc/orders.create", orderCreateLimiter);
+  app.use("/api/trpc/publicStore.createOrder", orderCreateLimiter);
+
+  // Onboarding submission: 5 per IP per hour
+  app.use("/api/trpc/onboarding.submitBriefing", onboardingLimiter);
+
+  // Public read routes: 100 per IP per minute
+  app.use("/api/trpc/public.getTenantBySlug", publicReadLimiter);
+  app.use("/api/trpc/publicStore.getBySlug", publicReadLimiter);
+  app.use("/api/trpc/publicStore.getFullData", publicReadLimiter);
+  app.use("/api/trpc/publicSettings", publicReadLimiter);
+
   // tRPC API
   app.use(
     "/api/trpc",

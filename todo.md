@@ -1267,3 +1267,18 @@
 - [x] Corrigir cálculo para que "Vencidos" conte tenants com nextBillingDate no passado
 - [x] Verificar que "Em Aviso" e "Suspensos" também estão corretos
 - [x] Testar sincronização entre cards e tabela de lojistas (25 testes, 420 total)
+
+## Rate Limiting (express-rate-limit)
+- [x] Instalar express-rate-limit e @types/express-rate-limit
+- [x] Criar server/middleware/rateLimiter.ts com 4 limiters configurados
+- [x] auth.login → 10 tentativas por IP a cada 15 minutos
+- [x] orders.create → 20 por IP por hora
+- [x] onboarding.submit → 5 por IP por hora
+- [x] Rotas públicas de leitura → 100 por IP por minuto
+- [x] Erro 429 com mensagem amigável em português
+- [x] Headers padrão de rate limit (X-RateLimit-Limit, Remaining, Reset)
+- [x] Desabilitado em NODE_ENV=development
+- [x] Compatível com TRPCError
+- [x] Aplicar limiters no servidor Express
+- [x] Testes Vitest para o middleware (14 testes)
+- [x] 0 erros TypeScript e 434 testes passando (22 arquivos)
