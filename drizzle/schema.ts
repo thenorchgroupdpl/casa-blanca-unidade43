@@ -94,6 +94,14 @@ export const tenants = mysqlTable("tenants", {
   billingAmount: decimal("billingAmount", { precision: 10, scale: 2 }).default("150.00"),
   subscriptionStatus: mysqlEnum("subscriptionStatus", ["active", "warning", "overdue", "suspended"]).default("active"),
   
+  // ============================================
+  // ONBOARDING BRIEFING
+  // ============================================
+  onboardingToken: varchar("onboardingToken", { length: 64 }).unique(),
+  onboardingStatus: mysqlEnum("onboardingStatus", ["pending", "submitted", "reviewed"]).default("pending"),
+  onboardingSubmittedAt: timestamp("onboardingSubmittedAt"),
+  onboardingData: json("onboardingData"),
+
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

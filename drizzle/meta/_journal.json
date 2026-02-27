@@ -127,6 +127,13 @@
       "when": 1772159305344,
       "tag": "0017_yummy_kate_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1772164651049,
+      "tag": "0018_parched_cloak",
+      "breakpoints": true
     }
   ]
 }

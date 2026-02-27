@@ -97,6 +97,8 @@ export const tenantsRouter = router({
         throw new Error("Slug já está em uso");
       }
 
+      const onboardingToken = crypto.randomUUID().replace(/-/g, '');
+
       const tenantId = await db.createTenant({
         name: input.name,
         slug: input.slug,
@@ -107,6 +109,8 @@ export const tenantsRouter = router({
         fontDisplay: input.fontDisplay,
         borderRadius: input.borderRadius,
         isActive: input.isActive ?? true,
+        onboardingToken,
+        onboardingStatus: 'pending',
       });
 
       // Create default store settings

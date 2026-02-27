@@ -15,6 +15,7 @@ import { usersRouter } from "./routers/users";
 import { globalSettingsRouter, publicGlobalSettingsRouter } from "./routers/globalSettings";
 import { billingRouter, billingPopupRouter, notificationsRouter } from "./routers/billing";
 import { ordersRouter, upsellsRouter, deliveryZonesRouter } from "./routers/orders";
+import { onboardingRouter } from "./routers/onboarding";
 
 export const appRouter = router({
   // System routes
@@ -134,6 +135,9 @@ export const appRouter = router({
 
   // Public global settings (no auth required - for Login page etc.)
   publicSettings: publicGlobalSettingsRouter,
+
+  // Onboarding Briefing (public + admin)
+  onboarding: onboardingRouter,
 
   // Alias for backward compatibility
   public: router({

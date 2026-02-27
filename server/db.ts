@@ -1106,3 +1106,45 @@ export async function countPickupZones(tenantId: number): Promise<number> {
     .where(and(eq(deliveryZones.tenantId, tenantId), eq(deliveryZones.isPickup, true)));
   return result[0]?.count ?? 0;
 }
+
+
+// ============================================
+// ONBOARDING BRIEFING
+// ============================================
+
+export async function getTenantByOnboardingToken(token: string): Promise<Tenant | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(tenants).where(eq(tenants.onboardingToken, token)).limit(1);
+  return result[0] || null;
+}
+
+export async function submitOnboardingBriefing(token: string, data: any): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants)
+    .set({
+      onboardingData: data,
+      onboardingStatus: 'submitted',
+      onboardingSubmittedAt: new Date(),
+    })
+    .where(eq(tenants.onboardingToken, token));
+}
+
+export async function markOnboardingReviewed(tenantId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(tenants)
+    .set({ onboardingStatus: 'reviewed' })
+    .where(eq(tenants.id, tenantId));
+}
+
+export async function generateOnboardingTokenForExistingTenant(tenantId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const token = crypto.randomUUID().replace(/-/g, '');
+  await db.update(tenants)
+    .set({ onboardingToken: token, onboardingStatus: 'pending' })
+    .where(eq(tenants.id, tenantId));
+  return token;
+}

@@ -47,8 +47,11 @@ import {
   Crown,
   Sparkles,
   Zap,
+  ClipboardCopy,
+  FileCheck,
 } from "lucide-react";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
@@ -154,6 +157,38 @@ function PlanBadge({ plan }: { plan: keyof typeof planConfig }) {
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}>
       <Icon className="h-3 w-3" />
       {config.label}
+    </span>
+  );
+}
+
+const onboardingConfig = {
+  pending: { label: "Briefing Pendente", color: "bg-orange-500/15 text-orange-400 border-orange-500/30", icon: FileText },
+  submitted: { label: "Briefing Enviado", color: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30", icon: FileCheck },
+  reviewed: { label: "Briefing Revisado", color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", icon: CheckCircle2 },
+};
+
+function OnboardingBadge({ status, token }: { status?: string | null; token?: string | null }) {
+  const effectiveStatus = status || "pending";
+  const config = onboardingConfig[effectiveStatus as keyof typeof onboardingConfig] || onboardingConfig.pending;
+  const Icon = config.icon;
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!token) return;
+    const url = `${window.location.origin}/onboarding/${token}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link de briefing copiado!");
+  };
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.color}`}>
+      <Icon className="h-3 w-3" />
+      {config.label}
+      {token && effectiveStatus === "pending" && (
+        <button onClick={handleCopyLink} className="ml-1 hover:opacity-70" title="Copiar link de briefing">
+          <ClipboardCopy className="h-3 w-3" />
+        </button>
+      )}
     </span>
   );
 }
@@ -560,6 +595,7 @@ export default function TenantsPage() {
                           </h3>
                           <StatusBadge status={tenant.clientStatus as keyof typeof statusConfig} />
                           <PlanBadge plan={tenant.subscriptionPlan as keyof typeof planConfig} />
+                          <OnboardingBadge status={(tenant as any).onboardingStatus} token={(tenant as any).onboardingToken} />
                         </div>
 
                         <div className="flex items-center gap-4 mt-1.5 text-sm text-zinc-500">
@@ -941,6 +977,9 @@ export default function TenantsPage() {
                     <TabsTrigger value="integrations" className="data-[state=active]:bg-zinc-700">
                       <Wifi className="h-4 w-4 mr-2" />Integrações
                     </TabsTrigger>
+                    <TabsTrigger value="briefing" className="data-[state=active]:bg-zinc-700">
+                      <FileCheck className="h-4 w-4 mr-2" />Briefing
+                    </TabsTrigger>
                   </TabsList>
 
                   {/* Contractual Tab */}
@@ -1246,6 +1285,11 @@ export default function TenantsPage() {
                       </p>
                     </div>
                   </TabsContent>
+
+                  {/* Briefing Tab */}
+                  <TabsContent value="briefing" className="space-y-5 mt-4">
+                    <BriefingPanel tenant={managedTenant} />
+                  </TabsContent>
                 </Tabs>
 
                 <DialogFooter className="mt-6">
@@ -1307,5 +1351,227 @@ export default function TenantsPage() {
         </Dialog>
       </div>
     </SuperAdminLayout>
+  );
+}
+
+// ============================================
+// BRIEFING PANEL COMPONENT
+// ============================================
+
+function BriefingPanel({ tenant }: { tenant: any }) {
+  const utils = trpc.useUtils();
+  const onboardingStatus = tenant.onboardingStatus || "pending";
+  const onboardingToken = tenant.onboardingToken;
+  const briefingData = tenant.onboardingData ? (typeof tenant.onboardingData === 'string' ? JSON.parse(tenant.onboardingData) : tenant.onboardingData) : null;
+
+  const markReviewedMutation = trpc.onboarding.markReviewed.useMutation({
+    onSuccess: () => {
+      toast.success("Briefing marcado como revisado!");
+      utils.tenants.getTenantWithSettings.invalidate();
+      utils.tenants.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const generateTokenMutation = trpc.onboarding.generateToken.useMutation({
+    onSuccess: (data) => {
+      const url = `${window.location.origin}/onboarding/${data.token}`;
+      navigator.clipboard.writeText(url);
+      toast.success("Token gerado e link copiado!");
+      utils.tenants.getTenantWithSettings.invalidate();
+      utils.tenants.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const handleCopyLink = () => {
+    if (!onboardingToken) return;
+    const url = `${window.location.origin}/onboarding/${onboardingToken}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link de briefing copiado!");
+  };
+
+  // Pending state
+  if (onboardingStatus === "pending") {
+    return (
+      <div className="space-y-4">
+        <div className="p-6 rounded-xl bg-zinc-800/50 border border-zinc-700 text-center">
+          <FileText className="h-12 w-12 text-orange-400 mx-auto mb-3" />
+          <h4 className="text-lg font-semibold text-white mb-1">Briefing Pendente</h4>
+          <p className="text-sm text-zinc-400 mb-4">O lojista ainda não preencheu o formulário de briefing.</p>
+          {onboardingToken ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 bg-zinc-900 rounded-lg p-3 border border-zinc-700">
+                <code className="text-xs text-amber-400 flex-1 truncate">
+                  {window.location.origin}/onboarding/{onboardingToken}
+                </code>
+                <Button size="sm" variant="outline" onClick={handleCopyLink} className="border-zinc-600 text-zinc-300 hover:bg-zinc-700 shrink-0">
+                  <ClipboardCopy className="h-3.5 w-3.5 mr-1" /> Copiar
+                </Button>
+              </div>
+              <p className="text-xs text-zinc-500">Envie este link para o lojista preencher o briefing.</p>
+            </div>
+          ) : (
+            <Button
+              onClick={() => generateTokenMutation.mutate({ tenantId: tenant.id })}
+              disabled={generateTokenMutation.isPending}
+              className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+            >
+              {generateTokenMutation.isPending ? "Gerando..." : "Gerar Link de Briefing"}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Submitted or Reviewed state
+  if (!briefingData) {
+    return (
+      <div className="p-6 rounded-xl bg-zinc-800/50 border border-zinc-700 text-center">
+        <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto mb-3" />
+        <p className="text-zinc-400">Dados do briefing não disponíveis.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Status Header */}
+      <div className={`p-4 rounded-lg border flex items-center justify-between ${
+        onboardingStatus === "submitted"
+          ? "bg-cyan-500/10 border-cyan-500/30"
+          : "bg-emerald-500/10 border-emerald-500/30"
+      }`}>
+        <div className="flex items-center gap-3">
+          {onboardingStatus === "submitted" ? (
+            <FileCheck className="h-5 w-5 text-cyan-400" />
+          ) : (
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          )}
+          <div>
+            <p className={`font-medium ${onboardingStatus === "submitted" ? "text-cyan-400" : "text-emerald-400"}`}>
+              {onboardingStatus === "submitted" ? "Briefing Enviado — Aguardando Revisão" : "Briefing Revisado"}
+            </p>
+            <p className="text-xs text-zinc-500">
+              Enviado em {briefingData.submittedAt ? new Date(briefingData.submittedAt).toLocaleDateString("pt-BR") : "—"}
+            </p>
+          </div>
+        </div>
+        {onboardingStatus === "submitted" && (
+          <Button
+            size="sm"
+            onClick={() => markReviewedMutation.mutate({ tenantId: tenant.id })}
+            disabled={markReviewedMutation.isPending}
+            className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
+          >
+            {markReviewedMutation.isPending ? "Marcando..." : "Marcar como Revisado"}
+          </Button>
+        )}
+      </div>
+
+      {/* Briefing Data Sections */}
+      <div className="space-y-3">
+        {/* Identity */}
+        <div className="p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+          <h5 className="text-sm font-semibold text-amber-400 mb-3">1. Identidade</h5>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div><span className="text-zinc-500">Loja:</span> <span className="text-white ml-1">{briefingData.storeName || "—"}</span></div>
+            <div><span className="text-zinc-500">Nicho:</span> <span className="text-white ml-1">{briefingData.niche || "—"}</span></div>
+            <div><span className="text-zinc-500">Proprietário:</span> <span className="text-white ml-1">{briefingData.ownerName || "—"}</span></div>
+            <div><span className="text-zinc-500">Slogan:</span> <span className="text-white ml-1">{briefingData.slogan || "—"}</span></div>
+          </div>
+          {briefingData.description && (
+            <div className="mt-2 text-sm"><span className="text-zinc-500">Descrição:</span> <span className="text-zinc-300 ml-1">{briefingData.description}</span></div>
+          )}
+        </div>
+
+        {/* Contact */}
+        <div className="p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+          <h5 className="text-sm font-semibold text-amber-400 mb-3">2. Contato & Endereço</h5>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div><span className="text-zinc-500">WhatsApp:</span> <span className="text-white ml-1">{briefingData.whatsapp || "—"}</span></div>
+            <div><span className="text-zinc-500">Email:</span> <span className="text-white ml-1">{briefingData.email || "—"}</span></div>
+            <div><span className="text-zinc-500">Instagram:</span> <span className="text-white ml-1">{briefingData.instagram || "—"}</span></div>
+          </div>
+          {briefingData.address && (
+            <div className="mt-2 text-sm text-zinc-300">
+              <span className="text-zinc-500">Endereço:</span>{" "}
+              {briefingData.address.street}, {briefingData.address.number} {briefingData.address.complement && `- ${briefingData.address.complement}`}, {briefingData.address.neighborhood}, {briefingData.address.city}/{briefingData.address.state} - {briefingData.address.cep}
+            </div>
+          )}
+        </div>
+
+        {/* Visual */}
+        <div className="p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+          <h5 className="text-sm font-semibold text-amber-400 mb-3">3. Visual</h5>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div><span className="text-zinc-500">Cor primária:</span> <span className="inline-flex items-center gap-1.5 ml-1"><span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: briefingData.primaryColor || "#D4AF37" }} /><span className="text-white">{briefingData.primaryColor || "—"}</span></span></div>
+            <div><span className="text-zinc-500">Cor secundária:</span> <span className="inline-flex items-center gap-1.5 ml-1"><span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: briefingData.secondaryColor || "#121212" }} /><span className="text-white">{briefingData.secondaryColor || "—"}</span></span></div>
+          </div>
+          {briefingData.visualNotes && (
+            <div className="mt-2 text-sm"><span className="text-zinc-500">Notas visuais:</span> <span className="text-zinc-300 ml-1">{briefingData.visualNotes}</span></div>
+          )}
+          <div className="flex gap-3 mt-3">
+            {briefingData.logoUrl && (
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Logo</p>
+                <img src={briefingData.logoUrl} alt="Logo" className="w-16 h-16 rounded-lg object-cover border border-zinc-700" />
+              </div>
+            )}
+            {briefingData.bannerUrl && (
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Banner</p>
+                <img src={briefingData.bannerUrl} alt="Banner" className="w-32 h-16 rounded-lg object-cover border border-zinc-700" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Operations */}
+        <div className="p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+          <h5 className="text-sm font-semibold text-amber-400 mb-3">4. Operação</h5>
+          {briefingData.operatingHours && (
+            <div className="text-sm mb-2"><span className="text-zinc-500">Horário:</span> <span className="text-white ml-1">{briefingData.operatingHours}</span></div>
+          )}
+          {briefingData.deliveryInfo && (
+            <div className="text-sm mb-2"><span className="text-zinc-500">Entrega:</span> <span className="text-white ml-1">{briefingData.deliveryInfo}</span></div>
+          )}
+          {briefingData.paymentMethods && briefingData.paymentMethods.length > 0 && (
+            <div className="text-sm"><span className="text-zinc-500">Pagamentos:</span> <span className="text-white ml-1">{briefingData.paymentMethods.join(", ")}</span></div>
+          )}
+        </div>
+
+        {/* Menu */}
+        {briefingData.categories && briefingData.categories.length > 0 && (
+          <div className="p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+            <h5 className="text-sm font-semibold text-amber-400 mb-3">5. Cardápio ({briefingData.categories.length} categorias, {briefingData.products?.length || 0} produtos)</h5>
+            <div className="space-y-2">
+              {briefingData.categories.map((cat: any, i: number) => (
+                <div key={i} className="text-sm">
+                  <span className="text-zinc-300 font-medium">{cat.name}</span>
+                  {cat.description && <span className="text-zinc-500 ml-2">— {cat.description}</span>}
+                </div>
+              ))}
+            </div>
+            {briefingData.products && briefingData.products.length > 0 && (
+              <div className="mt-3 border-t border-zinc-700 pt-3">
+                <div className="grid gap-2">
+                  {briefingData.products.slice(0, 10).map((prod: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-300">{prod.name}</span>
+                      <span className="text-amber-400 font-medium">R$ {Number(prod.price).toFixed(2)}</span>
+                    </div>
+                  ))}
+                  {briefingData.products.length > 10 && (
+                    <p className="text-xs text-zinc-500">...e mais {briefingData.products.length - 10} produtos</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1188,3 +1188,27 @@
 - [x] Aplicação atômica: atualizar estado local + preview via postMessage (salvar manual)
 - [x] Toast de sucesso após aplicação
 - [x] Preparar interface/tipo CustomPreset para presets personalizados futuros
+
+## Formulário de Briefing de Onboarding
+- [x] Schema: Adicionar campos onboarding_token, onboarding_status, onboarding_submitted_at, onboarding_data na tabela tenants
+- [x] Schema: Gerar token automaticamente na criação do tenant (crypto.randomUUID)
+- [x] Backend: Procedure pública para validar token e retornar status do briefing
+- [x] Backend: Procedure pública para upload de imagens do briefing via S3
+- [x] Backend: Procedure pública para submeter briefing (validação server-side + salvar JSON)
+- [x] Backend: Notificação automática ao Super Admin quando briefing é submetido
+- [x] Tipo: Criar OnboardingData em client/src/types/index.ts
+- [x] Frontend: Rota pública /onboarding/{token} com formulário multi-step (5 etapas)
+- [x] Frontend: Etapa 1 — Informações Básicas (nome, nicho, descrição, história, nome dono, foto dono)
+- [x] Frontend: Etapa 2 — Contato e Localização (WhatsApp, telefone, email, endereço, Google Maps, redes sociais)
+- [x] Frontend: Etapa 3 — Horários de Funcionamento (7 dias, 2 turnos, toggle encomenda)
+- [x] Frontend: Etapa 4 — Identidade Visual (logo 1:1, hero 16:9, cor principal, estilo visual)
+- [x] Frontend: Etapa 5 — Cardápio (categorias dinâmicas, produtos com foto/preço/etiqueta)
+- [x] Frontend: Barra de progresso + navegação Anterior/Próximo com validação por etapa
+- [x] Frontend: Modal de confirmação com resumo antes do envio
+- [x] Frontend: Tela de confirmação pós-envio (check animado, WhatsApp suporte)
+- [x] Frontend: Bloqueio de resubmissão (link já usado mostra mensagem)
+- [x] Super Admin: Badge de status do briefing na listagem de tenants (Pendente/Enviado/Revisado)
+- [x] Super Admin: Botão "Copiar Link de Briefing" com toast
+- [x] Super Admin: Painel de briefing (aba no modal de gerenciamento) com dados organizados por seção
+- [x] Super Admin: Botão "Marcar como Revisado" no painel de briefing
+- [x] Design: Visual "Warm Luxury" dark mode, mobile-first (320px+)

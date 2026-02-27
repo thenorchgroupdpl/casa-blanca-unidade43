@@ -33,6 +33,9 @@ import StoreDataPage from "./pages/admin/dashboard/StoreData";
 import OrdersPage from "./pages/admin/dashboard/Orders";
 import DeliveryPage from "./pages/admin/dashboard/Delivery";
 
+// Onboarding
+import OnboardingPage from "./pages/Onboarding";
+
 // Shared Admin Pages
 import ProfilePage from "./pages/admin/Profile";
 
@@ -71,6 +74,9 @@ function Router() {
       {/* Shared Admin Routes */}
       <Route path="/admin/profile" component={ProfilePage} />
       <Route path="/admin/super/profile" component={ProfilePage} />
+      
+      {/* Onboarding Briefing Form (public) */}
+      <Route path="/onboarding/:token" component={OnboardingPage} />
       
       {/* Store Landing Page (by slug) */}
       <Route path="/:slug" component={StoreLanding} />
