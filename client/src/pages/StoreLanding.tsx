@@ -29,6 +29,7 @@ import ProductBottomSheet from '@/components/ProductBottomSheet';
 import CartDrawer from '@/components/CartDrawer';
 import WhatsAppModal from '@/components/WhatsAppModal';
 import ScheduleModal from '@/components/ScheduleModal';
+import UpsellProvider from '@/components/UpsellProvider';
 
 
 // Loading Component
@@ -735,6 +736,7 @@ export default function StoreLanding() {
   const sectionColors = tenantData ? (useSiteData.getState().data?.section_colors || {}) : {};
 
   return (
+    <UpsellProvider>
     <div className="min-h-screen bg-lp-bg" style={getSectionStyle(undefined)}>
       {/* Fixed Header */}
       <Header />
@@ -778,6 +780,7 @@ export default function StoreLanding() {
       <ScheduleModal />
 
     </div>
+    </UpsellProvider>
   );
 }
 

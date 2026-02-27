@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useUI, useCart, useToast, useSiteData } from '@/store/useStore';
+import { useUpsell } from './UpsellProvider';
 
 // Map highlight tag values to display labels
 const HIGHLIGHT_LABELS: Record<string, string> = {
@@ -60,6 +61,13 @@ export default function ProductBottomSheet() {
     };
   }, [isBottomSheetOpen]);
 
+  // Upsell trigger (safely handles missing context)
+  let triggerUpsell: ((product: any, tenantId: number) => void) | null = null;
+  try {
+    const upsellCtx = useUpsell();
+    triggerUpsell = upsellCtx.triggerUpsell;
+  } catch { /* Not inside UpsellProvider */ }
+
   const handleAddToCart = () => {
     if (!selectedProduct) return;
     
@@ -71,6 +79,12 @@ export default function ProductBottomSheet() {
     );
     
     closeProductSheet();
+
+    // Trigger upsell check
+    const tenantId = useCart.getState().tenantId;
+    if (triggerUpsell && tenantId) {
+      triggerUpsell(selectedProduct, tenantId);
+    }
   };
 
   const incrementQuantity = () => setQuantity((q) => q + 1);

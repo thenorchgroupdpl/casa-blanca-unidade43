@@ -33,7 +33,9 @@ import {
   ExternalLink,
   ArrowLeft,
   User,
-  Bell
+  Bell,
+  ClipboardList,
+  Truck
 } from "lucide-react";
 import { toast } from "sonner";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -44,8 +46,10 @@ import { trpc } from "@/lib/trpc";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+  { icon: ClipboardList, label: "Pedidos", path: "/admin/dashboard/orders" },
   { icon: Package, label: "Catálogo", path: "/admin/dashboard/catalog" },
   { icon: LayoutGrid, label: "Vitrine", path: "/admin/dashboard/vitrine" },
+  { icon: Truck, label: "Entregas", path: "/admin/dashboard/delivery" },
   { icon: Store, label: "Dados da Loja", path: "/admin/dashboard/store" },
   { icon: Bell, label: "Notificações", path: "/admin/dashboard/notifications" },
 ];

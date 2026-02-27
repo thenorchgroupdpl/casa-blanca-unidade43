@@ -513,6 +513,21 @@ export interface SiteData {
   whatsapp_popup_text_color?: string;
   whatsapp_button_bg?: string;
   whatsapp_button_text_color?: string;
+  // Upsell (Order Bump) style
+  upsell_style?: {
+    bgColor?: string;
+    titleColor?: string;
+    subtitleColor?: string;
+    iconBgColor?: string;
+    iconCheckColor?: string;
+    closeButtonColor?: string;
+    cardBgColor?: string;
+    borderColor?: string;
+    ctaBgColor?: string;
+    ctaTextColor?: string;
+    title?: string;
+    subtitle?: string;
+  };
   // Delivery fee
   delivery_fee?: number;
   // Google Maps link

@@ -30,6 +30,8 @@ import CatalogPage from "./pages/admin/dashboard/Catalog";
 import NotificationsPage from "./pages/admin/dashboard/Notifications";
 import VitrinePage from "./pages/admin/dashboard/Vitrine";
 import StoreDataPage from "./pages/admin/dashboard/StoreData";
+import OrdersPage from "./pages/admin/dashboard/Orders";
+import DeliveryPage from "./pages/admin/dashboard/Delivery";
 
 // Shared Admin Pages
 import ProfilePage from "./pages/admin/Profile";
@@ -63,6 +65,8 @@ function Router() {
       <Route path="/admin/dashboard/notifications" component={NotificationsPage} />
       <Route path="/admin/dashboard/vitrine" component={VitrinePage} />
       <Route path="/admin/dashboard/store" component={StoreDataPage} />
+      <Route path="/admin/dashboard/orders" component={OrdersPage} />
+      <Route path="/admin/dashboard/delivery" component={DeliveryPage} />
       
       {/* Shared Admin Routes */}
       <Route path="/admin/profile" component={ProfilePage} />

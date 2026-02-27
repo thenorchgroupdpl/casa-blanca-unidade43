@@ -1132,3 +1132,22 @@
 - [x] Suporte: Botão secundário 'Já realizei o pagamento / Falar com suporte' com link WhatsApp
 - [x] Backend: Adicionar campos pix_key e support_whatsapp nas configurações globais do Super Admin
 - [x] Backend: Retornar pix_key e support_whatsapp no billingPopup.getPopup
+
+## Módulo 1 — Order Bump (Up-sell Sincronizado)
+- [x] M1.1: Criar tabela pivô product_upsells (product_id, upsell_product_id, PKs, constraint !=)
+- [x] M1.2: Backend — procedures tRPC para GET produtos (multi-select), PUT upsells, GET upsells com JOIN
+- [x] M1.3: UI Lojista — seção "Compre Junto" no formulário de criar/editar produto com multi-select
+- [x] M1.4: Design System — seção "7. Modal de Up-sell" com tokens de customização
+- [x] M1.5: Frontend Público — modal de Order Bump ao adicionar produto com upsells ao carrinho
+
+## Módulo 2 — Gestão de Pedidos (Kanban)
+- [x] M2.1: Schema — adicionar status ENUM à tabela orders + verificar colunas items/total/customer
+- [x] M2.2: Backend — PATCH status, GET orders filtrados por status
+- [x] M2.3: UI Lojista — rota /dashboard/pedidos com Kanban (colunas de status), avanço rápido com rollback
+
+## Módulo 3 — Logística (Taxas de Entrega Dinâmicas)
+- [x] M3.1: Schema — criar tabela delivery_zones (tenant_id, zone_name, fee_amount, is_pickup)
+- [x] M3.2: Backend — CRUD completo delivery_zones
+- [x] M3.3: UI Lojista — aba "Entregas" no menu lateral com CRUD completo
+- [x] M3.4: Frontend Público — select de zona no checkout (CartDrawer), taxa dinâmica, mensagem WhatsApp atualizada
+- [x] Testes: 31 novos testes para orders, delivery zones, upsells e billing popup (349 total passando)

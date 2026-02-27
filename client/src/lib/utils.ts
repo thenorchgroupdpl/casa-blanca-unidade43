@@ -306,7 +306,8 @@ export function generateWhatsAppMessage(
   items: { product: { name: string; price: number }; quantity: number }[],
   total: number,
   observation?: string,
-  storeName?: string
+  storeName?: string,
+  delivery?: { zoneName: string; fee: number } | null
 ): string {
   const nome = storeName || 'Casa Blanca';
 
@@ -317,10 +318,22 @@ export function generateWhatsAppMessage(
     })
     .join('\n');
 
-  let message = `*Ol\u00E1 ${nome}! Pedido via Site:*\n\n${itensList}\n\n*Total: ${formatPrice(total)}*`;
+  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  let message = `*Olá ${nome}! Pedido via Site:*\n\n${itensList}`;
+
+  if (delivery) {
+    message += `\n\n*Entrega:* ${delivery.zoneName}`;
+    if (delivery.fee > 0) {
+      message += ` (${formatPrice(delivery.fee)})`;
+    } else {
+      message += ` (Grátis)`;
+    }
+  }
+
+  message += `\n\n*Total: ${formatPrice(total)}*`;
 
   if (observation) {
-    message += `\n\n*Observa\u00E7\u00E3o:* ${observation}`;
+    message += `\n\n*Observação:* ${observation}`;
   }
 
   message += '\n\nAguardo confirma\u00E7\u00E3o do pedido!';

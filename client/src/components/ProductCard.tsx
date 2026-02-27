@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { useCart, useUI, useToast } from '@/store/useStore';
+import { useUpsell } from './UpsellProvider';
 import type { Product } from '@/types';
 
 export interface CardStyleOverrides {
@@ -79,11 +80,23 @@ export default function ProductCard({ product, index = 0, variant = 'showcase', 
     );
   };
 
+  // Upsell trigger (safely handles missing context)
+  let triggerUpsell: ((product: any, tenantId: number) => void) | null = null;
+  try {
+    const upsellCtx = useUpsell();
+    triggerUpsell = upsellCtx.triggerUpsell;
+  } catch { /* Not inside UpsellProvider */ }
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     addItem(product, 1);
     showToast('Produto adicionado!', `${product.name} adicionado à sacola.`);
+    // Trigger upsell check
+    const tenantId = useCart.getState().tenantId;
+    if (triggerUpsell && tenantId) {
+      triggerUpsell(product, tenantId);
+    }
   };
 
   const handleCardClick = () => {

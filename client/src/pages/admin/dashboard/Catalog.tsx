@@ -40,8 +40,10 @@ import {
   X,
   AlertTriangle,
   Loader2,
+  Zap,
+  Check,
 } from "lucide-react";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 
 // ============================================
@@ -139,6 +141,7 @@ export default function CatalogPage() {
   const [productForm, setProductForm] = useState<ProductFormData>(defaultProductForm);
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [upsellIds, setUpsellIds] = useState<number[]>([]);
 
   const utils = trpc.useUtils();
   
@@ -256,10 +259,28 @@ export default function CatalogPage() {
     setEditingCategory(null);
   };
 
+  // Upsell query (only when editing)
+  const { data: currentUpsellIds } = trpc.upsells.getIds.useQuery(
+    { productId: editingProduct! },
+    { enabled: !!editingProduct }
+  );
+  
+  const setUpsellsMutation = trpc.upsells.set.useMutation({
+    onError: (error) => toast.error(`Erro ao salvar upsells: ${error.message}`),
+  });
+
+  // Sync upsell IDs when editing product changes
+  useEffect(() => {
+    if (currentUpsellIds) {
+      setUpsellIds(currentUpsellIds);
+    }
+  }, [currentUpsellIds]);
+
   const resetProductForm = () => {
     setProductForm(defaultProductForm);
     setEditingProduct(null);
     setImagePreview(null);
+    setUpsellIds([]);
   };
 
   const openEditCategory = (category: NonNullable<typeof categories>[number]) => {
@@ -360,6 +381,12 @@ export default function CatalogPage() {
     try {
       if (editingProduct) {
         updateProduct.mutate({ id: editingProduct, data: payload }, {
+          onSuccess: () => {
+            // Save upsells after product update
+            if (editingProduct) {
+              setUpsellsMutation.mutate({ productId: editingProduct, upsellProductIds: upsellIds });
+            }
+          },
           onError: (error) => {
             toast.error(`Erro ao atualizar produto: ${error.message}`);
           },
@@ -1038,6 +1065,65 @@ export default function CatalogPage() {
                   onCheckedChange={(checked) => setProductForm({ ...productForm, isFeatured: checked })}
                 />
               </div>
+
+              {/* Order Bump / Upsell Section */}
+              {editingProduct && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    Order Bump (Sugestões)
+                  </Label>
+                  <p className="text-xs text-zinc-500">
+                    Selecione produtos que serão sugeridos ao cliente ao adicionar este item ao carrinho.
+                  </p>
+                  <div className="max-h-40 overflow-y-auto space-y-1 rounded-lg border border-zinc-700 p-2 bg-zinc-800/50">
+                    {products && products
+                      .filter(p => p.id !== editingProduct && p.isAvailable)
+                      .map(p => {
+                        const isSelected = upsellIds.includes(p.id);
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setUpsellIds(prev =>
+                                isSelected
+                                  ? prev.filter(id => id !== p.id)
+                                  : [...prev, p.id]
+                              );
+                            }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm transition-colors ${
+                              isSelected
+                                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-200'
+                                : 'hover:bg-zinc-700 text-zinc-300'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
+                              isSelected ? 'bg-amber-500 border-amber-500' : 'border-zinc-600'
+                            }`}>
+                              {isSelected && <Check className="w-3 h-3 text-black" />}
+                            </div>
+                            {p.imageUrl && (
+                              <img src={p.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                            )}
+                            <span className="truncate flex-1">{p.name}</span>
+                            <span className="text-xs text-zinc-500 flex-shrink-0">
+                              R$ {Number(p.price).toFixed(2)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    {(!products || products.filter(p => p.id !== editingProduct && p.isAvailable).length === 0) && (
+                      <p className="text-xs text-zinc-500 text-center py-2">Nenhum outro produto disponível</p>
+                    )}
+                  </div>
+                  {upsellIds.length > 0 && (
+                    <p className="text-xs text-amber-400">
+                      {upsellIds.length} produto{upsellIds.length > 1 ? 's' : ''} selecionado{upsellIds.length > 1 ? 's' : ''} como sugestão
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <DialogFooter className="mt-6">

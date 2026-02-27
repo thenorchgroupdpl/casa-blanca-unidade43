@@ -10,7 +10,9 @@ import {
   InsertReview, reviews, Review,
   orders, Order, InsertOrder,
   globalSettings, GlobalSetting, InsertGlobalSetting,
-  notifications, Notification, InsertNotification
+  notifications, Notification, InsertNotification,
+  productUpsells, ProductUpsell, InsertProductUpsell,
+  deliveryZones, DeliveryZone, InsertDeliveryZone
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -926,4 +928,181 @@ export async function hasBillingNotificationToday(tenantId: number): Promise<boo
       )
     );
   return (result[0]?.count ?? 0) > 0;
+}
+
+// ============================================
+// PRODUCT UPSELLS (Order Bump)
+// ============================================
+
+export async function getProductUpsells(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const rows = await db.select({
+    id: products.id,
+    name: products.name,
+    price: products.price,
+    imageUrl: products.imageUrl,
+    tenantId: products.tenantId,
+  })
+    .from(productUpsells)
+    .innerJoin(products, eq(productUpsells.upsellProductId, products.id))
+    .where(eq(productUpsells.productId, productId));
+  
+  return rows;
+}
+
+export async function getProductUpsellIds(productId: number): Promise<number[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const rows = await db.select({ upsellProductId: productUpsells.upsellProductId })
+    .from(productUpsells)
+    .where(eq(productUpsells.productId, productId));
+  
+  return rows.map(r => r.upsellProductId);
+}
+
+export async function setProductUpsells(productId: number, upsellProductIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Delete existing upsells
+  await db.delete(productUpsells).where(eq(productUpsells.productId, productId));
+  
+  // Insert new upsells (filter out self-reference)
+  const validIds = upsellProductIds.filter(id => id !== productId);
+  if (validIds.length > 0) {
+    await db.insert(productUpsells).values(
+      validIds.map(upsellProductId => ({ productId, upsellProductId }))
+    );
+  }
+}
+
+// ============================================
+// ORDERS - Kanban Status Management
+// ============================================
+
+export async function getOrdersByStatus(tenantId: number, status?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const conditions = [eq(orders.tenantId, tenantId)];
+  if (status) {
+    conditions.push(eq(orders.status, status as any));
+  }
+  
+  return db.select().from(orders)
+    .where(and(...conditions))
+    .orderBy(desc(orders.createdAt));
+}
+
+export async function updateOrderStatus(orderId: number, status: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(orders).set({ 
+    status: status as any,
+    isCompleted: status === 'concluido',
+  }).where(eq(orders.id, orderId));
+}
+
+export async function getOrderById(orderId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(orders).where(eq(orders.id, orderId));
+  return result[0] || null;
+}
+
+export async function createOrderFull(data: {
+  tenantId: number;
+  customerName: string;
+  customerPhone?: string;
+  summary: string;
+  items?: Array<{ productId: number; name: string; quantity: number; price: number }>;
+  totalValue: string;
+  deliveryZoneId?: number;
+  deliveryZoneName?: string;
+  deliveryFee?: string;
+  status?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(orders).values({
+    tenantId: data.tenantId,
+    customerName: data.customerName,
+    customerPhone: data.customerPhone || null,
+    summary: data.summary,
+    items: data.items || null,
+    totalValue: data.totalValue,
+    deliveryZoneId: data.deliveryZoneId || null,
+    deliveryZoneName: data.deliveryZoneName || null,
+    deliveryFee: data.deliveryFee || null,
+    status: (data.status as any) || 'novo',
+  });
+  
+  return Number(result[0].insertId);
+}
+
+// ============================================
+// DELIVERY ZONES - Logística
+// ============================================
+
+export async function getDeliveryZonesByTenant(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(deliveryZones)
+    .where(eq(deliveryZones.tenantId, tenantId))
+    .orderBy(asc(deliveryZones.zoneName));
+}
+
+export async function getDeliveryZoneById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(deliveryZones).where(eq(deliveryZones.id, id));
+  return result[0] || null;
+}
+
+export async function createDeliveryZone(data: {
+  tenantId: number;
+  zoneName: string;
+  feeAmount: string;
+  isPickup: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(deliveryZones).values(data);
+  return Number(result[0].insertId);
+}
+
+export async function updateDeliveryZone(id: number, data: {
+  zoneName?: string;
+  feeAmount?: string;
+  isPickup?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(deliveryZones).set(data).where(eq(deliveryZones.id, id));
+}
+
+export async function deleteDeliveryZone(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(deliveryZones).where(eq(deliveryZones.id, id));
+}
+
+export async function countPickupZones(tenantId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const result = await db.select({ count: count() }).from(deliveryZones)
+    .where(and(eq(deliveryZones.tenantId, tenantId), eq(deliveryZones.isPickup, true)));
+  return result[0]?.count ?? 0;
 }

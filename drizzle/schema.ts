@@ -294,6 +294,19 @@ export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;
 
 // ============================================
+// PRODUCT UPSELLS TABLE - Order Bump (Pivot)
+// ============================================
+export const productUpsells = mysqlTable("product_upsells", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  upsellProductId: int("upsellProductId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProductUpsell = typeof productUpsells.$inferSelect;
+export type InsertProductUpsell = typeof productUpsells.$inferInsert;
+
+// ============================================
 // HOME ROWS TABLE - Vitrine Configuration
 // ============================================
 export const homeRows = mysqlTable("home_rows", {
@@ -362,9 +375,18 @@ export const orders = mysqlTable("orders", {
   
   // Order Details
   summary: text("summary").notNull(),
+  items: json("items").$type<Array<{ productId: number; name: string; quantity: number; price: number }>>(),
   totalValue: decimal("totalValue", { precision: 10, scale: 2 }).notNull(),
   
-  // Status
+  // Delivery
+  deliveryZoneId: int("deliveryZoneId"),
+  deliveryZoneName: varchar("deliveryZoneName", { length: 100 }),
+  deliveryFee: decimal("deliveryFee", { precision: 10, scale: 2 }),
+  
+  // Status (Kanban)
+  status: mysqlEnum("status", ["novo", "em_preparacao", "saiu_entrega", "concluido", "cancelado"]).default("novo").notNull(),
+  
+  // Legacy (kept for backward compat)
   isCompleted: boolean("isCompleted").default(false).notNull(),
   
   // Timestamps
@@ -413,3 +435,20 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+// ============================================
+// DELIVERY ZONES TABLE - Logística
+// ============================================
+export const deliveryZones = mysqlTable("delivery_zones", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  
+  zoneName: varchar("zoneName", { length: 100 }).notNull(),
+  feeAmount: decimal("feeAmount", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  isPickup: boolean("isPickup").default(false).notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type DeliveryZone = typeof deliveryZones.$inferSelect;
+export type InsertDeliveryZone = typeof deliveryZones.$inferInsert;
