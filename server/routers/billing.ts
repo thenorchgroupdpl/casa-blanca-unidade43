@@ -119,6 +119,7 @@ export const billingRouter = router({
       nextBillingDate: t.nextBillingDate,
       billingAmount: t.billingAmount,
       subscriptionStatus: t.subscriptionStatus,
+      telefoneDono: t.telefoneDono,
     }));
   }),
 
@@ -177,6 +178,81 @@ export const billingRouter = router({
         type: input.type,
       });
       return { success: true };
+    }),
+
+  /** Generate WhatsApp billing link for a tenant */
+  getWhatsAppLink: superAdminGuard
+    .input(z.object({ tenantId: z.number() }))
+    .query(async ({ input }) => {
+      const tenant = await db.getTenantById(input.tenantId);
+      if (!tenant) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Tenant não encontrado" });
+      }
+
+      // Get PIX key from global settings
+      const pixKey = await db.getGlobalSetting("billing_pix_key") || "Não configurada";
+
+      // Get phone number — clean it to digits only
+      const rawPhone = tenant.telefoneDono || "";
+      const cleanPhone = rawPhone.replace(/\D/g, "");
+      // Ensure it has country code (55 for Brazil)
+      const phone = cleanPhone.startsWith("55") ? cleanPhone : `55${cleanPhone}`;
+
+      if (!cleanPhone) {
+        return {
+          available: false as const,
+          reason: "Telefone do dono não cadastrado neste tenant",
+          link: null,
+          message: null,
+        };
+      }
+
+      // Calculate days left
+      let daysLeftText = "";
+      let dueDateText = "não definida";
+      if (tenant.nextBillingDate) {
+        const now = new Date();
+        const due = new Date(tenant.nextBillingDate);
+        const diffMs = due.getTime() - now.getTime();
+        const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        dueDateText = due.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+        if (daysLeft > 0) {
+          daysLeftText = `${daysLeft} dia${daysLeft !== 1 ? "s" : ""}`;
+        } else if (daysLeft === 0) {
+          daysLeftText = "hoje";
+        } else {
+          daysLeftText = `${Math.abs(daysLeft)} dia${Math.abs(daysLeft) !== 1 ? "s" : ""} atrás`;
+        }
+      }
+
+      const amount = tenant.billingAmount
+        ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(parseFloat(tenant.billingAmount))
+        : "R$ 150,00";
+
+      // Build message based on status
+      let message = "";
+      const status = tenant.subscriptionStatus || "active";
+
+      if (status === "warning" || (status === "active" && daysLeftText)) {
+        message = `Olá, ${tenant.name}! 👋 Sua mensalidade do Casa Blanca vence em ${daysLeftText} (dia ${dueDateText}). O valor é ${amount}. Para renovar, use a chave PIX: ${pixKey}. Qualquer dúvida, é só chamar! 😊`;
+      } else if (status === "overdue") {
+        message = `Olá, ${tenant.name}! ⚠️ Sua mensalidade do Casa Blanca venceu no dia ${dueDateText} (${daysLeftText}). O valor é ${amount}. Para regularizar, use a chave PIX: ${pixKey}. Sua loja pode ser suspensa caso o pagamento não seja realizado. Qualquer dúvida, estamos à disposição!`;
+      } else if (status === "suspended") {
+        message = `Olá, ${tenant.name}! 🚫 Sua loja no Casa Blanca foi suspensa por falta de pagamento. O valor pendente é ${amount}. Para reativar imediatamente, realize o pagamento via PIX: ${pixKey}. Após o pagamento, entre em contato para liberação.`;
+      } else {
+        message = `Olá, ${tenant.name}! 👋 Informamos que sua mensalidade do Casa Blanca é de ${amount}. Para pagamento, use a chave PIX: ${pixKey}. Qualquer dúvida, é só chamar! 😊`;
+      }
+
+      const encodedMessage = encodeURIComponent(message);
+      const link = `https://wa.me/${phone}?text=${encodedMessage}`;
+
+      return {
+        available: true as const,
+        reason: null,
+        link,
+        message,
+      };
     }),
 });
 

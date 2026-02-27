@@ -23,6 +23,9 @@ import {
   Bell,
   X,
   Save,
+  MessageCircle,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 
 // ============================================
@@ -56,6 +59,7 @@ interface TenantBilling {
   nextBillingDate: Date | string | null;
   billingAmount: string | null;
   subscriptionStatus: string | null;
+  telefoneDono: string | null;
 }
 
 interface EditModalState {
@@ -67,6 +71,62 @@ interface EditModalState {
 
 // ============================================
 // COMPONENT
+// ============================================
+
+// ============================================
+// WhatsApp Button Sub-Component
+// ============================================
+
+function WhatsAppButton({ tenantId, hasPhone }: { tenantId: number; hasPhone: boolean }) {
+  const { data: waData, isLoading } = trpc.billing.getWhatsAppLink.useQuery(
+    { tenantId },
+    { enabled: hasPhone }
+  );
+
+  const handleClick = () => {
+    if (!hasPhone) {
+      toast.error("Telefone do dono não cadastrado. Edite o tenant para adicionar.");
+      return;
+    }
+    if (isLoading) return;
+    if (!waData?.available) {
+      toast.error(waData?.reason || "Não foi possível gerar o link");
+      return;
+    }
+    window.open(waData.link!, "_blank");
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/10"
+            onClick={handleClick}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <MessageCircle className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="bg-zinc-800 text-white border-zinc-700">
+          {!hasPhone
+            ? "Telefone não cadastrado"
+            : "Enviar cobrança via WhatsApp"
+          }
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+// ============================================
+// MAIN COMPONENT
 // ============================================
 
 export default function BillingPage() {
@@ -406,6 +466,13 @@ export default function BillingPage() {
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
+
+                              {/* WhatsApp button — visible for warning/overdue/suspended */}
+                              {(tenant.subscriptionStatus === "warning" ||
+                                tenant.subscriptionStatus === "overdue" ||
+                                tenant.subscriptionStatus === "suspended") && (
+                                <WhatsAppButton tenantId={tenant.id} hasPhone={!!tenant.telefoneDono} />
+                              )}
                             </div>
                           </td>
                         </tr>

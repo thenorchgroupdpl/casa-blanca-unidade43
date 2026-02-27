@@ -1159,3 +1159,17 @@
 - [x] Correção 3b: Entregas — banner translúcido escuro (bg-amber-500/10 border-amber-500/20)
 - [x] Correção 3c: Notificações — empty state text-zinc-100/text-zinc-400, cards com contraste adequado
 - [x] Validação: navegação fluida entre todas as abas, sem fundos claros residuais
+
+## Melhoria 1 — CRON Job Automático de Billing
+- [x] Instalar node-cron (ou alternativa compatível) como dependência
+- [x] Criar módulo de CRON job que roda diariamente às 08h00 (America/Sao_Paulo, UTC-3)
+- [x] Executar checkBillingNotifications automaticamente no job
+- [x] Logar timestamp, tenants verificados e notificações geradas no console
+- [x] Tratamento de erro sem derrubar o servidor
+
+## Melhoria 2 — Notificação Proativa via WhatsApp
+- [x] Gerar link wa.me com mensagem pré-preenchida para tenants em warning/overdue/suspended
+- [x] Puxar chave PIX do Global Settings para incluir na mensagem
+- [x] Criar procedure tRPC para gerar link WhatsApp de cobrança por tenant
+- [x] Adicionar botão 'Enviar WhatsApp' na tabela de Gestão Financeira para tenants warning/overdue/suspended
+- [x] Botão abre WhatsApp diretamente com mensagem formatada (target="_blank")
