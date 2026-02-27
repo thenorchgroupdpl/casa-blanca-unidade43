@@ -160,9 +160,6 @@ export const ordersRouter = router({
       if (order.status === 'cancelado') {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Pedido já está cancelado" });
       }
-      if (order.status === 'concluido') {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Pedido concluído não pode ser cancelado" });
-      }
       await db.updateOrderStatus(input.id, 'cancelado');
       return { success: true };
     }),

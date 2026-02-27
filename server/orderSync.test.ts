@@ -170,14 +170,17 @@ describe("orders.cancel", () => {
     await expect(handler({ ctx, input: { id: 3 } })).rejects.toThrow("já está cancelado");
   });
 
-  it("should reject cancelling a completed order", async () => {
+  it("should allow cancelling a completed order (lojista correction)", async () => {
     mockDb.getOrderById.mockResolvedValue({ id: 4, tenantId: 1, status: "concluido" });
+    mockDb.updateOrderStatus.mockResolvedValue(undefined);
 
     const { ordersRouter } = await import("./routers/orders");
     const handler = (ordersRouter as any).cancel._handler;
 
     const ctx = { user: { tenantId: 1, role: "client_admin" } };
-    await expect(handler({ ctx, input: { id: 4 } })).rejects.toThrow("concluído não pode ser cancelado");
+    const result = await handler({ ctx, input: { id: 4 } });
+    expect(result).toEqual({ success: true });
+    expect(mockDb.updateOrderStatus).toHaveBeenCalledWith(4, "cancelado");
   });
 
   it("should reject cancelling order from another tenant", async () => {

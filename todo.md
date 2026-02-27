@@ -1342,3 +1342,11 @@
 - [x] Verificar se CartPopup envia itens, quantidades e valores ao backend ao finalizar (BUG CORRIGIDO: tenantId vinha de SiteData que não tinha o campo, agora usa cart store)
 - [x] Verificar se o backend recebe e persiste todos os campos (items, totalValue, customerName)
 - [x] Garantir que pedido aparece no Kanban e Dashboard com valor e itens corretos
+
+## Melhoria: Kanban - Cancelar e Voltar Etapa
+- [x] Adicionar botão "Cancelar Pedido" no dialog de detalhes do pedido
+- [x] Adicionar botão "Voltar Etapa" para retroceder o status do pedido (Undo2 + ArrowLeft)
+- [x] Permitir avançar e retroceder livremente entre etapas (exceto cancelados)
+- [x] Confirmação antes de cancelar ("Tem certeza? Esta ação não pode ser desfeita")
+- [x] Pedidos concluídos: permitir voltar para etapa anterior + cancelar
+- [x] 0 erros TypeScript, 472 testes passando

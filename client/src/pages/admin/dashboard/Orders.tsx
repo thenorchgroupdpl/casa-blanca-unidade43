@@ -33,10 +33,13 @@ import {
   MapPin,
   Package,
   ArrowRight,
+  ArrowLeft,
   Plus,
   Minus,
   Ban,
   Loader2,
+  AlertTriangle,
+  Undo2,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -102,12 +105,22 @@ const COLUMNS: KanbanColumn[] = [
   },
 ];
 
-const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
-  novo: ["em_preparacao", "cancelado"],
-  em_preparacao: ["saiu_entrega", "cancelado"],
-  saiu_entrega: ["concluido"],
-  concluido: [],
-  cancelado: [],
+// Forward flow: next status options (excluding cancel — handled separately)
+const STATUS_NEXT: Record<OrderStatus, OrderStatus | null> = {
+  novo: "em_preparacao",
+  em_preparacao: "saiu_entrega",
+  saiu_entrega: "concluido",
+  concluido: null,
+  cancelado: null,
+};
+
+// Backward flow: previous status to revert to
+const STATUS_PREV: Record<OrderStatus, OrderStatus | null> = {
+  novo: null,
+  em_preparacao: "novo",
+  saiu_entrega: "em_preparacao",
+  concluido: "saiu_entrega",
+  cancelado: null, // can't revert cancel
 };
 
 function getStatusLabel(status: string): string {
@@ -145,6 +158,7 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [activeView, setActiveView] = useState<"kanban" | "list">("kanban");
 
   const utils = trpc.useUtils();
@@ -176,6 +190,7 @@ export default function OrdersPage() {
     onSuccess: () => {
       toast.success("Pedido cancelado!");
       utils.orders.list.invalidate();
+      setConfirmCancel(false);
       setDetailOpen(false);
     },
     onError: (error) => toast.error(error.message),
@@ -311,6 +326,7 @@ export default function OrdersPage() {
 
   const handleViewOrder = useCallback((order: any) => {
     setSelectedOrder(order);
+    setConfirmCancel(false);
     setDetailOpen(true);
   }, []);
 
@@ -491,52 +507,107 @@ export default function OrdersPage() {
               </div>
 
               {/* Status & Actions */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h4 className="text-sm font-medium text-zinc-400">Alterar Status</h4>
-                <div className="flex flex-wrap gap-2">
-                  {STATUS_FLOW[selectedOrder.status as OrderStatus]?.map((nextStatus) => {
-                    const col = COLUMNS.find((c) => c.id === nextStatus);
-                    return (
-                      <Button
-                        key={nextStatus}
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          handleMoveOrder(selectedOrder.id, nextStatus);
-                          setDetailOpen(false);
-                        }}
-                        className={`border-zinc-700 hover:bg-zinc-800 ${col?.color || "text-zinc-300"}`}
-                      >
-                        {col?.icon}
-                        <span className="ml-1">{getStatusLabel(nextStatus)}</span>
-                        <ArrowRight className="w-3 h-3 ml-1" />
-                      </Button>
-                    );
-                  })}
-                  {(!STATUS_FLOW[selectedOrder.status as OrderStatus] ||
-                    STATUS_FLOW[selectedOrder.status as OrderStatus].length === 0) && (
-                    <p className="text-xs text-zinc-500">Este pedido não pode ser movido.</p>
-                  )}
-                </div>
+                
+                {selectedOrder.status === 'cancelado' ? (
+                  <p className="text-xs text-zinc-500">Pedidos cancelados não podem ser movidos.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {/* Back button */}
+                    {STATUS_PREV[selectedOrder.status as OrderStatus] && (
+                      (() => {
+                        const prevStatus = STATUS_PREV[selectedOrder.status as OrderStatus]!;
+                        const prevCol = COLUMNS.find((c) => c.id === prevStatus);
+                        return (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              handleMoveOrder(selectedOrder.id, prevStatus);
+                              setDetailOpen(false);
+                            }}
+                            className={`border-zinc-700 hover:bg-zinc-800 ${prevCol?.color || "text-zinc-300"}`}
+                          >
+                            <ArrowLeft className="w-3 h-3 mr-1" />
+                            <Undo2 className="w-3 h-3 mr-1" />
+                            <span>Voltar: {getStatusLabel(prevStatus)}</span>
+                          </Button>
+                        );
+                      })()
+                    )}
+
+                    {/* Forward button */}
+                    {STATUS_NEXT[selectedOrder.status as OrderStatus] && (
+                      (() => {
+                        const nextStatus = STATUS_NEXT[selectedOrder.status as OrderStatus]!;
+                        const nextCol = COLUMNS.find((c) => c.id === nextStatus);
+                        return (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              handleMoveOrder(selectedOrder.id, nextStatus);
+                              setDetailOpen(false);
+                            }}
+                            className={`border-zinc-700 hover:bg-zinc-800 ${nextCol?.color || "text-zinc-300"}`}
+                          >
+                            {nextCol?.icon}
+                            <span className="ml-1">{getStatusLabel(nextStatus)}</span>
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                          </Button>
+                        );
+                      })()
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Cancel Button */}
-              {selectedOrder.status !== 'cancelado' && selectedOrder.status !== 'concluido' && (
+              {/* Cancel Button with Confirmation */}
+              {selectedOrder.status !== 'cancelado' && (
                 <div className="pt-2 border-t border-zinc-800">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => cancelOrder.mutate({ id: selectedOrder.id })}
-                    disabled={cancelOrder.isPending}
-                    className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10"
-                  >
-                    {cancelOrder.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
+                  {!confirmCancel ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setConfirmCancel(true)}
+                      className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10"
+                    >
                       <Ban className="w-4 h-4 mr-2" />
-                    )}
-                    Cancelar Pedido
-                  </Button>
+                      Cancelar Pedido
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                        <p className="text-sm text-red-300">Tem certeza que deseja cancelar este pedido? Esta ação não pode ser desfeita.</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setConfirmCancel(false)}
+                          className="flex-1 border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                        >
+                          Não, manter
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => cancelOrder.mutate({ id: selectedOrder.id })}
+                          disabled={cancelOrder.isPending}
+                          className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/20 bg-red-500/10"
+                        >
+                          {cancelOrder.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Ban className="w-4 h-4 mr-2" />
+                          )}
+                          Sim, cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -773,7 +844,7 @@ function OrderCard({
   isHighlighted?: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const nextStatuses = STATUS_FLOW[order.status as OrderStatus] || [];
+  const nextStatus = STATUS_NEXT[order.status as OrderStatus];
 
   // Auto-scroll to highlighted card
   useEffect(() => {
@@ -829,13 +900,12 @@ function OrderCard({
           {formatCurrency(order.totalValue)}
         </span>
 
-        {/* Quick action buttons */}
+        {/* Quick action button - advance to next status */}
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {nextStatuses.slice(0, 1).map((nextStatus) => {
+          {nextStatus ? (() => {
             const nextCol = COLUMNS.find((c) => c.id === nextStatus);
             return (
               <button
-                key={nextStatus}
                 onClick={(e) => {
                   e.stopPropagation();
                   onMoveOrder(order.id, nextStatus);
@@ -847,8 +917,7 @@ function OrderCard({
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             );
-          })}
-          <button
+          })() : null}         <button
             onClick={(e) => {
               e.stopPropagation();
               onViewOrder(order);
