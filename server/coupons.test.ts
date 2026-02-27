@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest";
 /**
  * Unit tests for Coupons system:
  * 1. Coupon code normalization (uppercase, trim)
- * 2. Coupon validation logic (active, expired, usage limit)
- * 3. Discount calculation logic
+ * 2. Coupon validation logic with SPECIFIC error messages
+ * 3. Discount calculation logic (shared hook calculateDiscount)
  * 4. WhatsApp message generation with coupon
+ * 5. Coupon status determination (UI badges)
+ * 6. Coupon duplicate detection
+ * 7. Total calculation with coupon + delivery
+ * 8. Backend validateCoupon error message specificity
  */
 
 // ============================================
@@ -39,7 +43,7 @@ describe("Coupon code normalization", () => {
 });
 
 // ============================================
-// 2. COUPON VALIDATION LOGIC
+// 2. COUPON VALIDATION LOGIC (SPECIFIC ERRORS)
 // ============================================
 
 interface CouponData {
@@ -59,25 +63,34 @@ interface ValidationResult {
   coupon?: { id: number; code: string; discountPercentage: number };
 }
 
+/**
+ * Mirrors the backend validateCoupon logic with EXACT error messages.
+ * These messages match what the backend returns to the frontend.
+ */
 function validateCouponLogic(coupon: CouponData | null, tenantId: number): ValidationResult {
+  // Coupon not found
   if (!coupon) {
-    return { valid: false, reason: "Cupom não encontrado" };
+    return { valid: false, reason: "Cupom inválido ou inativo." };
   }
 
+  // Wrong tenant
   if (coupon.tenantId !== tenantId) {
-    return { valid: false, reason: "Cupom não pertence a esta loja" };
+    return { valid: false, reason: "Cupom inválido ou inativo." };
   }
 
+  // Inactive
   if (!coupon.isActive) {
-    return { valid: false, reason: "Cupom inativo" };
+    return { valid: false, reason: "Cupom inválido ou inativo." };
   }
 
+  // Expired
   if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-    return { valid: false, reason: "Cupom expirado" };
+    return { valid: false, reason: "Este cupom está expirado." };
   }
 
+  // Usage limit reached (A Regra de Ouro)
   if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
-    return { valid: false, reason: "Cupom atingiu o limite de usos" };
+    return { valid: false, reason: "O limite de usos para este cupom já foi atingido." };
   }
 
   return {
@@ -90,7 +103,7 @@ function validateCouponLogic(coupon: CouponData | null, tenantId: number): Valid
   };
 }
 
-describe("Coupon validation logic", () => {
+describe("Coupon validation logic with specific error messages", () => {
   const baseCoupon: CouponData = {
     id: 1,
     code: "PROMO10",
@@ -112,29 +125,29 @@ describe("Coupon validation logic", () => {
     });
   });
 
-  it("rejects null coupon (not found)", () => {
+  it("rejects null coupon with 'Cupom inválido ou inativo.'", () => {
     const result = validateCouponLogic(null, 1);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Cupom não encontrado");
+    expect(result.reason).toBe("Cupom inválido ou inativo.");
   });
 
-  it("rejects coupon from different tenant", () => {
+  it("rejects coupon from different tenant with 'Cupom inválido ou inativo.'", () => {
     const result = validateCouponLogic(baseCoupon, 999);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Cupom não pertence a esta loja");
+    expect(result.reason).toBe("Cupom inválido ou inativo.");
   });
 
-  it("rejects inactive coupon", () => {
+  it("rejects inactive coupon with 'Cupom inválido ou inativo.'", () => {
     const result = validateCouponLogic({ ...baseCoupon, isActive: false }, 1);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Cupom inativo");
+    expect(result.reason).toBe("Cupom inválido ou inativo.");
   });
 
-  it("rejects expired coupon", () => {
+  it("rejects expired coupon with 'Este cupom está expirado.'", () => {
     const pastDate = new Date("2020-01-01");
     const result = validateCouponLogic({ ...baseCoupon, expiresAt: pastDate }, 1);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Cupom expirado");
+    expect(result.reason).toBe("Este cupom está expirado.");
   });
 
   it("accepts coupon with future expiration", () => {
@@ -143,13 +156,22 @@ describe("Coupon validation logic", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("rejects coupon that reached usage limit", () => {
+  it("rejects coupon at exact usage limit with 'O limite de usos para este cupom já foi atingido.'", () => {
     const result = validateCouponLogic(
       { ...baseCoupon, usageLimit: 5, usageCount: 5 },
       1
     );
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Cupom atingiu o limite de usos");
+    expect(result.reason).toBe("O limite de usos para este cupom já foi atingido.");
+  });
+
+  it("rejects coupon that exceeded usage limit", () => {
+    const result = validateCouponLogic(
+      { ...baseCoupon, usageLimit: 3, usageCount: 5 },
+      1
+    );
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBe("O limite de usos para este cupom já foi atingido.");
   });
 
   it("accepts coupon with usage count below limit", () => {
@@ -168,12 +190,20 @@ describe("Coupon validation logic", () => {
     expect(result.valid).toBe(true);
   });
 
-  it("rejects coupon that exceeded usage limit", () => {
+  it("prioritizes 'inativo' over 'expirado' when both conditions are true", () => {
     const result = validateCouponLogic(
-      { ...baseCoupon, usageLimit: 3, usageCount: 5 },
+      { ...baseCoupon, isActive: false, expiresAt: new Date("2020-01-01") },
       1
     );
-    expect(result.valid).toBe(false);
+    expect(result.reason).toBe("Cupom inválido ou inativo.");
+  });
+
+  it("prioritizes 'expirado' over 'limite atingido' when both conditions are true", () => {
+    const result = validateCouponLogic(
+      { ...baseCoupon, expiresAt: new Date("2020-01-01"), usageLimit: 1, usageCount: 1 },
+      1
+    );
+    expect(result.reason).toBe("Este cupom está expirado.");
   });
 });
 
@@ -188,6 +218,14 @@ function calculateDiscount(subtotal: number, discountPercentage: number): {
   const discount = subtotal * (discountPercentage / 100);
   const total = Math.max(0, subtotal - discount);
   return { discount: Math.round(discount * 100) / 100, total: Math.round(total * 100) / 100 };
+}
+
+/**
+ * Mirrors the hook's calculateDiscount function
+ */
+function hookCalculateDiscount(subtotal: number, discountPercentage: number | null): number {
+  if (discountPercentage === null) return 0;
+  return subtotal * (discountPercentage / 100);
 }
 
 describe("Discount calculation", () => {
@@ -211,8 +249,8 @@ describe("Discount calculation", () => {
 
   it("handles small percentages with precision", () => {
     const result = calculateDiscount(99.90, 5);
-    expect(result.discount).toBe(5.0); // 99.90 * 0.05 = 4.995 -> 5.00
-    expect(result.total).toBe(94.91); // 99.90 - 4.995 = 94.905 -> 94.91
+    expect(result.discount).toBe(5.0);
+    expect(result.total).toBe(94.91);
   });
 
   it("handles zero subtotal", () => {
@@ -225,6 +263,24 @@ describe("Discount calculation", () => {
     const result = calculateDiscount(1000, 0.01);
     expect(result.discount).toBe(0.1);
     expect(result.total).toBe(999.9);
+  });
+});
+
+describe("Hook calculateDiscount function", () => {
+  it("returns 0 when no coupon applied (null percentage)", () => {
+    expect(hookCalculateDiscount(100, null)).toBe(0);
+  });
+
+  it("calculates discount correctly", () => {
+    expect(hookCalculateDiscount(100, 10)).toBe(10);
+  });
+
+  it("returns 0 for zero subtotal", () => {
+    expect(hookCalculateDiscount(0, 10)).toBe(0);
+  });
+
+  it("calculates full discount at 100%", () => {
+    expect(hookCalculateDiscount(200, 100)).toBe(200);
   });
 });
 
@@ -291,7 +347,7 @@ describe("WhatsApp message with coupon", () => {
   it("includes coupon info in message when coupon is applied", () => {
     const message = generateWhatsAppMessage(
       sampleItems,
-      52.2, // after 10% discount on 58 = 52.20
+      52.2,
       undefined,
       "Casa Blanca",
       null,
@@ -319,7 +375,7 @@ describe("WhatsApp message with coupon", () => {
   it("includes both delivery and coupon info", () => {
     const message = generateWhatsAppMessage(
       sampleItems,
-      57.2, // 58 - 10% + 5 delivery = 52.2 + 5 = 57.2
+      57.2,
       undefined,
       "Casa Blanca",
       { zoneName: "Centro", fee: 5 },
@@ -555,5 +611,117 @@ describe("Total calculation with coupon and delivery", () => {
 
     expect(couponDiscount).toBe(7.5);
     expect(total).toBe(42.5);
+  });
+});
+
+// ============================================
+// 8. BACKEND VALIDATION ERROR MESSAGE SPECIFICITY
+// ============================================
+
+describe("Backend validation error messages match exact spec", () => {
+  const baseCoupon: CouponData = {
+    id: 1,
+    code: "PROMO10",
+    discountPercentage: 10,
+    isActive: true,
+    expiresAt: null,
+    usageLimit: null,
+    usageCount: 0,
+    tenantId: 1,
+  };
+
+  it("not found → 'Cupom inválido ou inativo.'", () => {
+    const result = validateCouponLogic(null, 1);
+    expect(result.reason).toBe("Cupom inválido ou inativo.");
+  });
+
+  it("is_active = false → 'Cupom inválido ou inativo.'", () => {
+    const result = validateCouponLogic({ ...baseCoupon, isActive: false }, 1);
+    expect(result.reason).toBe("Cupom inválido ou inativo.");
+  });
+
+  it("expired → 'Este cupom está expirado.'", () => {
+    const result = validateCouponLogic(
+      { ...baseCoupon, expiresAt: new Date("2020-01-01") },
+      1
+    );
+    expect(result.reason).toBe("Este cupom está expirado.");
+  });
+
+  it("usage_count >= usage_limit → 'O limite de usos para este cupom já foi atingido.'", () => {
+    const result = validateCouponLogic(
+      { ...baseCoupon, usageLimit: 10, usageCount: 10 },
+      1
+    );
+    expect(result.reason).toBe("O limite de usos para este cupom já foi atingido.");
+  });
+
+  it("usage_count > usage_limit → same message", () => {
+    const result = validateCouponLogic(
+      { ...baseCoupon, usageLimit: 5, usageCount: 8 },
+      1
+    );
+    expect(result.reason).toBe("O limite de usos para este cupom já foi atingido.");
+  });
+
+  it("valid coupon → no reason, valid = true", () => {
+    const result = validateCouponLogic(baseCoupon, 1);
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+});
+
+// ============================================
+// 9. USAGE COUNT INCREMENT SIMULATION
+// ============================================
+
+describe("Usage count increment simulation", () => {
+  it("increments usage_count by 1", () => {
+    let usageCount = 0;
+    usageCount += 1;
+    expect(usageCount).toBe(1);
+  });
+
+  it("blocks usage after increment reaches limit", () => {
+    const usageLimit = 3;
+    let usageCount = 2;
+    
+    // Before increment: still valid
+    expect(usageCount < usageLimit).toBe(true);
+    
+    // Increment after order
+    usageCount += 1;
+    
+    // After increment: now at limit
+    expect(usageCount >= usageLimit).toBe(true);
+    
+    // Next validation should fail
+    const result = validateCouponLogic(
+      {
+        id: 1, code: "TEST", discountPercentage: 10,
+        isActive: true, expiresAt: null,
+        usageLimit, usageCount, tenantId: 1,
+      },
+      1
+    );
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBe("O limite de usos para este cupom já foi atingido.");
+  });
+
+  it("allows unlimited usage when usageLimit is null", () => {
+    const usageLimit = null;
+    let usageCount = 999;
+    
+    usageCount += 1;
+    
+    const result = validateCouponLogic(
+      {
+        id: 1, code: "UNLIMITED", discountPercentage: 5,
+        isActive: true, expiresAt: null,
+        usageLimit, usageCount, tenantId: 1,
+      },
+      1
+    );
+    expect(result.valid).toBe(true);
   });
 });

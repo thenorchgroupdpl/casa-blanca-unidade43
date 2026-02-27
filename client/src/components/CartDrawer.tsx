@@ -13,16 +13,13 @@ import { X, Minus, Plus, Trash2, MessageCircle, ShoppingBag, Truck, Store, MapPi
 import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/utils';
 import { useCart, useSiteData } from '@/store/useStore';
 import { trpc } from '@/lib/trpc';
+import { useCouponValidation } from '@/hooks/useCouponValidation';
 
 export default function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const [observation, setObservation] = useState('');
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const [showZoneSelector, setShowZoneSelector] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ id: number; code: string; discountPercentage: number } | null>(null);
-  const [couponError, setCouponError] = useState('');
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice, tenantId } = useCart();
   const { data } = useSiteData();
 
@@ -42,56 +39,25 @@ export default function CartDrawer() {
     return deliveryZones.find((z: any) => z.id === selectedZoneId) || null;
   }, [deliveryZones, selectedZoneId]);
 
+  // Shared coupon hook
+  const {
+    couponCode,
+    setCouponCode,
+    appliedCoupon,
+    couponError,
+    isValidating: isValidatingCoupon,
+    handleApply: handleApplyCoupon,
+    handleRemove: handleRemoveCoupon,
+    handleIncrementUsage,
+    resetCoupon,
+    calculateDiscount,
+  } = useCouponValidation({ tenantId });
+
   const deliveryFee = selectedZone ? parseFloat(selectedZone.feeAmount || '0') : 0;
   const subtotal = getTotalPrice();
-  const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage / 100) : 0;
+  const couponDiscount = calculateDiscount(subtotal);
   const subtotalAfterCoupon = subtotal - couponDiscount;
   const totalWithDelivery = subtotalAfterCoupon + deliveryFee;
-
-  // Validate coupon mutation
-  const validateCouponQuery = trpc.coupons.validate.useQuery(
-    { tenantId: tenantId!, code: couponCode.trim().toUpperCase() },
-    { enabled: false }
-  );
-
-  const incrementUsage = trpc.coupons.incrementUsage.useMutation();
-
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) {
-      setCouponError('Digite um código de cupom');
-      return;
-    }
-    if (!tenantId) return;
-
-    setIsValidatingCoupon(true);
-    setCouponError('');
-
-    try {
-      const result = await validateCouponQuery.refetch();
-      if (result.data?.valid && result.data.coupon) {
-        setAppliedCoupon({
-          id: result.data.coupon.id,
-          code: result.data.coupon.code,
-          discountPercentage: result.data.coupon.discountPercentage,
-        });
-        setCouponError('');
-      } else {
-        setCouponError(result.data?.reason || 'Cupom inválido');
-        setAppliedCoupon(null);
-      }
-    } catch {
-      setCouponError('Erro ao validar cupom');
-      setAppliedCoupon(null);
-    } finally {
-      setIsValidatingCoupon(false);
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
-  };
 
   // Listen for cart open event
   useEffect(() => {
@@ -161,14 +127,8 @@ export default function CartDrawer() {
         couponDiscount: couponDiscount > 0 ? couponDiscount.toFixed(2) : undefined,
       });
 
-      // Increment coupon usage after successful order
-      if (appliedCoupon) {
-        try {
-          await incrementUsage.mutateAsync({ couponId: appliedCoupon.id });
-        } catch {
-          // Non-critical: don't block checkout if usage increment fails
-        }
-      }
+      // Increment coupon usage after successful order (Regra de Ouro)
+      await handleIncrementUsage();
     } catch {
       // Show error and DO NOT open WhatsApp
       setIsSubmitting(false);
@@ -184,9 +144,7 @@ export default function CartDrawer() {
     clearCart();
     setObservation('');
     setSelectedZoneId(null);
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
+    resetCoupon();
     setIsOpen(false);
     setIsSubmitting(false);
   };
@@ -535,10 +493,7 @@ export default function CartDrawer() {
                             <input
                               type="text"
                               value={couponCode}
-                              onChange={(e) => {
-                                setCouponCode(e.target.value.toUpperCase());
-                                setCouponError('');
-                              }}
+                              onChange={(e) => setCouponCode(e.target.value)}
                               placeholder="Ex: PROMO10"
                               className={cn(
                                 'flex-1 px-4 py-3 rounded-xl font-mono tracking-wider uppercase',

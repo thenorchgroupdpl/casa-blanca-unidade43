@@ -10,6 +10,7 @@ import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle, Ticket, Check, Load
 import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/utils';
 import { useCart, useSiteData } from '@/store/useStore';
 import { trpc } from '@/lib/trpc';
+import { useCouponValidation } from '@/hooks/useCouponValidation';
 
 interface CartPopupProps {
   isOpen: boolean;
@@ -25,54 +26,20 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
 
   const createOrder = trpc.orders.create.useMutation();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{ id: number; code: string; discountPercentage: number } | null>(null);
-  const [couponError, setCouponError] = useState('');
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const validateCouponQuery = trpc.coupons.validate.useQuery(
-    { tenantId: tenantId!, code: couponCode.trim().toUpperCase() },
-    { enabled: false }
-  );
-
-  const incrementUsage = trpc.coupons.incrementUsage.useMutation();
-
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) {
-      setCouponError('Digite um c\u00f3digo de cupom');
-      return;
-    }
-    if (!tenantId) return;
-
-    setIsValidatingCoupon(true);
-    setCouponError('');
-
-    try {
-      const result = await validateCouponQuery.refetch();
-      if (result.data?.valid && result.data.coupon) {
-        setAppliedCoupon({
-          id: result.data.coupon.id,
-          code: result.data.coupon.code,
-          discountPercentage: result.data.coupon.discountPercentage,
-        });
-        setCouponError('');
-      } else {
-        setCouponError(result.data?.reason || 'Cupom inv\u00e1lido');
-        setAppliedCoupon(null);
-      }
-    } catch {
-      setCouponError('Erro ao validar cupom');
-      setAppliedCoupon(null);
-    } finally {
-      setIsValidatingCoupon(false);
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
-  };
+  // Shared coupon hook
+  const {
+    couponCode,
+    setCouponCode,
+    appliedCoupon,
+    couponError,
+    isValidating: isValidatingCoupon,
+    handleApply: handleApplyCoupon,
+    handleRemove: handleRemoveCoupon,
+    handleIncrementUsage,
+    resetCoupon,
+    calculateDiscount,
+  } = useCouponValidation({ tenantId });
 
   const handleFinishOrder = async () => {
     if (!data || items.length === 0 || isSubmitting) return;
@@ -81,7 +48,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
 
     const storeName = data.project_name || 'Casa Blanca';
     const subtotal = getTotalPrice();
-    const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage / 100) : 0;
+    const couponDiscount = calculateDiscount(subtotal);
     const total = subtotal - couponDiscount;
     const couponInfo = appliedCoupon
       ? { code: appliedCoupon.code, discountPercentage: appliedCoupon.discountPercentage }
@@ -113,14 +80,8 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
         couponDiscount: couponDiscount > 0 ? couponDiscount.toFixed(2) : undefined,
       });
 
-      // Increment coupon usage after successful order
-      if (appliedCoupon) {
-        try {
-          await incrementUsage.mutateAsync({ couponId: appliedCoupon.id });
-        } catch {
-          // Non-critical
-        }
-      }
+      // Increment coupon usage after successful order (Regra de Ouro)
+      await handleIncrementUsage();
     } catch {
       setIsSubmitting(false);
       alert('N\u00e3o foi poss\u00edvel registrar seu pedido. Por favor, tente novamente.');
@@ -132,9 +93,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
 
     // 3. Clear cart after success
     clearCart();
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponError('');
+    resetCoupon();
     setIsSubmitting(false);
     onClose();
   };
@@ -335,10 +294,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                       <input
                         type="text"
                         value={couponCode}
-                        onChange={(e) => {
-                          setCouponCode(e.target.value.toUpperCase());
-                          setCouponError('');
-                        }}
+                        onChange={(e) => setCouponCode(e.target.value)}
                         placeholder="Cupom"
                         className={cn(
                           'flex-1 px-3 py-2 rounded-lg text-sm font-mono uppercase',
@@ -394,7 +350,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                       <span className="text-green-400 flex items-center gap-1">
                         <Ticket className="w-3 h-3" /> {appliedCoupon.code}
                       </span>
-                      <span className="text-green-400">-{formatPrice(getTotalPrice() * appliedCoupon.discountPercentage / 100)}</span>
+                      <span className="text-green-400">-{formatPrice(calculateDiscount(getTotalPrice()))}</span>
                     </div>
                     <div className="border-t border-lp-border my-1" />
                   </div>
@@ -412,7 +368,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                     className={cn("text-xl font-bold", !cs?.totalValueColor && "text-lp-text")}
                     style={{ color: cs?.totalValueColor || undefined }}
                   >
-                    {formatPrice(appliedCoupon ? getTotalPrice() - (getTotalPrice() * appliedCoupon.discountPercentage / 100) : getTotalPrice())}
+                    {formatPrice(appliedCoupon ? getTotalPrice() - calculateDiscount(getTotalPrice()) : getTotalPrice())}
                   </span>
                 </div>
 

@@ -1643,28 +1643,33 @@ export async function deleteCoupon(id: number, tenantId: number) {
 
 export async function validateCoupon(tenantId: number, code: string) {
   const db = (await getDb())!;
-  const rows = await db
+  // Search without isActive filter to provide specific error messages
+  const allRows = await db
     .select()
     .from(coupons)
     .where(
       and(
         eq(coupons.tenantId, tenantId),
-        eq(coupons.code, code.toUpperCase().trim()),
-        eq(coupons.isActive, true)
+        eq(coupons.code, code.toUpperCase().trim())
       )
     );
   
-  const coupon = rows[0];
-  if (!coupon) return { valid: false, reason: "Cupom inválido ou inativo" as const };
+  const coupon = allRows[0];
+  if (!coupon) return { valid: false, reason: "Cupom inválido ou inativo." as const };
+  
+  // Check active status
+  if (!coupon.isActive) {
+    return { valid: false, reason: "Cupom inválido ou inativo." as const };
+  }
   
   // Check expiration
   if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-    return { valid: false, reason: "Cupom expirado" as const };
+    return { valid: false, reason: "Este cupom está expirado." as const };
   }
   
-  // Check usage limit
+  // Check usage limit (A Regra de Ouro)
   if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
-    return { valid: false, reason: "Cupom esgotado" as const };
+    return { valid: false, reason: "O limite de usos para este cupom já foi atingido." as const };
   }
   
   return {

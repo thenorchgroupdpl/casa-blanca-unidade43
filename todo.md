@@ -1392,3 +1392,13 @@
 - [x] Frontend: incluir cupom no payload do pedido salvo no banco
 - [x] Testes: 43 testes unitários para normalização, validação, cálculo, WhatsApp, status e duplicatas
 - [x] 0 erros TypeScript e todos os 529 testes passando (26 arquivos)
+
+## Refatoração Cupons - Hook Compartilhado e Sincronização Rigorosa
+- [x] Verificar schema: coluna usage_count presente e funcional
+- [x] Backend: mensagens de erro específicas na validação (inválido/inativo, expirado, limite atingido)
+- [x] Criar hook customizado useCouponValidation (validação, aplicação, remoção, incremento)
+- [x] Refatorar CartDrawer para usar useCouponValidation (remover lógica duplicada)
+- [x] Refatorar CartPopup para usar useCouponValidation (remover lógica duplicada)
+- [x] Garantir incremento de usage_count no momento do checkout (antes do WhatsApp)
+- [x] Testes unitários: 58 testes para validação, mensagens de erro, cálculo e incremento
+- [x] 0 erros TypeScript e todos os 544 testes passando (26 arquivos)
