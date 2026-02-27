@@ -80,12 +80,16 @@ export default function CartDrawer() {
 
     // 1. Save order in the database FIRST
     try {
+      if (!tenantId) {
+        throw new Error('Tenant não identificado');
+      }
+
       const summary = items
         .map((item) => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
       await createOrder.mutateAsync({
-        tenantId: tenantId!,
+        tenantId,
         customerName: 'Cliente via WhatsApp',
         summary,
         items: items.map((item) => ({

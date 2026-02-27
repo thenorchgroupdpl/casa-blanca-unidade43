@@ -17,7 +17,7 @@ interface CartPopupProps {
 }
 
 export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
-  const { items, updateQuantity, removeItem, clearCart, getTotalPrice } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, getTotalPrice, tenantId } = useCart();
   const { data } = useSiteData();
 
   // Cart Landing style from Design System
@@ -41,23 +41,22 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
         .map((item) => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
-      // Get tenantId from data
-      const tenantId = (data as any).tenant_id || (data as any).tenantId;
-
-      if (tenantId) {
-        await createOrder.mutateAsync({
-          tenantId: Number(tenantId),
-          customerName: 'Cliente via WhatsApp',
-          summary,
-          items: items.map((item) => ({
-            productId: Number(item.product.id),
-            name: item.product.name,
-            quantity: item.quantity,
-            price: item.product.price,
-          })),
-          totalValue: total.toFixed(2),
-        });
+      if (!tenantId) {
+        throw new Error('Tenant não identificado');
       }
+
+      await createOrder.mutateAsync({
+        tenantId,
+        customerName: 'Cliente via WhatsApp',
+        summary,
+        items: items.map((item) => ({
+          productId: Number(item.product.id),
+          name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        totalValue: total.toFixed(2),
+      });
     } catch {
       setIsSubmitting(false);
       alert('N\u00e3o foi poss\u00edvel registrar seu pedido. Por favor, tente novamente.');

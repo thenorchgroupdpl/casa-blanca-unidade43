@@ -1336,3 +1336,9 @@
 - [x] Testes para métricas com pedidos cancelados excluídos
 - [x] Testes para criação manual e cancelamento
 - [x] 0 erros TypeScript, 472 testes passando (12 novos)
+
+## Bug Fix: Checkout WhatsApp → Pedido no Dashboard
+- [x] Verificar se CartDrawer envia itens, quantidades e valores ao backend ao finalizar
+- [x] Verificar se CartPopup envia itens, quantidades e valores ao backend ao finalizar (BUG CORRIGIDO: tenantId vinha de SiteData que não tinha o campo, agora usa cart store)
+- [x] Verificar se o backend recebe e persiste todos os campos (items, totalValue, customerName)
+- [x] Garantir que pedido aparece no Kanban e Dashboard com valor e itens corretos
