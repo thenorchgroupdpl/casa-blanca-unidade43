@@ -213,6 +213,11 @@ function ClientAdminLayoutContent({
   const isMobile = useIsMobile();
   const { data: roleData } = trpc.auth.getRole.useQuery();
   const { data: unreadCount } = trpc.notifications.unreadCount.useQuery();
+  const { data: billingPopup } = trpc.billingPopup.getPopup.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const hasBillingIssue = billingPopup?.type === "overdue" || billingPopup?.type === "suspended";
   const utils = trpc.useUtils();
 
   // Real-time order notifications via SSE
@@ -363,7 +368,12 @@ function ClientAdminLayoutContent({
                           {unviewedCount > 99 ? '99+' : unviewedCount}
                         </span>
                       )}
-                      {item.path === '/admin/dashboard/notifications' && (unreadCount ?? 0) > 0 && (
+                      {item.path === '/admin/dashboard/notifications' && hasBillingIssue && (
+                        <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                          !
+                        </span>
+                      )}
+                      {item.path === '/admin/dashboard/notifications' && !hasBillingIssue && (unreadCount ?? 0) > 0 && (
                         <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-black bg-amber-500 rounded-full">
                           {unreadCount! > 99 ? '99+' : unreadCount}
                         </span>
@@ -512,12 +522,16 @@ function ClientAdminLayoutContent({
                 onClick={() => setLocation('/admin/dashboard/notifications')}
                 className="relative p-2 rounded-lg hover:bg-zinc-800 transition-colors"
               >
-                <Bell className="h-5 w-5 text-zinc-400" />
-                {(unreadCount ?? 0) > 0 && (
+                <Bell className={`h-5 w-5 ${hasBillingIssue ? 'text-red-400' : 'text-zinc-400'}`} />
+                {hasBillingIssue ? (
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                    !
+                  </span>
+                ) : (unreadCount ?? 0) > 0 ? (
                   <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-black bg-amber-500 rounded-full">
                     {unreadCount! > 99 ? '99+' : unreadCount}
                   </span>
-                )}
+                ) : null}
               </button>
             </div>
           </div>

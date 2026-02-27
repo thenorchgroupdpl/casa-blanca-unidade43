@@ -1547,3 +1547,14 @@
 - [x] Modal não fecha ao clicar nos links (abre em nova aba)
 - [x] tenantName adicionado ao retorno do getPopup no backend
 - [x] 0 erros TypeScript e 570 testes passando
+
+## Transferência do Alerta de Cobrança para Aba de Notificações
+- [x] Auditar BillingPopupModal, rota de notificações e DashboardLayout
+- [x] Remover hard block (suspended) do modal — todos os modos agora são dismissíveis
+- [x] Converter modal para indicador visual (badge vermelho "!" no sino + sidebar)
+- [x] Criar card de cobrança de alta prioridade no topo da lista de notificações
+- [x] Estilo visual: bg-red-500/10, border-red-500/50, ícone ShieldAlert/Clock
+- [x] Botão primário: Regularizar Pagamento → WhatsApp com nome da loja
+- [x] Botão secundário: Já realizei o pagamento → WhatsApp com nome da loja
+- [x] Manter lógica de fallback WhatsApp (5511999999999)
+- [x] 0 erros TypeScript e 570 testes passando

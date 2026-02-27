@@ -13,7 +13,152 @@ import {
   AlertTriangle,
   Settings,
   Clock,
+  CreditCard,
+  MessageCircle,
+  ShieldAlert,
 } from "lucide-react";
+
+// ============================================
+// WHATSAPP HELPERS
+// ============================================
+
+const FALLBACK_SUPPORT_WHATSAPP = "5511999999999";
+
+function buildWhatsAppUrl(phone: string | null, message: string): string {
+  const cleanPhone = (phone || FALLBACK_SUPPORT_WHATSAPP).replace(/\D/g, "");
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
+function buildRegularizeMessage(tenantName: string): string {
+  return `Olá, suporte! Sou da loja *${tenantName}* e gostaria de regularizar o pagamento da minha mensalidade atrasada.`;
+}
+
+function buildAlreadyPaidMessage(tenantName: string): string {
+  return `Olá, suporte! Sou da loja *${tenantName}* e estou enviando mensagem pois o painel acusa mensalidade atrasada, mas eu já realizei o pagamento.`;
+}
+
+// ============================================
+// BILLING CARD COMPONENT
+// ============================================
+
+function BillingAlertCard({
+  popup,
+}: {
+  popup: {
+    type: string;
+    title: string;
+    message: string;
+    supportWhatsapp: string | null;
+    tenantName: string;
+    pixKey: string | null;
+    daysLeft: number | null;
+  };
+}) {
+  const tenantName = popup.tenantName || "Minha Loja";
+  const isSuspended = popup.type === "suspended";
+
+  const handleRegularize = () => {
+    const message = buildRegularizeMessage(tenantName);
+    const url = buildWhatsAppUrl(popup.supportWhatsapp, message);
+    window.open(url, "_blank");
+  };
+
+  const handleAlreadyPaid = () => {
+    const message = buildAlreadyPaidMessage(tenantName);
+    const url = buildWhatsAppUrl(popup.supportWhatsapp, message);
+    window.open(url, "_blank");
+  };
+
+  return (
+    <Card className="bg-red-500/10 border-red-500/50 overflow-hidden">
+      <CardContent className="p-5">
+        <div className="flex items-start gap-4">
+          {/* Icon */}
+          <div className={`p-3 rounded-xl shrink-0 ${isSuspended ? "bg-red-500/20" : "bg-red-500/15"}`}>
+            {isSuspended ? (
+              <ShieldAlert className="h-6 w-6 text-red-400" />
+            ) : (
+              <Clock className="h-6 w-6 text-red-400" />
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <h3 className="font-bold text-base text-red-100">
+                {popup.title || "Mensalidade Atrasada"}
+              </h3>
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0 text-red-400 bg-red-500/10 border-red-500/30"
+              >
+                {isSuspended ? "Urgente" : "Cobrança"}
+              </Badge>
+            </div>
+
+            <p className="text-sm leading-relaxed text-red-200/80 mb-4">
+              {popup.message ||
+                "Sua mensalidade está vencida. Sua loja pode ser suspensa a qualquer momento. Pague agora para evitar a interrupção do serviço."}
+            </p>
+
+            {/* PIX Key (if available) */}
+            {popup.pixKey && (
+              <div className="rounded-lg p-3 border border-red-500/20 bg-red-500/5 mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <CreditCard className="h-3.5 w-3.5 text-red-300/60" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-red-300/50">
+                    Chave PIX
+                  </span>
+                </div>
+                <p className="text-sm font-mono break-all text-red-100">
+                  {popup.pixKey}
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(popup.pixKey!);
+                      toast.success("Chave PIX copiada!");
+                    } catch {
+                      toast.error("Não foi possível copiar");
+                    }
+                  }}
+                  className="mt-2 text-xs font-medium text-red-300 hover:text-red-100 transition-colors underline underline-offset-2"
+                >
+                  Copiar chave
+                </button>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              {/* Primary: Regularizar Pagamento */}
+              <button
+                onClick={handleRegularize}
+                className="flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-red-500 text-white hover:bg-red-600 active:scale-[0.98]"
+              >
+                <CreditCard className="h-4 w-4" />
+                Regularizar Pagamento
+              </button>
+
+              {/* Secondary: Já realizei o pagamento */}
+              <button
+                onClick={handleAlreadyPaid}
+                className="flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 border border-red-500/30 text-red-200 hover:bg-red-500/10 active:scale-[0.98]"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Já realizei o pagamento
+              </button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================
+// NOTIFICATION TYPE CONFIG
+// ============================================
 
 const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   billing: { icon: DollarSign, color: "text-amber-400 bg-amber-500/10", label: "Cobrança" },
@@ -22,9 +167,22 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; labe
   warning: { icon: AlertTriangle, color: "text-red-400 bg-red-500/10", label: "Aviso" },
 };
 
+// ============================================
+// MAIN PAGE
+// ============================================
+
 export default function NotificationsPage() {
   const utils = trpc.useUtils();
   const { data: notifications, isLoading } = trpc.notifications.list.useQuery();
+
+  // Billing popup data for the priority card
+  const { data: billingPopup } = trpc.billingPopup.getPopup.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const showBillingCard =
+    billingPopup?.type === "overdue" || billingPopup?.type === "suspended";
 
   const markReadMutation = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => {
@@ -90,6 +248,11 @@ export default function NotificationsPage() {
         )}
       </div>
 
+      {/* Billing Alert Card (fixed at top when overdue/suspended) */}
+      {showBillingCard && billingPopup && (
+        <BillingAlertCard popup={billingPopup} />
+      )}
+
       {/* Notifications List */}
       {isLoading ? (
         <div className="space-y-3">
@@ -102,7 +265,7 @@ export default function NotificationsPage() {
             </Card>
           ))}
         </div>
-      ) : !notifications?.length ? (
+      ) : !notifications?.length && !showBillingCard ? (
         <Card className="bg-zinc-900 border-zinc-800">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="p-4 rounded-full bg-zinc-800 mb-4">
@@ -114,7 +277,7 @@ export default function NotificationsPage() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {notifications.map(notif => {
+          {notifications?.map(notif => {
             const config = TYPE_CONFIG[notif.type || "info"] || TYPE_CONFIG.info;
             const TypeIcon = config.icon;
 
