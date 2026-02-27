@@ -1558,3 +1558,15 @@
 - [x] Botão secundário: Já realizei o pagamento → WhatsApp com nome da loja
 - [x] Manter lógica de fallback WhatsApp (5511999999999)
 - [x] 0 erros TypeScript e 570 testes passando
+
+## Hard Block (Bloqueio Total) para Lojas Suspensas
+- [x] Auditar ClientAdminLayout e billingPopup para ponto de inserção
+- [x] Criar componente SuspensionBlocker com overlay fixed inset-0 z-[99999]
+- [x] Extreme blur: bg-black/80 backdrop-blur-[64px]
+- [x] Modal infechável: sem botão X, sem fechar ao clicar fora, ESC bloqueado globalmente
+- [x] Ícone ShieldAlert + Lock badge vermelho no topo do modal
+- [x] Título: "Acesso Suspenso" + descrição sobre suspensão + badge "Conta Suspensa"
+- [x] Botão primário: Regularizar Pagamento agora → WhatsApp com nome da loja
+- [x] Botão secundário: Já paguei / Enviar comprovante → WhatsApp com nome da loja
+- [x] Integrar no ClientAdminLayout (nível mais alto do Dashboard)
+- [x] 0 erros TypeScript e 570 testes passando

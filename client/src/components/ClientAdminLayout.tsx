@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import BillingPopupModal from "@/components/BillingPopupModal";
+import SuspensionBlocker from "@/components/SuspensionBlocker";
 import { useIsMobile } from "@/hooks/useMobile";
 import { 
   LogOut, 
@@ -190,6 +191,7 @@ export default function ClientAdminLayout({
       </ClientAdminLayoutContent>
       <BillingPopupModal />
       <NotificationPermissionModal />
+      <SuspensionBlocker />
     </SidebarProvider>
   );
 }
