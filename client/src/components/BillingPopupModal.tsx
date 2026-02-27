@@ -4,10 +4,11 @@
  *
  * Three modes:
  *   - warning:   Dismissible modal with "Lembrar depois"
- *   - overdue:   Dismissible modal with PIX checkout
+ *   - overdue:   Dismissible modal with WhatsApp CTA
  *   - suspended: HARD BLOCK – fullscreen, no escape, blur backdrop
  *
- * PIX key and support WhatsApp are fetched from global settings.
+ * Both action buttons redirect to WhatsApp with pre-configured messages
+ * containing the tenant name for easy identification.
  */
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -43,6 +44,36 @@ const POPUP_ICON_COLORS = {
 };
 
 const SESSION_KEY = "billing_popup_dismissed";
+
+/** Fallback WhatsApp number when none is configured */
+const FALLBACK_SUPPORT_WHATSAPP = "5511999999999";
+
+// ============================================
+// WHATSAPP HELPERS
+// ============================================
+
+/**
+ * Build a WhatsApp URL with the given phone number and message.
+ * Falls back to FALLBACK_SUPPORT_WHATSAPP if no number is provided.
+ */
+function buildWhatsAppUrl(phone: string | null, message: string): string {
+  const cleanPhone = (phone || FALLBACK_SUPPORT_WHATSAPP).replace(/\D/g, "");
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Build the "Regularizar Pagamento" WhatsApp message with tenant name.
+ */
+function buildRegularizeMessage(tenantName: string): string {
+  return `Olá, suporte! Sou da loja *${tenantName}* e gostaria de regularizar o pagamento da minha mensalidade atrasada.`;
+}
+
+/**
+ * Build the "Já realizei o pagamento" WhatsApp message with tenant name.
+ */
+function buildAlreadyPaidMessage(tenantName: string): string {
+  return `Olá, suporte! Sou da loja *${tenantName}* e estou enviando mensagem pois o painel acusa mensalidade atrasada, mas eu já realizei o pagamento. Segue o meu comprovante:`;
+}
 
 // ============================================
 // PIX CHECKOUT COMPONENT
@@ -131,36 +162,31 @@ function PixCheckout({
 }
 
 // ============================================
-// SUPPORT BUTTON COMPONENT
+// SUPPORT BUTTON COMPONENT (Já realizei o pagamento)
 // ============================================
 
 function SupportButton({
   supportWhatsapp,
+  tenantName,
   textColor,
 }: {
   supportWhatsapp: string | null;
+  tenantName: string;
   textColor: string;
 }) {
-  const whatsappUrl = supportWhatsapp
-    ? `https://wa.me/${supportWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Preciso de ajuda com minha mensalidade no Casa Blanca.")}`
-    : null;
+  const message = buildAlreadyPaidMessage(tenantName);
+  const whatsappUrl = buildWhatsAppUrl(supportWhatsapp, message);
 
   return (
     <a
-      href={whatsappUrl || "#"}
+      href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={(e) => {
-        if (!whatsappUrl) {
-          e.preventDefault();
-          toast.info("Suporte não configurado. Entre em contato pelo canal habitual.");
-        }
-      }}
       className="w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 border border-white/15 hover:bg-white/5 active:scale-[0.98]"
       style={{ color: textColor }}
     >
       <MessageCircle className="h-4 w-4" />
-      Já realizei o pagamento / Falar com suporte
+      Já realizei o pagamento
     </a>
   );
 }
@@ -194,11 +220,32 @@ export default function BillingPopupModal() {
 
   const Icon = POPUP_ICONS[popup.type];
   const iconColors = POPUP_ICON_COLORS[popup.type];
+  const tenantName = popup.tenantName || "Minha Loja";
 
   const handleDismiss = () => {
     if (isSuspended) return; // Cannot dismiss suspended
     setOpen(false);
     sessionStorage.setItem(SESSION_KEY, "true");
+  };
+
+  /**
+   * Open WhatsApp in a new tab with the "Regularizar Pagamento" message.
+   * The modal stays open — it only closes when billing status changes in the DB.
+   */
+  const handleRegularize = () => {
+    const message = buildRegularizeMessage(tenantName);
+    const url = buildWhatsAppUrl(popup.supportWhatsapp, message);
+    window.open(url, "_blank");
+  };
+
+  /**
+   * Open WhatsApp in a new tab with the "Já realizei o pagamento" message.
+   * The modal stays open — it only closes when billing status changes in the DB.
+   */
+  const handleAlreadyPaid = () => {
+    const message = buildAlreadyPaidMessage(tenantName);
+    const url = buildWhatsAppUrl(popup.supportWhatsapp, message);
+    window.open(url, "_blank");
   };
 
   // ============================================
@@ -270,31 +317,24 @@ export default function BillingPopupModal() {
                 </div>
               )}
 
-              {/* If no PIX key, show generic CTA */}
-              {!popup.pixKey && (
-                <button
-                  className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 hover:opacity-90 mb-4"
-                  style={{
-                    backgroundColor: popup.colors.buttonColor,
-                    color: popup.colors.buttonTextColor,
-                    boxShadow: `0 4px 14px ${popup.colors.buttonColor}40`,
-                  }}
-                  onClick={() => {
-                    const url = popup.supportWhatsapp
-                      ? `https://wa.me/${popup.supportWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Preciso regularizar minha mensalidade no Casa Blanca.")}`
-                      : "#";
-                    if (url !== "#") window.open(url, "_blank");
-                    else toast.info("Suporte não configurado.");
-                  }}
-                >
-                  <CreditCard className="h-5 w-5" />
-                  Regularizar Pagamento
-                </button>
-              )}
+              {/* Primary CTA: Regularizar Pagamento → WhatsApp */}
+              <button
+                className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 hover:opacity-90 mb-3"
+                style={{
+                  backgroundColor: popup.colors.buttonColor,
+                  color: popup.colors.buttonTextColor,
+                  boxShadow: `0 4px 14px ${popup.colors.buttonColor}40`,
+                }}
+                onClick={handleRegularize}
+              >
+                <CreditCard className="h-5 w-5" />
+                Regularizar Pagamento
+              </button>
 
-              {/* Support Button */}
+              {/* Secondary CTA: Já realizei o pagamento → WhatsApp */}
               <SupportButton
                 supportWhatsapp={popup.supportWhatsapp}
+                tenantName={tenantName}
                 textColor={popup.colors.textColor}
               />
 
@@ -424,35 +464,27 @@ export default function BillingPopupModal() {
             </button>
           )}
 
-          {/* Simple CTA for overdue without PIX key */}
-          {popup.type === "overdue" && !popup.pixKey && (
+          {/* Primary CTA for overdue: Regularizar Pagamento → WhatsApp */}
+          {popup.type === "overdue" && (
             <button
               className="w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:opacity-90"
               style={{
                 backgroundColor: popup.colors.buttonColor,
                 color: popup.colors.buttonTextColor,
               }}
-              onClick={() => {
-                if (popup.supportWhatsapp) {
-                  window.open(
-                    `https://wa.me/${popup.supportWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Olá! Preciso regularizar minha mensalidade.")}`,
-                    "_blank"
-                  );
-                } else {
-                  toast.info("Entre em contato com o suporte para regularizar.");
-                }
-              }}
+              onClick={handleRegularize}
             >
               <CreditCard className="h-4 w-4" />
               Regularizar Pagamento
             </button>
           )}
 
-          {/* Support button for overdue */}
+          {/* Secondary CTA for overdue: Já realizei o pagamento → WhatsApp */}
           {popup.type === "overdue" && (
             <div className="mt-3">
               <SupportButton
                 supportWhatsapp={popup.supportWhatsapp}
+                tenantName={tenantName}
                 textColor={popup.colors.textColor}
               />
             </div>

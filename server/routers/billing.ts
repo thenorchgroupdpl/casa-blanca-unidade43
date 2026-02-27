@@ -344,6 +344,7 @@ export const billingPopupRouter = router({
       colors,
       pixKey: pixKey || null,
       supportWhatsapp: supportWhatsapp || null,
+      tenantName: tenant.name || "Minha Loja",
       daysLeft: tenant.nextBillingDate
         ? Math.ceil((new Date(tenant.nextBillingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null,

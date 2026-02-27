@@ -1537,3 +1537,13 @@
 - [x] Tema 18 — Food Truck | Neon Street (ajustado)
 - [x] Verificar layout da seção 'Aplicar Tema Rápido' para 18 cards (max-h + scroll)
 - [x] 0 erros TypeScript e 570 testes passando
+
+## Botões WhatsApp no Modal de Mensalidade Atrasada
+- [x] Auditar componente do modal de mensalidade atrasada
+- [x] Fallback WhatsApp 5511999999999 + número dinâmico via billing_support_whatsapp
+- [x] Botão primário: redirecionar para WhatsApp com mensagem de regularização + nome da loja
+- [x] Botão secundário: redirecionar para WhatsApp com mensagem de pagamento já realizado + nome da loja
+- [x] Manter ícones (CreditCard + MessageCircle) e cores atuais dos botões
+- [x] Modal não fecha ao clicar nos links (abre em nova aba)
+- [x] tenantName adicionado ao retorno do getPopup no backend
+- [x] 0 erros TypeScript e 570 testes passando
