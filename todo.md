@@ -1296,3 +1296,43 @@
 - [x] SENTRY_DSN e VITE_SENTRY_DSN disponíveis via webdev_request_secrets
 - [x] Solicitar SENTRY_DSN via webdev_request_secrets (aguardando DSN do usuário)
 - [x] 26 testes Vitest, 460 total passando, 0 erros TypeScript
+
+## Sincronização de Pedidos + Gestão Manual
+### Problema 1 — Pedido salvo antes do WhatsApp
+- [x] Auditar fluxo completo: landing page → carrinho → finalizar → banco → WhatsApp
+- [x] Garantir que pedido é salvo com todos os itens, quantidades e valores ANTES do redirect WhatsApp
+- [x] Valor total calculado e salvo no momento da criação (preço snapshot)
+- [x] Carrinho limpo somente após confirmação de salvamento
+- [x] Mensagem de erro clara se salvamento falhar (sem abrir WhatsApp)
+
+### Problema 2 — Kanban não recebe pedidos
+- [x] Verificar query do Kanban (filtros de status, tenantId)
+- [x] Garantir que novo pedido aparece automaticamente no Kanban via SSE/invalidação
+- [x] Pedido entra na primeira coluna (pendente) sem reload
+
+### Problema 3 — Métricas do Dashboard
+- [x] Revisar getDashboardSummary: faturamento hoje, pedidos hoje, faturamento mês, total mês, ticket médio
+- [x] Garantir que métricas consideram apenas tenant do lojista autenticado
+- [x] Cancelados excluídos de todas as métricas (ne cancelado em todas queries)
+- [x] Verificar se campo de valor total existe e está preenchido corretamente
+
+### Melhoria — Criar pedido manualmente
+- [x] Backend: procedure createManual (clientAdminProcedure)
+- [x] Frontend: botão "Novo Pedido" no painel de Pedidos
+- [x] Formulário: selecionar produtos do catálogo com +/- quantidade
+- [x] Valor total calculado automaticamente (subtotal + taxa entrega)
+- [x] Status inicial: novo (padrão)
+- [x] Campo de observações opcional
+- [x] Pedido manual entra no Kanban e conta nas métricas
+
+### Melhoria — Cancelar/remover pedido
+- [x] Backend: procedure cancel (soft delete via status 'cancelado')
+- [x] Frontend: botão de cancelamento no dialog de detalhe do pedido
+- [x] Validações: não cancela concluído, não cancela já cancelado, verifica tenant
+- [x] Cancelados não contam no faturamento nem na contagem de pedidos
+
+### Testes e validação
+- [x] Testes para criação de pedido (fluxo completo)
+- [x] Testes para métricas com pedidos cancelados excluídos
+- [x] Testes para criação manual e cancelamento
+- [x] 0 erros TypeScript, 472 testes passando (12 novos)

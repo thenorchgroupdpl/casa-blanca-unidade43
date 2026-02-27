@@ -667,6 +667,7 @@ export async function getTodayRevenue(tenantId: number): Promise<number> {
     .where(
       and(
         eq(orders.tenantId, tenantId),
+        ne(orders.status, 'cancelado'),
         gte(orders.createdAt, today)
       )
     );
@@ -1179,23 +1180,23 @@ export async function getDashboardSummary(tenantId: number) {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-  // Revenue today (concluido only)
+  // Revenue today (all except cancelado)
   const [revTodayRow] = await db
     .select({ total: sum(orders.totalValue), cnt: count() })
     .from(orders)
     .where(and(
       eq(orders.tenantId, tenantId),
-      eq(orders.status, 'concluido'),
+      ne(orders.status, 'cancelado'),
       gte(orders.createdAt, todayStart)
     ));
 
-  // Revenue yesterday (concluido only)
+  // Revenue yesterday (all except cancelado)
   const [revYesterdayRow] = await db
     .select({ total: sum(orders.totalValue) })
     .from(orders)
     .where(and(
       eq(orders.tenantId, tenantId),
-      eq(orders.status, 'concluido'),
+      ne(orders.status, 'cancelado'),
       gte(orders.createdAt, yesterdayStart),
       lte(orders.createdAt, todayStart)
     ));
@@ -1219,23 +1220,23 @@ export async function getDashboardSummary(tenantId: number) {
       inArray(orders.status, ['novo', 'em_preparacao', 'saiu_entrega'])
     ));
 
-  // Revenue this month (concluido only)
+  // Revenue this month (all except cancelado)
   const [revMonthRow] = await db
     .select({ total: sum(orders.totalValue), cnt: count() })
     .from(orders)
     .where(and(
       eq(orders.tenantId, tenantId),
-      eq(orders.status, 'concluido'),
+      ne(orders.status, 'cancelado'),
       gte(orders.createdAt, monthStart)
     ));
 
-  // Revenue last month (concluido only)
+  // Revenue last month (all except cancelado)
   const [revLastMonthRow] = await db
     .select({ total: sum(orders.totalValue), cnt: count() })
     .from(orders)
     .where(and(
       eq(orders.tenantId, tenantId),
-      eq(orders.status, 'concluido'),
+      ne(orders.status, 'cancelado'),
       gte(orders.createdAt, lastMonthStart),
       lte(orders.createdAt, lastMonthEnd)
     ));
@@ -1310,7 +1311,7 @@ export async function getRevenueByDay(tenantId: number, days: number) {
   const rows = await db
     .select({
       date: sql<string>`DATE(\`createdAt\`)`.as('date'),
-      revenue: sql<string>`COALESCE(SUM(CASE WHEN \`status\` = 'concluido' THEN \`totalValue\` ELSE 0 END), 0)`.as('revenue'),
+      revenue: sql<string>`COALESCE(SUM(CASE WHEN \`status\` != 'cancelado' THEN \`totalValue\` ELSE 0 END), 0)`.as('revenue'),
       orderCount: sql<number>`COUNT(CASE WHEN \`status\` != 'cancelado' THEN 1 END)`.as('order_count'),
     })
     .from(orders)

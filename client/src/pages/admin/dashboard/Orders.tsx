@@ -33,7 +33,13 @@ import {
   MapPin,
   Package,
   ArrowRight,
+  Plus,
+  Minus,
+  Ban,
+  Loader2,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -145,6 +151,90 @@ export default function OrdersPage() {
   const { data: orders, isLoading } = trpc.orders.list.useQuery();
   const [highlightedOrderId, setHighlightedOrderId] = useState<number | null>(null);
 
+  // ---- New Order Dialog State ----
+  const [newOrderOpen, setNewOrderOpen] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [newObservation, setNewObservation] = useState("");
+  const [newSelectedZoneId, setNewSelectedZoneId] = useState<string>("");
+  const [newOrderItems, setNewOrderItems] = useState<Array<{ productId: number; name: string; quantity: number; price: number }>>([]);
+
+  const { data: productsData } = trpc.products.list.useQuery(undefined, { enabled: newOrderOpen });
+  const { data: zonesData } = trpc.deliveryZones.list.useQuery(undefined, { enabled: newOrderOpen });
+
+  const createManual = trpc.orders.createManual.useMutation({
+    onSuccess: () => {
+      toast.success("Pedido criado com sucesso!");
+      utils.orders.list.invalidate();
+      resetNewOrderForm();
+      setNewOrderOpen(false);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const cancelOrder = trpc.orders.cancel.useMutation({
+    onSuccess: () => {
+      toast.success("Pedido cancelado!");
+      utils.orders.list.invalidate();
+      setDetailOpen(false);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  function resetNewOrderForm() {
+    setNewCustomerName("");
+    setNewCustomerPhone("");
+    setNewObservation("");
+    setNewSelectedZoneId("");
+    setNewOrderItems([]);
+  }
+
+  function addProductToOrder(product: { id: number; name: string; price: string | number }) {
+    setNewOrderItems((prev) => {
+      const existing = prev.find((i) => i.productId === product.id);
+      if (existing) {
+        return prev.map((i) =>
+          i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      }
+      return [...prev, { productId: product.id, name: product.name, quantity: 1, price: typeof product.price === 'string' ? parseFloat(product.price) : product.price }];
+    });
+  }
+
+  function updateItemQuantity(productId: number, delta: number) {
+    setNewOrderItems((prev) => {
+      return prev
+        .map((i) => (i.productId === productId ? { ...i, quantity: i.quantity + delta } : i))
+        .filter((i) => i.quantity > 0);
+    });
+  }
+
+  function handleCreateManualOrder() {
+    if (!newCustomerName.trim()) {
+      toast.error("Nome do cliente é obrigatório");
+      return;
+    }
+    if (newOrderItems.length === 0) {
+      toast.error("Adicione pelo menos 1 item");
+      return;
+    }
+    const selectedZone = zonesData?.find((z: any) => z.id === Number(newSelectedZoneId));
+    createManual.mutate({
+      customerName: newCustomerName.trim(),
+      customerPhone: newCustomerPhone.trim() || undefined,
+      items: newOrderItems,
+      deliveryZoneId: selectedZone?.id,
+      deliveryZoneName: selectedZone?.zoneName,
+      deliveryFee: selectedZone ? String(selectedZone.feeAmount) : undefined,
+      observation: newObservation.trim() || undefined,
+    });
+  }
+
+  const newOrderSubtotal = newOrderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const selectedNewZone = zonesData?.find((z: any) => z.id === Number(newSelectedZoneId));
+  const newOrderDeliveryFee = selectedNewZone ? parseFloat(String(selectedNewZone.feeAmount)) : 0;
+  const newOrderTotal = newOrderSubtotal + newOrderDeliveryFee;
+
   // Check for highlight param from SSE toast navigation
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -248,6 +338,14 @@ export default function OrdersPage() {
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Atualizar
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setNewOrderOpen(true)}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Pedido
           </Button>
         </div>
       </div>
@@ -421,8 +519,176 @@ export default function OrdersPage() {
                   )}
                 </div>
               </div>
+
+              {/* Cancel Button */}
+              {selectedOrder.status !== 'cancelado' && selectedOrder.status !== 'concluido' && (
+                <div className="pt-2 border-t border-zinc-800">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cancelOrder.mutate({ id: selectedOrder.id })}
+                    disabled={cancelOrder.isPending}
+                    className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10"
+                  >
+                    {cancelOrder.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Ban className="w-4 h-4 mr-2" />
+                    )}
+                    Cancelar Pedido
+                  </Button>
+                </div>
+              )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* New Order Dialog */}
+      <Dialog open={newOrderOpen} onOpenChange={(open) => { if (!open) resetNewOrderForm(); setNewOrderOpen(open); }}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Plus className="w-5 h-5 text-amber-400" />
+              Novo Pedido Manual
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Customer Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-zinc-400 text-xs">Nome do Cliente *</Label>
+                <Input
+                  value={newCustomerName}
+                  onChange={(e) => setNewCustomerName(e.target.value)}
+                  placeholder="Nome do cliente"
+                  className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-zinc-400 text-xs">Telefone</Label>
+                <Input
+                  value={newCustomerPhone}
+                  onChange={(e) => setNewCustomerPhone(e.target.value)}
+                  placeholder="(00) 00000-0000"
+                  className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Product Selection */}
+            <div>
+              <Label className="text-zinc-400 text-xs">Produtos do Catálogo</Label>
+              <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-800 divide-y divide-zinc-800">
+                {productsData && productsData.length > 0 ? (
+                  productsData.filter((p: any) => p.isAvailable).map((product: any) => {
+                    const inOrder = newOrderItems.find((i) => i.productId === product.id);
+                    return (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between px-3 py-2 hover:bg-zinc-800/50 cursor-pointer"
+                        onClick={() => !inOrder && addProductToOrder(product)}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          {product.imageUrl && (
+                            <img src={product.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm text-white truncate">{product.name}</p>
+                            <p className="text-xs text-zinc-500">{formatCurrency(product.price)}</p>
+                          </div>
+                        </div>
+                        {inOrder ? (
+                          <div className="flex items-center gap-1">
+                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(product.id, -1); }} className="p-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-sm w-6 text-center">{inOrder.quantity}</span>
+                            <button onClick={(e) => { e.stopPropagation(); updateItemQuantity(product.id, 1); }} className="p-1 rounded bg-zinc-700 hover:bg-zinc-600">
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" className="h-7 text-xs border-zinc-700 text-zinc-400 hover:bg-zinc-800">
+                            <Plus className="w-3 h-3 mr-1" /> Adicionar
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-zinc-500 p-3">Nenhum produto disponível</p>
+                )}
+              </div>
+            </div>
+
+            {/* Selected Items Summary */}
+            {newOrderItems.length > 0 && (
+              <div className="rounded-lg bg-zinc-800 p-3 space-y-1">
+                <p className="text-xs text-zinc-400 font-medium mb-2">Itens do Pedido</p>
+                {newOrderItems.map((item) => (
+                  <div key={item.productId} className="flex justify-between text-sm">
+                    <span className="text-zinc-300">{item.quantity}x {item.name}</span>
+                    <span className="text-zinc-400">{formatCurrency(item.price * item.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Delivery Zone */}
+            {zonesData && zonesData.length > 0 && (
+              <div>
+                <Label className="text-zinc-400 text-xs">Zona de Entrega</Label>
+                <Select value={newSelectedZoneId} onValueChange={setNewSelectedZoneId}>
+                  <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
+                    <SelectValue placeholder="Selecione (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-700">
+                    {zonesData.map((zone: any) => (
+                      <SelectItem key={zone.id} value={String(zone.id)} className="text-white">
+                        {zone.zoneName} {zone.feeAmount !== '0.00' ? `(${formatCurrency(zone.feeAmount)})` : '(Grátis)'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Observation */}
+            <div>
+              <Label className="text-zinc-400 text-xs">Observação</Label>
+              <Input
+                value={newObservation}
+                onChange={(e) => setNewObservation(e.target.value)}
+                placeholder="Observações do pedido..."
+                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+              />
+            </div>
+
+            {/* Total */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div>
+                <span className="text-sm text-amber-300">Subtotal: {formatCurrency(newOrderSubtotal)}</span>
+                {newOrderDeliveryFee > 0 && (
+                  <span className="text-sm text-amber-300 ml-3">+ Entrega: {formatCurrency(newOrderDeliveryFee)}</span>
+                )}
+              </div>
+              <span className="text-lg font-bold text-amber-400">{formatCurrency(newOrderTotal)}</span>
+            </div>
+
+            {/* Submit */}
+            <Button
+              onClick={handleCreateManualOrder}
+              disabled={createManual.isPending || newOrderItems.length === 0 || !newCustomerName.trim()}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {createManual.isPending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Criando...</>
+              ) : (
+                <><Plus className="w-4 h-4 mr-2" /> Criar Pedido</>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

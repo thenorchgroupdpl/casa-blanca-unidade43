@@ -4,10 +4,12 @@
  * Uses cart_landing_style for isolated customization
  */
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle } from 'lucide-react';
 import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/utils';
 import { useCart, useSiteData } from '@/store/useStore';
+import { trpc } from '@/lib/trpc';
 
 interface CartPopupProps {
   isOpen: boolean;
@@ -21,12 +23,53 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
   // Cart Landing style from Design System
   const cs = data?.cart_landing_style;
 
-  const handleFinishOrder = () => {
-    if (!data) return;
-    
+  const createOrder = trpc.orders.create.useMutation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFinishOrder = async () => {
+    if (!data || items.length === 0 || isSubmitting) return;
+
+    setIsSubmitting(true);
+
     const storeName = data.project_name || 'Casa Blanca';
-    const message = generateWhatsAppMessage(items, getTotalPrice(), undefined, storeName);
+    const total = getTotalPrice();
+    const message = generateWhatsAppMessage(items, total, undefined, storeName);
+
+    // 1. Save order in the database FIRST
+    try {
+      const summary = items
+        .map((item) => `${item.quantity}x ${item.product.name}`)
+        .join(', ');
+
+      // Get tenantId from data
+      const tenantId = (data as any).tenant_id || (data as any).tenantId;
+
+      if (tenantId) {
+        await createOrder.mutateAsync({
+          tenantId: Number(tenantId),
+          customerName: 'Cliente via WhatsApp',
+          summary,
+          items: items.map((item) => ({
+            productId: Number(item.product.id),
+            name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price,
+          })),
+          totalValue: total.toFixed(2),
+        });
+      }
+    } catch {
+      setIsSubmitting(false);
+      alert('N\u00e3o foi poss\u00edvel registrar seu pedido. Por favor, tente novamente.');
+      return;
+    }
+
+    // 2. Only open WhatsApp AFTER order is saved
     openWhatsApp(data.contact.whatsapp, message);
+
+    // 3. Clear cart after success
+    clearCart();
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -232,11 +275,13 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                   </button>
                   <button
                     onClick={handleFinishOrder}
+                    disabled={isSubmitting}
                     className={cn(
                       'flex-[2] flex items-center justify-center gap-2 py-2.5 rounded-xl',
                       'text-sm font-medium transition-colors',
                       !cs?.ctaBgColor && 'bg-[#25D366] hover:bg-[#20BD5A]',
-                      !cs?.ctaTextColor && 'text-white'
+                      !cs?.ctaTextColor && 'text-white',
+                      isSubmitting && 'opacity-50 cursor-not-allowed'
                     )}
                     style={{
                       ...(cs?.ctaBgColor ? { backgroundColor: cs.ctaBgColor } : {}),
@@ -244,7 +289,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                     }}
                   >
                     <MessageCircle className="w-4 h-4" />
-                    Finalizar Pedido
+                    {isSubmitting ? 'Registrando...' : 'Finalizar Pedido'}
                   </button>
                 </div>
               </div>

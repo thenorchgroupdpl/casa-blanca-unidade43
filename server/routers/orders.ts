@@ -101,6 +101,72 @@ export const ordersRouter = router({
       return { id };
     }),
 
+  // Create order manually (from lojista admin)
+  createManual: clientAdminProcedure
+    .input(z.object({
+      customerName: z.string().min(1, "Nome do cliente é obrigatório"),
+      customerPhone: z.string().optional(),
+      items: z.array(z.object({
+        productId: z.number(),
+        name: z.string(),
+        quantity: z.number().min(1),
+        price: z.number().min(0),
+      })).min(1, "Adicione pelo menos 1 item"),
+      deliveryZoneId: z.number().optional(),
+      deliveryZoneName: z.string().optional(),
+      deliveryFee: z.string().optional(),
+      observation: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+
+      const subtotal = input.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const fee = input.deliveryFee ? parseFloat(input.deliveryFee) : 0;
+      const totalValue = (subtotal + fee).toFixed(2);
+
+      const summary = input.items
+        .map((item) => `${item.quantity}x ${item.name}`)
+        .join(', ')
+        + (input.observation ? ` | Obs: ${input.observation}` : '');
+
+      const id = await db.createOrderFull({
+        tenantId,
+        customerName: input.customerName,
+        customerPhone: input.customerPhone,
+        summary,
+        items: input.items,
+        totalValue,
+        deliveryZoneId: input.deliveryZoneId,
+        deliveryZoneName: input.deliveryZoneName,
+        deliveryFee: input.deliveryFee,
+        status: 'novo',
+      });
+
+      return { id };
+    }),
+
+  // Cancel order (soft cancel — changes status to cancelado, excluded from metrics)
+  cancel: clientAdminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const order = await db.getOrderById(input.id);
+      if (!order) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Pedido não encontrado" });
+      }
+      const tenantId = getTenantIdFromUser(ctx.user);
+      if (order.tenantId !== tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      if (order.status === 'cancelado') {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Pedido já está cancelado" });
+      }
+      if (order.status === 'concluido') {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Pedido concluído não pode ser cancelado" });
+      }
+      await db.updateOrderStatus(input.id, 'cancelado');
+      return { success: true };
+    }),
+
   // Get count of unviewed new orders (for badge)
   unviewedCount: clientAdminProcedure
     .query(async ({ ctx }) => {

@@ -64,8 +64,12 @@ export default function CartDrawer() {
   // Create order mutation
   const createOrder = trpc.orders.create.useMutation();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleCheckout = async () => {
-    if (!data || items.length === 0) return;
+    if (!data || items.length === 0 || isSubmitting) return;
+
+    setIsSubmitting(true);
 
     const storeName = data.project_name || 'Casa Blanca';
     const deliveryInfo = selectedZone
@@ -74,7 +78,7 @@ export default function CartDrawer() {
 
     const message = generateWhatsAppMessage(items, totalWithDelivery, observation || undefined, storeName, deliveryInfo);
 
-    // Create order in the database
+    // 1. Save order in the database FIRST
     try {
       const summary = items
         .map((item) => `${item.quantity}x ${item.product.name}`)
@@ -96,16 +100,22 @@ export default function CartDrawer() {
         deliveryFee: deliveryFee > 0 ? deliveryFee.toFixed(2) : undefined,
       });
     } catch {
-      // Continue with WhatsApp even if order creation fails
+      // Show error and DO NOT open WhatsApp
+      setIsSubmitting(false);
+      // Use a simple alert since we're on the public landing page (no toast library)
+      alert('Não foi possível registrar seu pedido. Por favor, tente novamente.');
+      return;
     }
 
+    // 2. Only open WhatsApp AFTER order is saved successfully
     openWhatsApp(data.contact.whatsapp, message);
     
-    // Clear cart after checkout
+    // 3. Clear cart after successful checkout
     clearCart();
     setObservation('');
     setSelectedZoneId(null);
     setIsOpen(false);
+    setIsSubmitting(false);
   };
 
   return (
@@ -466,7 +476,7 @@ export default function CartDrawer() {
                     {/* Checkout Button — ISOLATED: ctaBgColor, ctaTextColor */}
                     <button
                       onClick={handleCheckout}
-                      disabled={hasDeliveryZones && !selectedZone}
+                      disabled={(hasDeliveryZones && !selectedZone) || isSubmitting}
                       className={cn(
                         'w-full flex items-center justify-center gap-3',
                         'py-4 rounded-2xl',
@@ -474,7 +484,7 @@ export default function CartDrawer() {
                         'transition-colors',
                         !cs?.ctaBgColor && 'bg-[#25D366]',
                         !cs?.ctaTextColor && 'text-white',
-                        hasDeliveryZones && !selectedZone && 'opacity-50 cursor-not-allowed'
+                        ((hasDeliveryZones && !selectedZone) || isSubmitting) && 'opacity-50 cursor-not-allowed'
                       )}
                       style={{
                         ...(cs?.ctaBgColor ? { backgroundColor: cs.ctaBgColor } : {}),
@@ -482,9 +492,11 @@ export default function CartDrawer() {
                       }}
                     >
                       <MessageCircle className="w-5 h-5" />
-                      {hasDeliveryZones && !selectedZone
-                        ? 'Selecione a entrega'
-                        : 'Finalizar no WhatsApp'}
+                      {isSubmitting
+                        ? 'Registrando pedido...'
+                        : hasDeliveryZones && !selectedZone
+                          ? 'Selecione a entrega'
+                          : 'Finalizar no WhatsApp'}
                     </button>
 
                     {/* Clear Cart — ISOLATED: clearLinkColor */}
