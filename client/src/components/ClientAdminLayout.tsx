@@ -37,7 +37,8 @@ import {
   ClipboardList,
   Truck,
   History,
-  Ticket
+  Ticket,
+  Plug
 } from "lucide-react";
 import { toast } from "sonner";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -57,6 +58,7 @@ const menuItems = [
   { icon: LayoutGrid, label: "Vitrine", path: "/admin/dashboard/vitrine" },
   { icon: Truck, label: "Entregas", path: "/admin/dashboard/delivery" },
   { icon: Ticket, label: "Cupons", path: "/admin/dashboard/coupons" },
+  { icon: Plug, label: "Integrações", path: "/admin/dashboard/integrations" },
   { icon: Store, label: "Dados da Loja", path: "/admin/dashboard/store" },
   { icon: Bell, label: "Notificações", path: "/admin/dashboard/notifications" },
 ];

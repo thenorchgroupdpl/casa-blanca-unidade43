@@ -1420,3 +1420,16 @@
 - [x] Frontend: evento purchase_whatsapp (CartDrawer + CartPopup ao finalizar pedido)
 - [x] Testes: 18 testes (10 mock reviews + 8 analytics) — todos passando
 - [x] 0 erros TypeScript e todos os 562 testes passando (27 arquivos)
+
+## Página Integrações no Dashboard do Lojista
+- [x] Schema: campos metaPixelId e gtmContainerId já existem na tabela tenants
+- [x] Backend: endpoints getGoogleIntegrations/updateGoogleIntegrations expandidos com Meta Pixel e GTM
+- [x] Frontend: página Integrações (/admin/dashboard/integrations) replicando layout do Super Admin
+- [x] Frontend: seção Google Places API (API Key readonly + Place ID editável) com badge "Configurado"
+- [x] Frontend: seção Rastreamento de Marketing (Meta Pixel, GA4, GTM) com badge "X ativo"
+- [x] Frontend: campos com placeholders, descrições e links de ajuda externos
+- [x] Frontend: botão "Salvar Alterações" com feedback de sucesso via toast
+- [x] Frontend: dark mode forçado (bg-background), sidebar presente (ClientAdminLayout)
+- [x] Frontend: aba "Integrações" adicionada no sidebar do ClientAdminLayout (icon Plug)
+- [x] Frontend: rota /admin/dashboard/integrations registrada no App.tsx
+- [x] 0 erros TypeScript e todos os 562 testes passando (27 arquivos)

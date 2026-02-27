@@ -251,21 +251,28 @@ export const storeRouter = router({
     const tenant = await db.getTenantById(tenantId);
     if (!tenant) throw new TRPCError({ code: "NOT_FOUND", message: "Tenant não encontrado" });
     return {
+      googleApiKey: tenant.googleApiKey || '',
       googlePlaceId: tenant.googlePlaceId || '',
+      metaPixelId: tenant.metaPixelId || '',
       ga4MeasurementId: tenant.ga4MeasurementId || '',
+      gtmContainerId: tenant.gtmContainerId || '',
     };
   }),
 
   updateGoogleIntegrations: clientAdminProcedure
     .input(z.object({
       googlePlaceId: z.string().optional(),
+      metaPixelId: z.string().optional(),
       ga4MeasurementId: z.string().optional(),
+      gtmContainerId: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const tenantId = getTenantIdFromUser(ctx.user);
       await db.updateTenant(tenantId, {
         googlePlaceId: input.googlePlaceId || null,
+        metaPixelId: input.metaPixelId || null,
         ga4MeasurementId: input.ga4MeasurementId || null,
+        gtmContainerId: input.gtmContainerId || null,
       });
       return { success: true };
     }),
