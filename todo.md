@@ -1125,3 +1125,10 @@
 - [x] Parte 2: Adicionar controles de cor globais (fundo modal, texto, botão)
 - [x] Parte 3: Backend — lógica automática para determinar estado do lojista baseado em next_billing_date
 - [x] Parte 3: Frontend — popup automático no dashboard do lojista ao fazer login
+- [x] Hard Block: Modal inviolável para lojistas suspensos (z-index máximo, sem botão X, sem ESC, sem clique fora)
+- [x] Hard Block: Backdrop blur + escurecimento (backdrop-blur-md, bg-black/80) para ocultar métricas
+- [x] Checkout PIX: Exibir chave PIX configurável no popup de Vencido/Bloqueado
+- [x] Checkout PIX: Botão CTA 'Copiar Chave PIX' com clipboard + toast de sucesso
+- [x] Suporte: Botão secundário 'Já realizei o pagamento / Falar com suporte' com link WhatsApp
+- [x] Backend: Adicionar campos pix_key e support_whatsapp nas configurações globais do Super Admin
+- [x] Backend: Retornar pix_key e support_whatsapp no billingPopup.getPopup

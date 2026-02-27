@@ -225,6 +225,8 @@ export const billingPopupRouter = router({
     // Fetch popup config from global settings
     const popupConfigStr = await db.getGlobalSetting(`billing_popup_${popupType}`);
     const colorsStr = await db.getGlobalSetting("billing_popup_colors");
+    const pixKey = await db.getGlobalSetting("billing_pix_key");
+    const supportWhatsapp = await db.getGlobalSetting("billing_support_whatsapp");
 
     // Default popup configs
     const defaultPopups: Record<string, { title: string; message: string }> = {
@@ -264,6 +266,8 @@ export const billingPopupRouter = router({
       title: popupConfig.title,
       message: popupConfig.message,
       colors,
+      pixKey: pixKey || null,
+      supportWhatsapp: supportWhatsapp || null,
       daysLeft: tenant.nextBillingDate
         ? Math.ceil((new Date(tenant.nextBillingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null,

@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { trpc } from "@/lib/trpc";
 import {
   Save,
@@ -18,8 +17,13 @@ import {
   Eye,
   X,
   CreditCard,
+  Copy,
+  MessageCircle,
+  ShieldAlert,
+  Key,
+  Phone,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 // ============================================
@@ -95,54 +99,66 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
 }
 
 // ============================================
-// POPUP PREVIEW COMPONENT
+// POPUP PREVIEW COMPONENT (Updated with PIX + Support)
 // ============================================
 
 function PopupPreview({
   state,
   colors,
   type,
+  pixKey,
+  supportWhatsapp,
 }: {
   state: PopupState;
   colors: PopupColors;
   type: string;
+  pixKey: string;
+  supportWhatsapp: string;
 }) {
   const tabInfo = POPUP_TABS.find(t => t.value === type);
-  const TabIcon = tabInfo?.icon || AlertTriangle;
+  const isSuspended = type === "suspended";
+  const isOverdueOrSuspended = type === "overdue" || type === "suspended";
+
+  // Use ShieldAlert for suspended, otherwise use tab icon
+  const TabIcon = isSuspended ? ShieldAlert : (tabInfo?.icon || AlertTriangle);
+  const iconBg = type === "warning" ? "rgba(245,158,11,0.15)" :
+    type === "overdue" ? "rgba(239,68,68,0.15)" : "rgba(220,38,38,0.20)";
+  const iconFg = type === "warning" ? "#f59e0b" :
+    type === "overdue" ? "#ef4444" : "#dc2626";
 
   return (
-    <div className="flex items-center justify-center p-6 min-h-[400px] bg-zinc-950/50 rounded-xl border border-zinc-800/50">
-      {/* Simulated overlay */}
+    <div
+      className="flex items-center justify-center p-6 min-h-[500px] rounded-xl border border-zinc-800/50"
+      style={{
+        backgroundColor: isSuspended ? "rgba(0,0,0,0.85)" : "rgba(9,9,11,0.5)",
+        backdropFilter: isSuspended ? "blur(12px)" : undefined,
+      }}
+    >
       <div className="relative w-full max-w-sm">
-        {/* Backdrop */}
-        <div className="absolute inset-0 -m-6 bg-black/60 rounded-xl" />
+        {/* Backdrop for non-suspended */}
+        {!isSuspended && (
+          <div className="absolute inset-0 -m-6 bg-black/60 rounded-xl" />
+        )}
 
         {/* Modal */}
         <div
           className="relative rounded-2xl p-6 shadow-2xl border border-white/10"
           style={{ backgroundColor: colors.bgColor }}
         >
-          {/* Close button */}
-          <button className="absolute top-3 right-3 p-1 rounded-full opacity-50 hover:opacity-100 transition-opacity">
-            <X className="h-4 w-4" style={{ color: colors.textColor }} />
-          </button>
+          {/* Close button (hidden for suspended) */}
+          {!isSuspended && (
+            <button className="absolute top-3 right-3 p-1 rounded-full opacity-50 hover:opacity-100 transition-opacity cursor-default">
+              <X className="h-4 w-4" style={{ color: colors.textColor }} />
+            </button>
+          )}
 
           {/* Icon */}
           <div className="flex justify-center mb-4">
             <div
-              className="w-14 h-14 rounded-full flex items-center justify-center"
-              style={{
-                backgroundColor: type === "warning" ? "rgba(245,158,11,0.15)" :
-                  type === "overdue" ? "rgba(239,68,68,0.15)" : "rgba(161,161,170,0.15)",
-              }}
+              className={`w-14 h-14 rounded-full flex items-center justify-center ${isSuspended ? "animate-pulse" : ""}`}
+              style={{ backgroundColor: iconBg }}
             >
-              <TabIcon
-                className="h-7 w-7"
-                style={{
-                  color: type === "warning" ? "#f59e0b" :
-                    type === "overdue" ? "#ef4444" : "#a1a1aa",
-                }}
-              />
+              <TabIcon className="h-7 w-7" style={{ color: iconFg }} />
             </div>
           </div>
 
@@ -154,33 +170,140 @@ function PopupPreview({
             {state.title || "Título do Popup"}
           </h3>
 
+          {/* Status badges */}
+          {type === "warning" && (
+            <div className="flex justify-center mb-3">
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/15 text-amber-400">
+                Faltam 5 dias
+              </span>
+            </div>
+          )}
+          {type === "overdue" && (
+            <div className="flex justify-center mb-3">
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-red-500/15 text-red-400">
+                Pagamento em atraso
+              </span>
+            </div>
+          )}
+          {isSuspended && (
+            <div className="flex justify-center mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-red-500/15 text-red-400">
+                Acesso Restrito
+              </span>
+            </div>
+          )}
+
           {/* Message */}
           <p
-            className="text-sm text-center leading-relaxed mb-6 opacity-80"
+            className="text-sm text-center leading-relaxed mb-5 opacity-80"
             style={{ color: colors.textColor }}
           >
             {state.message || "Mensagem do popup aparecerá aqui..."}
           </p>
 
-          {/* Button */}
-          <button
-            className="w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
-            style={{
-              backgroundColor: colors.buttonColor,
-              color: colors.buttonTextColor,
-            }}
-          >
-            <CreditCard className="h-4 w-4" />
-            {type === "suspended" ? "Entrar em Contato" : "Pagar / Copiar PIX"}
-          </button>
+          {/* PIX Checkout (overdue + suspended when key exists) */}
+          {isOverdueOrSuspended && pixKey.trim() && (
+            <div className="mb-4 space-y-3">
+              {/* PIX Key Box */}
+              <div className="rounded-xl p-3 border border-white/10" style={{ backgroundColor: "rgba(255,255,255,0.05)" }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <CreditCard className="h-3.5 w-3.5 opacity-60" style={{ color: colors.textColor }} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider opacity-50" style={{ color: colors.textColor }}>
+                    Chave PIX
+                  </span>
+                </div>
+                <p className="text-sm font-mono break-all leading-relaxed" style={{ color: colors.textColor }}>
+                  {pixKey}
+                </p>
+              </div>
 
-          {type !== "suspended" && (
+              {/* Copy Button */}
+              <button
+                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-default"
+                style={{
+                  backgroundColor: colors.buttonColor,
+                  color: colors.buttonTextColor,
+                  boxShadow: `0 4px 14px ${colors.buttonColor}40`,
+                }}
+              >
+                <Copy className="h-4 w-4" />
+                Copiar Chave PIX
+              </button>
+            </div>
+          )}
+
+          {/* Simple CTA for warning */}
+          {type === "warning" && (
             <button
-              className="w-full mt-2 py-2 text-xs opacity-50 hover:opacity-70 transition-opacity"
+              className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 cursor-default"
+              style={{
+                backgroundColor: colors.buttonColor,
+                color: colors.buttonTextColor,
+              }}
+            >
+              <CreditCard className="h-4 w-4" />
+              Entendi, vou pagar
+            </button>
+          )}
+
+          {/* CTA for overdue without PIX */}
+          {type === "overdue" && !pixKey.trim() && (
+            <button
+              className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 cursor-default"
+              style={{
+                backgroundColor: colors.buttonColor,
+                color: colors.buttonTextColor,
+              }}
+            >
+              <CreditCard className="h-4 w-4" />
+              Regularizar Pagamento
+            </button>
+          )}
+
+          {/* CTA for suspended without PIX */}
+          {isSuspended && !pixKey.trim() && (
+            <button
+              className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-default mb-3"
+              style={{
+                backgroundColor: colors.buttonColor,
+                color: colors.buttonTextColor,
+                boxShadow: `0 4px 14px ${colors.buttonColor}40`,
+              }}
+            >
+              <CreditCard className="h-5 w-5" />
+              Regularizar Pagamento
+            </button>
+          )}
+
+          {/* Support button (overdue + suspended) */}
+          {isOverdueOrSuspended && (
+            <button
+              className="w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 border border-white/15 cursor-default mt-3"
+              style={{ color: colors.textColor }}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Já realizei o pagamento / Falar com suporte
+            </button>
+          )}
+
+          {/* Dismiss link for warning */}
+          {type === "warning" && (
+            <button
+              className="w-full mt-2 py-2 text-xs opacity-50 cursor-default"
               style={{ color: colors.textColor }}
             >
               Lembrar depois
             </button>
+          )}
+
+          {/* Fine print for suspended */}
+          {isSuspended && (
+            <p
+              className="text-[10px] text-center mt-4 opacity-30"
+              style={{ color: colors.textColor }}
+            >
+              Após a confirmação do pagamento, o acesso será restaurado automaticamente.
+            </p>
           )}
         </div>
       </div>
@@ -199,6 +322,8 @@ export default function BillingPopupsPage() {
   // State for 3 popup states
   const [popups, setPopups] = useState<Record<string, PopupState>>({ ...DEFAULT_POPUPS });
   const [colors, setColors] = useState<PopupColors>({ ...DEFAULT_COLORS });
+  const [pixKey, setPixKey] = useState("");
+  const [supportWhatsapp, setSupportWhatsapp] = useState("");
   const [activeTab, setActiveTab] = useState("warning");
   const [isDirty, setIsDirty] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -239,6 +364,10 @@ export default function BillingPopupsPage() {
         } catch { /* use default */ }
       }
 
+      // Load PIX key and support WhatsApp
+      setPixKey(settingsMap.get("billing_pix_key") || "");
+      setSupportWhatsapp(settingsMap.get("billing_support_whatsapp") || "");
+
       setIsInitialized(true);
       setIsDirty(false);
     }
@@ -257,6 +386,18 @@ export default function BillingPopupsPage() {
         key: "billing_popup_colors",
         value: JSON.stringify(colors),
         description: "Cores dos popups de cobrança",
+      },
+      // Save PIX key
+      {
+        key: "billing_pix_key",
+        value: pixKey,
+        description: "Chave PIX para pagamento de mensalidade",
+      },
+      // Save support WhatsApp
+      {
+        key: "billing_support_whatsapp",
+        value: supportWhatsapp,
+        description: "WhatsApp de suporte para cobrança",
       },
     ];
 
@@ -392,9 +533,78 @@ export default function BillingPopupsPage() {
                             />
                           </div>
                         </div>
+
+                        {/* Suspended-specific info */}
+                        {tab.value === "suspended" && (
+                          <div className="mt-3 p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+                            <div className="flex items-start gap-2">
+                              <ShieldAlert className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-xs font-semibold text-red-400">Hard Block Ativo</p>
+                                <p className="text-[11px] text-zinc-400 mt-0.5">
+                                  Este popup é inviolável: tela cheia, sem botão de fechar, sem ESC, sem clique fora. O lojista só consegue copiar o PIX ou falar com suporte.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </TabsContent>
                     ))}
                   </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* Payment & Support Config */}
+              <Card className="bg-zinc-900/60 border-zinc-800/60">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                      <Key className="h-5 w-5 text-green-400" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-white text-lg">
+                        Pagamento & Suporte
+                      </CardTitle>
+                      <CardDescription className="text-zinc-400">
+                        Configure a chave PIX e o WhatsApp de suporte
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* PIX Key */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-zinc-400 flex items-center gap-1.5">
+                      <CreditCard className="h-3.5 w-3.5" />
+                      Chave PIX
+                    </Label>
+                    <Input
+                      value={pixKey}
+                      onChange={(e) => { setPixKey(e.target.value); setIsDirty(true); }}
+                      placeholder="Ex: email@empresa.com, CPF, CNPJ ou chave aleatória"
+                      className="bg-zinc-800 border-zinc-700 text-white h-10 font-mono text-sm"
+                    />
+                    <p className="text-[11px] text-zinc-500">
+                      Exibida nos popups de Vencido e Bloqueado para pagamento imediato
+                    </p>
+                  </div>
+
+                  {/* Support WhatsApp */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-zinc-400 flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5" />
+                      WhatsApp de Suporte
+                    </Label>
+                    <Input
+                      value={supportWhatsapp}
+                      onChange={(e) => { setSupportWhatsapp(e.target.value); setIsDirty(true); }}
+                      placeholder="Ex: 5534999999999 (com DDI + DDD)"
+                      className="bg-zinc-800 border-zinc-700 text-white h-10 font-mono text-sm"
+                    />
+                    <p className="text-[11px] text-zinc-500">
+                      Usado no botão "Falar com suporte" dos popups de Vencido e Bloqueado
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -458,6 +668,8 @@ export default function BillingPopupsPage() {
                   state={activePopup}
                   colors={colors}
                   type={activeTab}
+                  pixKey={pixKey}
+                  supportWhatsapp={supportWhatsapp}
                 />
               </div>
             </div>
