@@ -1441,3 +1441,17 @@
 - [x] Fix: removida aba "Entregas" do sidebar do ClientAdminLayout + import Truck
 - [x] Fix: removida rota /admin/dashboard/delivery e import DeliveryPage do App.tsx
 - [x] 0 erros TypeScript e todos os 562 testes passando (27 arquivos)
+
+## Filtros Evolutivos Analytics + Remoção Entregas
+- [x] Criar constante global ANALYTICS_EPOCH = '2026-01-01' e ANALYTICS_EPOCH_DATE (shared/const.ts)
+- [x] Backend: analytics router refatorado para aceitar period ('today','7d','30d','month','year','all')
+- [x] Backend: getRevenueByDay aceita fromDate para queries epoch-based
+- [x] Backend: getOrdersByWeekday aceita days paramétrico
+- [x] Backend: getTopProducts suporta 'year' e 'all' com clamp ao epoch
+- [x] Backend: queries otimizadas — ranges >90 dias retornam apenas datas com dados (evita arrays gigantes)
+- [x] Frontend: 6 filtros rápidos (Hoje, 7 dias, 30 dias, Este mês, Este ano, Todo período)
+- [x] Frontend: "Todo período" busca de 01/01/2026 até hoje automaticamente
+- [x] Frontend: títulos dinâmicos nos cards/gráficos via periodLabels e periodLabelShort
+- [x] Frontend: XAxis interval adaptativo para períodos longos (preserveStartEnd)
+- [x] Fix: aba Entregas já removida do sidebar e App.tsx (confirmado)
+- [x] 0 erros TypeScript e todos os 564 testes passando (27 arquivos)

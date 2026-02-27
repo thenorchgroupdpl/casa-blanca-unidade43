@@ -1310,12 +1310,14 @@ export async function getDashboardSummary(tenantId: number) {
  * Get revenue by day for the last N days.
  * Returns array of { date, revenue, orders } sorted by date ascending.
  */
-export async function getRevenueByDay(tenantId: number, days: number) {
+export async function getRevenueByDay(tenantId: number, days: number, fromDate?: Date) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
+  const startDate = fromDate ? new Date(fromDate) : new Date();
+  if (!fromDate) {
+    startDate.setDate(startDate.getDate() - days);
+  }
   startDate.setHours(0, 0, 0, 0);
 
   const dateExpr = sql`DATE(\`createdAt\`)`;
@@ -1337,16 +1339,27 @@ export async function getRevenueByDay(tenantId: number, days: number) {
   const result: Array<{ date: string; revenue: number; orders: number }> = [];
   const dataMap = new Map(rows.map(r => [r.date, { revenue: parseFloat(r.revenue || '0'), orders: Number(r.orderCount || 0) }]));
 
-  for (let i = 0; i < days; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - (days - 1 - i));
-    const dateStr = d.toISOString().split('T')[0];
-    const entry = dataMap.get(dateStr);
-    result.push({
-      date: dateStr,
-      revenue: entry?.revenue || 0,
-      orders: entry?.orders || 0,
-    });
+  // For large ranges (>90 days), only return dates that have data to avoid huge arrays
+  if (days > 90) {
+    for (const row of rows) {
+      result.push({
+        date: row.date,
+        revenue: parseFloat(row.revenue || '0'),
+        orders: Number(row.orderCount || 0),
+      });
+    }
+  } else {
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
+      const entry = dataMap.get(dateStr);
+      result.push({
+        date: dateStr,
+        revenue: entry?.revenue || 0,
+        orders: entry?.orders || 0,
+      });
+    }
   }
 
   return result;
@@ -1356,12 +1369,13 @@ export async function getRevenueByDay(tenantId: number, days: number) {
  * Get average orders by weekday for the last 30 days.
  * Returns array of { weekday, average } (0=Sunday ... 6=Saturday).
  */
-export async function getOrdersByWeekday(tenantId: number) {
+export async function getOrdersByWeekday(tenantId: number, days: number = 30) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  const effectiveDays = Math.max(7, days); // minimum 7 days for meaningful weekday averages
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
+  startDate.setDate(startDate.getDate() - effectiveDays);
   startDate.setHours(0, 0, 0, 0);
 
   const rows = await db
@@ -1381,7 +1395,7 @@ export async function getOrdersByWeekday(tenantId: number) {
   // MySQL DAYOFWEEK: 1=Sunday, 2=Monday, ..., 7=Saturday
   // Count how many of each weekday exist in the last 30 days
   const weekdayCounts: number[] = [0, 0, 0, 0, 0, 0, 0]; // Sun-Sat
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < effectiveDays; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     weekdayCounts[d.getDay()]++;
@@ -1408,10 +1422,11 @@ export async function getOrdersByWeekday(tenantId: number) {
  * Get top N products by order count for a given period.
  * Parses the JSON items field to count product occurrences.
  */
-export async function getTopProducts(tenantId: number, period: 'today' | '7d' | '30d' | 'month', limit: number = 5) {
+export async function getTopProducts(tenantId: number, period: 'today' | '7d' | '30d' | 'month' | 'year' | 'all', limit: number = 5) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  const { ANALYTICS_EPOCH_DATE } = await import('@shared/const');
   const now = new Date();
   let startDate: Date;
 
@@ -1433,6 +1448,17 @@ export async function getTopProducts(tenantId: number, period: 'today' | '7d' | 
     case 'month':
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       break;
+    case 'year':
+      startDate = new Date(now.getFullYear(), 0, 1);
+      break;
+    case 'all':
+      startDate = new Date(ANALYTICS_EPOCH_DATE);
+      break;
+  }
+
+  // Clamp to epoch
+  if (startDate < ANALYTICS_EPOCH_DATE) {
+    startDate = new Date(ANALYTICS_EPOCH_DATE);
   }
 
   // Get all completed orders in the period with their items

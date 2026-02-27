@@ -64,7 +64,7 @@ import {
 // ============================================
 // TYPES
 // ============================================
-type AnalyticsPeriod = 'today' | '7d' | '30d' | 'month';
+type AnalyticsPeriod = 'today' | '7d' | '30d' | 'month' | 'year' | 'all';
 
 // ============================================
 // HELPER FUNCTIONS
@@ -94,6 +94,27 @@ const periodDaysMap: Record<AnalyticsPeriod, number> = {
   '7d': 7,
   '30d': 30,
   month: 30,
+  year: 365,
+  all: 9999,
+};
+
+/** Human-readable labels for each analytics period */
+const periodLabels: Record<AnalyticsPeriod, string> = {
+  today: 'Hoje',
+  '7d': 'Últimos 7 Dias',
+  '30d': 'Últimos 30 Dias',
+  month: 'Este Mês',
+  year: 'Este Ano',
+  all: 'Todo o Período',
+};
+
+const periodLabelShort: Record<AnalyticsPeriod, string> = {
+  today: 'de Hoje',
+  '7d': 'dos Últimos 7 Dias',
+  '30d': 'dos Últimos 30 Dias',
+  month: 'deste Mês',
+  year: 'deste Ano',
+  all: 'de Todo o Período (desde Jan/2026)',
 };
 
 // ============================================
@@ -206,15 +227,15 @@ export default function ClientDashboard() {
     enabled: !!tenantId,
   });
 
-  const [revenueDays] = useState(30);
   const revenueByDayQuery = trpc.analytics.getRevenueByDay.useQuery(
-    { days: analyticsPeriod === 'today' ? 1 : analyticsPeriod === '7d' ? 7 : 30 },
+    { period: analyticsPeriod },
     { enabled: !!tenantId }
   );
 
-  const weekdayQuery = trpc.analytics.getOrdersByWeekday.useQuery(undefined, {
-    enabled: !!tenantId,
-  });
+  const weekdayQuery = trpc.analytics.getOrdersByWeekday.useQuery(
+    { period: analyticsPeriod },
+    { enabled: !!tenantId }
+  );
 
   const topProductsQuery = trpc.analytics.getTopProducts.useQuery(
     { period: analyticsPeriod },
@@ -741,12 +762,14 @@ export default function ClientDashboard() {
             <BarChart3 className="w-4 h-4 text-amber-400" />
             Analytics
           </h3>
-          <div className="flex items-center gap-1 bg-zinc-900/80 border border-zinc-800/60 rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-zinc-900/80 border border-zinc-800/60 rounded-lg p-0.5 flex-wrap">
             {([
               { key: 'today' as const, label: 'Hoje' },
               { key: '7d' as const, label: '7 dias' },
               { key: '30d' as const, label: '30 dias' },
               { key: 'month' as const, label: 'Este mês' },
+              { key: 'year' as const, label: 'Este ano' },
+              { key: 'all' as const, label: 'Todo período' },
             ]).map(({ key, label }) => (
               <button
                 key={key}
@@ -777,7 +800,7 @@ export default function ClientDashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="text-sm font-semibold text-white">
-                        Faturamento {analyticsPeriod === 'today' ? 'de Hoje' : analyticsPeriod === '7d' ? 'dos Últimos 7 Dias' : 'dos Últimos 30 Dias'}
+                        Faturamento {periodLabelShort[analyticsPeriod]}
                       </h4>
                       <p className="text-xs text-zinc-500 mt-0.5">
                         Total: <span className="text-amber-400 font-semibold">{formatCurrency(totalRevenuePeriod)}</span> no período
@@ -810,7 +833,7 @@ export default function ClientDashboard() {
                           tick={{ fontSize: 10, fill: '#71717a' }}
                           tickLine={false}
                           axisLine={{ stroke: '#27272a' }}
-                          interval={analyticsPeriod === '7d' ? 0 : 4}
+                          interval={analyticsPeriod === '7d' ? 0 : analyticsPeriod === 'today' ? 0 : analyticsPeriod === 'year' || analyticsPeriod === 'all' ? 'preserveStartEnd' : 4}
                         />
                         <YAxis
                           tick={{ fontSize: 10, fill: '#71717a' }}
@@ -928,7 +951,7 @@ export default function ClientDashboard() {
                     Produtos Mais Pedidos
                   </h4>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    {analyticsPeriod === 'today' ? 'Hoje' : analyticsPeriod === '7d' ? 'Últimos 7 dias' : analyticsPeriod === 'month' ? 'Este mês' : 'Últimos 30 dias'}
+                    {periodLabels[analyticsPeriod]}
                   </p>
                 </div>
               </div>

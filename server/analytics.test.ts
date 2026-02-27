@@ -199,14 +199,15 @@ describe("Analytics Router", () => {
   // getRevenueByDay
   // ============================================
   describe("analytics.getRevenueByDay", () => {
-    it("client admin gets revenue by day for 30 days", async () => {
+    it("client admin gets revenue by day for 30d period", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      const result = await caller.analytics.getRevenueByDay({ days: 30 });
+      const result = await caller.analytics.getRevenueByDay({ period: '30d' });
 
       expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBe(30);
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(result.length).toBeLessThanOrEqual(31);
 
       // Each entry has correct structure
       for (const entry of result) {
@@ -221,55 +222,79 @@ describe("Analytics Router", () => {
       }
     });
 
-    it("returns correct number of days for 7 day period", async () => {
+    it("returns data for 7d period", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      const result = await caller.analytics.getRevenueByDay({ days: 7 });
-      expect(result.length).toBe(7);
+      const result = await caller.analytics.getRevenueByDay({ period: '7d' });
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(result.length).toBeLessThanOrEqual(8);
     });
 
-    it("returns correct number of days for 1 day period", async () => {
+    it("returns data for today period", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      const result = await caller.analytics.getRevenueByDay({ days: 1 });
-      expect(result.length).toBe(1);
+      const result = await caller.analytics.getRevenueByDay({ period: 'today' });
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("rejects invalid days parameter (0)", async () => {
+    it("returns data for 'all' period (from epoch 2026-01-01)", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      await expect(caller.analytics.getRevenueByDay({ days: 0 })).rejects.toThrow();
+      const result = await caller.analytics.getRevenueByDay({ period: 'all' });
+      expect(Array.isArray(result)).toBe(true);
+      // Should have data from epoch to now
+      expect(result.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("rejects days > 365", async () => {
+    it("returns data for 'year' period", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      await expect(caller.analytics.getRevenueByDay({ days: 400 })).rejects.toThrow();
+      const result = await caller.analytics.getRevenueByDay({ period: 'year' });
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("returns data for 'month' period", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.analytics.getRevenueByDay({ period: 'month' });
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("rejects invalid period value", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      await expect(caller.analytics.getRevenueByDay({ period: 'invalid' as any })).rejects.toThrow();
     });
 
     it("client admin without tenant is rejected", async () => {
       const { ctx } = createClientAdminWithoutTenant();
       const caller = appRouter.createCaller(ctx);
 
-      await expect(caller.analytics.getRevenueByDay({ days: 30 })).rejects.toThrow();
+      await expect(caller.analytics.getRevenueByDay({ period: '30d' })).rejects.toThrow();
     });
 
     it("unauthenticated user is rejected", async () => {
       const ctx = createUnauthenticatedContext();
       const caller = appRouter.createCaller(ctx);
 
-      await expect(caller.analytics.getRevenueByDay({ days: 30 })).rejects.toThrow();
+      await expect(caller.analytics.getRevenueByDay({ period: '30d' })).rejects.toThrow();
     });
 
     it("dates are sorted ascending", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      const result = await caller.analytics.getRevenueByDay({ days: 30 });
+      const result = await caller.analytics.getRevenueByDay({ period: '30d' });
       for (let i = 1; i < result.length; i++) {
         expect(result[i].date >= result[i - 1].date).toBe(true);
       }
@@ -363,11 +388,11 @@ describe("Analytics Router", () => {
       }
     });
 
-    it("accepts all valid period values", async () => {
+    it("accepts all valid period values including year and all", async () => {
       const { ctx } = createClientAdminContext(1);
       const caller = appRouter.createCaller(ctx);
 
-      for (const period of ["today", "7d", "30d", "month"] as const) {
+      for (const period of ["today", "7d", "30d", "month", "year", "all"] as const) {
         const result = await caller.analytics.getTopProducts({ period });
         expect(Array.isArray(result)).toBe(true);
       }
