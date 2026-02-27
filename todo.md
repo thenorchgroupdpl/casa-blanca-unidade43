@@ -1261,3 +1261,9 @@
 - [x] Frontend: Preferência de som salva em localStorage
 - [x] Testes: 21 testes para SSE (notifyTenant, conexões, badge, markViewed, OrderEvent)
 - [x] Testes: Suite completa 395 testes passando (20 arquivos)
+
+## Bug Fix: Cards Financeiro não sincronizados
+- [x] Investigar lógica backend dos cards de resumo financeiro (Ativos, Em Aviso, Vencidos, Suspensos)
+- [x] Corrigir cálculo para que "Vencidos" conte tenants com nextBillingDate no passado
+- [x] Verificar que "Em Aviso" e "Suspensos" também estão corretos
+- [x] Testar sincronização entre cards e tabela de lojistas (25 testes, 420 total)

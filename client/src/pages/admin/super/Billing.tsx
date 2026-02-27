@@ -27,6 +27,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
+import { getEffectiveStatus } from "@shared/billingUtils";
 
 // ============================================
 // STATUS CONFIG
@@ -181,11 +182,11 @@ export default function BillingPage() {
   const [notifMessage, setNotifMessage] = useState("");
   const [notifType, setNotifType] = useState<"billing" | "system" | "info" | "warning">("billing");
 
-  // Stats
-  const activeCount = tenants?.filter(t => t.subscriptionStatus === "active").length ?? 0;
-  const warningCount = tenants?.filter(t => t.subscriptionStatus === "warning").length ?? 0;
-  const overdueCount = tenants?.filter(t => t.subscriptionStatus === "overdue").length ?? 0;
-  const suspendedCount = tenants?.filter(t => t.subscriptionStatus === "suspended").length ?? 0;
+  // Stats based on effective status (using shared utility)
+  const activeCount = tenants?.filter(t => getEffectiveStatus(t) === "active").length ?? 0;
+  const warningCount = tenants?.filter(t => getEffectiveStatus(t) === "warning").length ?? 0;
+  const overdueCount = tenants?.filter(t => getEffectiveStatus(t) === "overdue").length ?? 0;
+  const suspendedCount = tenants?.filter(t => getEffectiveStatus(t) === "suspended").length ?? 0;
 
   // Helpers
   const formatCurrency = (value: string | null) => {
@@ -365,7 +366,8 @@ export default function BillingPage() {
                   </thead>
                   <tbody>
                     {tenants.map(tenant => {
-                      const statusInfo = STATUS_MAP[tenant.subscriptionStatus || "active"];
+                      const effectiveStatus = getEffectiveStatus(tenant);
+                      const statusInfo = STATUS_MAP[effectiveStatus];
                       const StatusIcon = statusInfo.icon;
                       const daysUntil = getDaysUntil(tenant.nextBillingDate);
                       const hasDate = !!tenant.nextBillingDate;
