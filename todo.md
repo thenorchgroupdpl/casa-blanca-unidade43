@@ -1570,3 +1570,10 @@
 - [x] Botão secundário: Já paguei / Enviar comprovante → WhatsApp com nome da loja
 - [x] Integrar no ClientAdminLayout (nível mais alto do Dashboard)
 - [x] 0 erros TypeScript e 570 testes passando
+
+## Documentação e Export GitHub
+- [x] Auditar estrutura do projeto para documentação
+- [x] Criar README.md completo (visão geral, setup, variáveis de ambiente, stack)
+- [x] Criar ARCHITECTURE.md (estrutura de pastas, fluxos, componentes-chave)
+- [x] Criar CONTRIBUTING.md (guia de contribuição, padrões de código)
+- [ ] Salvar checkpoint e exportar para GitHub repo 'cb'
