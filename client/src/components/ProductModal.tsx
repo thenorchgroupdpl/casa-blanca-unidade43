@@ -1,16 +1,19 @@
 /**
  * Product Modal - Casa Blanca
- * Design: Warm Luxury - Centered modal for product details and quantity selection
- * Replaces ProductBottomSheet with a centered popup layout.
+ * Design: Warm Luxury - Glassmorphism centered modal
  *
- * Desktop/Tablet: Side-by-side layout (image left, info right)
- * Mobile: Stacked layout (image top, info below) with internal scroll
+ * Desktop/Tablet: Side-by-side — image covers full height on left, info scrolls on right
+ * Mobile: Stacked — large image top (~60vh), info scrolls below
  *
- * Features: Full description (no truncation), highlight badges, unit of measure,
- * original price strikethrough, quantity controls, add to cart, upsell trigger.
+ * Glassmorphism: backdrop-blur-lg + bg-black/60 overlay for premium depth effect
+ *
+ * Features: Full description (no truncation), highlight badges over expanded image,
+ * original price strikethrough, unit of measure, quantity controls, add to cart, upsell.
  *
  * All styles injected via inline styles from menu_style (Design System).
- * Modal elements each use their OWN variable — fully isolated.
+ * 5 key variables: product_modal_bg → modalBgColor, product_modal_text → modalNameColor,
+ * product_modal_price → modalPriceColor, product_modal_button_bg → modalCtaBgColor,
+ * product_modal_button_text → modalCtaTextColor.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -21,14 +24,12 @@ import { useUI, useCart, useToast, useSiteData } from '@/store/useStore';
 import { trackViewItem, trackAddToCart } from '@/lib/analytics';
 import { useUpsell } from './UpsellProvider';
 
-// Map highlight tag values to display labels
 const HIGHLIGHT_LABELS: Record<string, string> = {
   mais_vendido: '🔥 Mais Vendido',
   novidade: '✨ Novidade',
   vegano: '🌱 Vegano',
 };
 
-// Remove trailing zeros: 700.00 → 700, 1.50 → 1.5
 function formatUnit(unitValue?: string | null, unit?: string | null): string | null {
   if (!unitValue || !unit) return null;
   const formatted = parseFloat(unitValue);
@@ -46,7 +47,7 @@ export default function ProductModal() {
 
   const ms = data?.menu_style;
 
-  // Reset quantity when product changes + GA4 view_item
+  // Reset state when product changes + GA4 view_item
   useEffect(() => {
     setQuantity(1);
     setCurrentImageIndex(0);
@@ -59,32 +60,24 @@ export default function ProductModal() {
     }
   }, [selectedProduct]);
 
-  // Lock body scroll when modal is open
+  // Lock body scroll
   useEffect(() => {
     if (isBottomSheetOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [isBottomSheetOpen]);
 
-  // Close on Escape key
+  // Close on Escape
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      closeProductSheet();
-    }
+    if (e.key === 'Escape') closeProductSheet();
   }, [closeProductSheet]);
 
   useEffect(() => {
-    if (isBottomSheetOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    if (isBottomSheetOpen) document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isBottomSheetOpen, handleKeyDown]);
 
   // Upsell trigger (safely handles missing context)
@@ -96,29 +89,17 @@ export default function ProductModal() {
 
   const handleAddToCart = () => {
     if (!selectedProduct) return;
-
-    // GA4: add_to_cart event
     trackAddToCart({
       id: selectedProduct.id,
       name: selectedProduct.name,
       price: selectedProduct.price,
       quantity,
     });
-
     addItem(selectedProduct, quantity);
-
-    showToast(
-      'Produto adicionado!',
-      `${quantity}x ${selectedProduct.name} adicionado à sacola.`
-    );
-
+    showToast('Produto adicionado!', `${quantity}x ${selectedProduct.name} adicionado à sacola.`);
     closeProductSheet();
-
-    // Trigger upsell check
     const tenantId = useCart.getState().tenantId;
-    if (triggerUpsell && tenantId) {
-      triggerUpsell(selectedProduct, tenantId);
-    }
+    if (triggerUpsell && tenantId) triggerUpsell(selectedProduct, tenantId);
   };
 
   const incrementQuantity = () => setQuantity((q) => q + 1);
@@ -130,12 +111,12 @@ export default function ProductModal() {
   const highlightLabel = selectedProduct.highlightTag ? HIGHLIGHT_LABELS[selectedProduct.highlightTag] : null;
   const unitDisplay = formatUnit(selectedProduct.unitValue, selectedProduct.unit);
 
-  // ===== ISOLATED MODAL STYLE VARIABLES (Design System) =====
+  // ===== DESIGN SYSTEM VARIABLES =====
   const modalBg = ms?.modalBgColor;
-  const modalNameColor = ms?.modalNameColor;
-  const modalUnitColor = ms?.modalUnitColor;
-  const modalPriceColor = ms?.modalPriceColor;
-  const modalDescColor = ms?.modalDescColor;
+  const nameColor = ms?.modalNameColor;
+  const unitColor = ms?.modalUnitColor;
+  const priceColor = ms?.modalPriceColor;
+  const descColor = ms?.modalDescColor;
   const ctaBg = ms?.modalCtaBgColor;
   const ctaText = ms?.modalCtaTextColor;
   const ctaFont = ms?.modalCtaFont;
@@ -150,160 +131,173 @@ export default function ProductModal() {
     <AnimatePresence>
       {isBottomSheetOpen && (
         <>
-          {/* Overlay - click to close */}
+          {/* ===== GLASSMORPHISM OVERLAY ===== */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25 }}
             onClick={closeProductSheet}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-lg"
             style={ms?.panelOverlayColor ? {
-              backgroundColor: `${ms.panelOverlayColor}${Math.round((ms.panelOverlayOpacity ?? 50) * 2.55).toString(16).padStart(2, '0')}`,
+              backgroundColor: `${ms.panelOverlayColor}${Math.round((ms.panelOverlayOpacity ?? 60) * 2.55).toString(16).padStart(2, '0')}`,
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
             } : undefined}
           />
 
-          {/* Centered Modal */}
+          {/* ===== CENTERED MODAL CONTAINER ===== */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={cn(
-              'fixed z-50 inset-0 flex items-center justify-center p-4 pointer-events-none'
-            )}
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+            className="fixed z-50 inset-0 flex items-center justify-center p-3 sm:p-6 pointer-events-none"
           >
             <div
               className={cn(
-                'relative w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl pointer-events-auto',
-                !modalBg && 'bg-lp-surface'
+                'relative w-full max-w-5xl pointer-events-auto',
+                'rounded-3xl overflow-hidden',
+                'shadow-[0_25px_80px_-12px_rgba(0,0,0,0.6)]',
+                'ring-1 ring-white/10',
+                !modalBg && 'bg-[#111111]'
               )}
-              style={modalBg ? { backgroundColor: modalBg } : undefined}
+              style={{
+                ...(modalBg ? { backgroundColor: modalBg } : {}),
+                maxHeight: '92vh',
+              }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button (X) - top right */}
+              {/* Close Button (X) */}
               <button
                 onClick={closeProductSheet}
-                className="absolute right-3 top-3 z-20 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors backdrop-blur-sm"
+                className="absolute right-4 top-4 z-30 p-2.5 rounded-full bg-black/50 hover:bg-black/70 text-white/90 hover:text-white transition-all backdrop-blur-md ring-1 ring-white/10"
                 aria-label="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Content wrapper - scrollable */}
-              <div className="overflow-y-auto max-h-[90vh]">
-                {/* Responsive layout: side-by-side on md+, stacked on mobile */}
-                <div className="flex flex-col md:flex-row">
-                  {/* Image Section */}
-                  <div className="relative w-full md:w-1/2 bg-lp-surface flex-shrink-0">
-                    <div className="relative aspect-square w-full overflow-hidden">
-                      {selectedProduct.images?.[currentImageIndex] ? (
-                        <img
-                          src={selectedProduct.images[currentImageIndex]}
-                          alt={selectedProduct.name}
-                          className="w-full h-full object-cover object-center"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-lp-surface">
-                          <ShoppingBag className="w-20 h-20 text-lp-text-muted" />
-                        </div>
-                      )}
+              {/* ===== RESPONSIVE LAYOUT ===== */}
+              <div className="flex flex-col md:flex-row" style={{ maxHeight: '92vh' }}>
 
-                      {/* Highlight Badge - top-left floating */}
-                      {highlightLabel && (
-                        <span className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full bg-black/70 text-white text-xs font-medium backdrop-blur-sm">
-                          {highlightLabel}
-                        </span>
-                      )}
+                {/* ===== IMAGE SECTION ===== */}
+                {/* Desktop: full height, fixed width | Mobile: large top image */}
+                <div className="relative w-full md:w-[55%] flex-shrink-0 bg-black/20">
+                  {/* Desktop: image fills full modal height */}
+                  <div className="relative w-full h-[50vh] sm:h-[55vh] md:h-full md:min-h-[500px] overflow-hidden">
+                    {selectedProduct.images?.[currentImageIndex] ? (
+                      <img
+                        src={selectedProduct.images[currentImageIndex]}
+                        alt={selectedProduct.name}
+                        className="w-full h-full object-cover object-center"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-black/30">
+                        <ShoppingBag className="w-24 h-24 text-white/20" />
+                      </div>
+                    )}
 
-                      {/* Image Navigation Dots */}
-                      {selectedProduct.images && selectedProduct.images.length > 1 && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                          {selectedProduct.images.map((_, index) => (
-                            <button
-                              key={index}
-                              onClick={() => setCurrentImageIndex(index)}
-                              className={cn(
-                                'w-2.5 h-2.5 rounded-full transition-all',
-                                index === currentImageIndex
-                                  ? 'bg-white w-7 shadow-md'
-                                  : 'bg-white/50 hover:bg-white/70'
-                              )}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {/* Subtle gradient at bottom for text readability on mobile */}
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent md:hidden" />
+
+                    {/* Highlight Badge — elegantly floating over the expanded image */}
+                    {highlightLabel && (
+                      <span className="absolute top-4 left-4 z-10 px-4 py-2 rounded-full bg-black/60 text-white text-sm font-semibold backdrop-blur-md ring-1 ring-white/15 shadow-lg">
+                        {highlightLabel}
+                      </span>
+                    )}
+
+                    {/* Image Navigation Dots */}
+                    {selectedProduct.images && selectedProduct.images.length > 1 && (
+                      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
+                        {selectedProduct.images.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={cn(
+                              'h-2.5 rounded-full transition-all duration-300 shadow-md',
+                              index === currentImageIndex
+                                ? 'bg-white w-8'
+                                : 'bg-white/40 hover:bg-white/60 w-2.5'
+                            )}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
+                </div>
 
-                  {/* Info Section */}
-                  <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between">
-                    <div className="space-y-4">
+                {/* ===== INFO SECTION ===== */}
+                <div className="w-full md:w-[45%] overflow-y-auto flex flex-col" style={{ maxHeight: '92vh' }}>
+                  <div className="p-6 sm:p-8 flex flex-col flex-1">
+                    {/* Product Info */}
+                    <div className="space-y-5 flex-1">
                       {/* Name */}
-                      <div>
-                        <h2
-                          className={cn('font-display text-2xl md:text-3xl font-bold mb-1', !modalNameColor && 'text-lp-text')}
-                          style={modalNameColor ? { color: modalNameColor } : undefined}
+                      <h2
+                        className={cn('font-display text-2xl sm:text-3xl font-bold leading-tight', !nameColor && 'text-white')}
+                        style={nameColor ? { color: nameColor } : undefined}
+                      >
+                        {selectedProduct.name}
+                      </h2>
+
+                      {/* Unit of measure */}
+                      {unitDisplay && (
+                        <p
+                          className={cn('text-sm -mt-3', !unitColor && 'text-white/50')}
+                          style={unitColor ? { color: unitColor } : undefined}
                         >
-                          {selectedProduct.name}
-                        </h2>
+                          {unitDisplay}
+                        </p>
+                      )}
 
-                        {/* Unit of measure */}
-                        {unitDisplay && (
-                          <p
-                            className={cn('text-sm mb-2', !modalUnitColor && 'text-lp-text-muted')}
-                            style={modalUnitColor ? { color: modalUnitColor } : undefined}
-                          >
-                            {unitDisplay}
-                          </p>
+                      {/* Price Block */}
+                      <div className="flex items-baseline gap-3">
+                        <p
+                          className={cn('text-3xl sm:text-4xl font-bold', !priceColor && 'text-amber-400')}
+                          style={priceColor ? { color: priceColor } : undefined}
+                        >
+                          {formatPrice(selectedProduct.price)}
+                        </p>
+                        {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
+                          <span className="text-white/40 text-lg line-through">
+                            {formatPrice(selectedProduct.originalPrice)}
+                          </span>
                         )}
-
-                        {/* Price */}
-                        <div className="flex items-center gap-3 mt-2">
-                          <p
-                            className={cn('text-2xl md:text-3xl font-bold', !modalPriceColor && 'text-lp-highlight')}
-                            style={modalPriceColor ? { color: modalPriceColor } : undefined}
-                          >
-                            {formatPrice(selectedProduct.price)}
-                          </p>
-                          {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
-                            <span className="text-lp-text-muted text-base line-through">
-                              {formatPrice(selectedProduct.originalPrice)}
-                            </span>
-                          )}
-                        </div>
                       </div>
 
-                      {/* Description - full, no truncation */}
+                      {/* Divider */}
+                      <div className="h-px bg-white/10" />
+
+                      {/* Description — full, no truncation */}
                       {selectedProduct.description && (
                         <p
-                          className={cn('leading-relaxed text-base', !modalDescColor && 'text-lp-text-muted')}
-                          style={modalDescColor ? { color: modalDescColor } : undefined}
+                          className={cn('leading-relaxed text-base', !descColor && 'text-white/60')}
+                          style={descColor ? { color: descColor } : undefined}
                         >
                           {selectedProduct.description}
                         </p>
                       )}
                     </div>
 
-                    {/* Bottom actions area */}
-                    <div className="mt-6 space-y-4">
+                    {/* ===== BOTTOM ACTIONS ===== */}
+                    <div className="mt-8 space-y-5 pt-5 border-t border-white/10">
                       {/* Quantity Selector */}
-                      <div className="flex items-center justify-between py-4 border-t border-lp-border">
+                      <div className="flex items-center justify-between">
                         <span
-                          className={cn('font-medium', !qtyLabelColor && 'text-lp-text')}
+                          className={cn('font-medium text-base', !qtyLabelColor && 'text-white/80')}
                           style={qtyLabelColor ? { color: qtyLabelColor } : undefined}
                         >
                           Quantidade
                         </span>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                           <button
                             onClick={decrementQuantity}
                             disabled={quantity <= 1}
                             className={cn(
-                              'w-10 h-10 rounded-full flex items-center justify-center transition-colors',
+                              'w-11 h-11 rounded-full flex items-center justify-center transition-all',
                               quantity <= 1
-                                ? 'bg-lp-surface text-lp-text-muted cursor-not-allowed'
-                                : 'bg-lp-surface hover:bg-lp-surface-hover text-lp-text'
+                                ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                                : 'bg-white/10 hover:bg-white/20 text-white'
                             )}
                             style={quantity > 1 ? {
                               ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
@@ -313,14 +307,17 @@ export default function ProductModal() {
                             <Minus className="w-5 h-5" />
                           </button>
                           <span
-                            className={cn('text-xl font-semibold w-8 text-center', !qtyNumColor && 'text-lp-text')}
+                            className={cn('text-2xl font-bold w-10 text-center tabular-nums', !qtyNumColor && 'text-white')}
                             style={qtyNumColor ? { color: qtyNumColor } : undefined}
                           >
                             {quantity}
                           </span>
                           <button
                             onClick={incrementQuantity}
-                            className="w-10 h-10 rounded-full bg-lp-btn text-lp-btn-fg flex items-center justify-center hover:bg-lp-btn-hover transition-colors"
+                            className={cn(
+                              'w-11 h-11 rounded-full flex items-center justify-center transition-all',
+                              'bg-white/10 hover:bg-white/20 text-white'
+                            )}
                             style={{
                               ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
                               ...(qtyBtnText ? { color: qtyBtnText } : {}),
@@ -331,10 +328,17 @@ export default function ProductModal() {
                         </div>
                       </div>
 
-                      {/* Add to Cart Button */}
+                      {/* Add to Cart CTA */}
                       <button
                         onClick={handleAddToCart}
-                        className="w-full py-4 rounded-full bg-lp-btn text-lp-btn-fg font-semibold text-lg flex items-center justify-center gap-3 hover:bg-lp-btn-hover transition-colors"
+                        className={cn(
+                          'w-full py-4 rounded-2xl font-semibold text-lg',
+                          'flex items-center justify-center gap-3',
+                          'transition-all duration-200 hover:brightness-110 active:scale-[0.98]',
+                          'shadow-lg',
+                          !ctaBg && 'bg-amber-500',
+                          !ctaText && 'text-black'
+                        )}
                         style={{
                           ...(ctaBg ? { backgroundColor: ctaBg } : {}),
                           ...(ctaText ? { color: ctaText } : {}),
@@ -344,7 +348,7 @@ export default function ProductModal() {
                         }}
                       >
                         <ShoppingBag className="w-5 h-5" />
-                        Adicionar ({quantity}) - {formatPrice(totalPrice)}
+                        Adicionar ({quantity}) — {formatPrice(totalPrice)}
                       </button>
                     </div>
                   </div>

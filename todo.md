@@ -1480,3 +1480,13 @@
 - [x] Frontend: color pickers já existem na seção 3.4 do Design System Super Admin (verificado)
 - [x] Frontend: substituído ProductBottomSheet por ProductModal em Home.tsx e StoreLanding.tsx
 - [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
+
+## Refinamento ProductModal - Glassmorphism + Full-Height Image
+- [x] Overlay: backdrop-blur-lg com bg-black/60 + WebkitBackdropFilter (efeito vidro premium)
+- [x] Desktop: imagem 55% largura, full-height (md:h-full md:min-h-[500px]), object-cover
+- [x] Mobile: imagem grande no topo (50vh-55vh) com gradiente sutil na base
+- [x] Estética premium: rounded-3xl, shadow-[0_25px_80px], ring-1 ring-white/10
+- [x] Badge reposicionado sobre imagem expandida com backdrop-blur-md e ring-white/15
+- [x] 5 campos mapeados: modalBgColor, modalNameColor, modalPriceColor, modalCtaBgColor, modalCtaTextColor
+- [x] Lógica de upsell, carrinho, GA4 (view_item, add_to_cart) e Escape mantida
+- [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
