@@ -2,9 +2,21 @@ import { NOT_ADMIN_ERR_MSG, UNAUTHED_ERR_MSG } from '@shared/const';
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
+import { captureError } from "../sentry";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
+  errorFormatter({ shape, error, ctx }) {
+    // Capture unexpected errors in Sentry
+    captureError(error.cause ?? error, {
+      path: shape.data?.path,
+      code: shape.data?.code,
+      userId: ctx?.user?.id,
+      tenantId: ctx?.user?.tenantId,
+      role: ctx?.user?.role,
+    });
+    return shape;
+  },
 });
 
 export const router = t.router;

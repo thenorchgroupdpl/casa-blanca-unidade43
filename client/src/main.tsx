@@ -6,7 +6,11 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { initSentryClient } from "./lib/sentry";
 import "./index.css";
+
+// Initialize Sentry as early as possible (no-op without VITE_SENTRY_DSN)
+initSentryClient();
 
 const queryClient = new QueryClient();
 

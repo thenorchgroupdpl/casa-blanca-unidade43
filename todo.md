@@ -1282,3 +1282,17 @@
 - [x] Aplicar limiters no servidor Express
 - [x] Testes Vitest para o middleware (14 testes)
 - [x] 0 erros TypeScript e 434 testes passando (22 arquivos)
+
+## Sentry Integration (Monitoramento de Erros)
+- [x] Instalar @sentry/node e @sentry/react
+- [x] Backend: Inicializar Sentry em server/_core/index.ts com SENTRY_DSN
+- [x] Backend: Capturar erros não tratados no Express e tRPC
+- [x] Backend: Incluir contexto (tenantId, userId, role) em cada erro
+- [x] Backend: Ignorar TRPCError UNAUTHORIZED, NOT_FOUND, TOO_MANY_REQUESTS
+- [x] Frontend: Inicializar Sentry em client/src/main.tsx
+- [x] Frontend: ErrorBoundary global para erros de renderização React
+- [x] Frontend: Contexto do usuário autenticado no escopo Sentry (via useAuth)
+- [x] Sentry só ativo quando SENTRY_DSN definida (não quebra sem ela)
+- [x] SENTRY_DSN e VITE_SENTRY_DSN disponíveis via webdev_request_secrets
+- [x] Solicitar SENTRY_DSN via webdev_request_secrets (aguardando DSN do usuário)
+- [x] 26 testes Vitest, 460 total passando, 0 erros TypeScript

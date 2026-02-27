@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { captureClientError, isSentryEnabled } from "@/lib/sentry";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Component, ReactNode } from "react";
 
@@ -21,6 +22,13 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Report to Sentry with component stack trace
+    captureClientError(error, {
+      componentStack: errorInfo.componentStack || "unknown",
+    });
+  }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -31,13 +39,23 @@ class ErrorBoundary extends Component<Props, State> {
               className="text-destructive mb-6 flex-shrink-0"
             />
 
-            <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
+            <h2 className="text-xl mb-4 text-foreground">
+              Ocorreu um erro inesperado.
+            </h2>
 
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
-            </div>
+            {!isSentryEnabled && this.state.error?.stack && (
+              <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
+                <pre className="text-sm text-muted-foreground whitespace-break-spaces">
+                  {this.state.error.stack}
+                </pre>
+              </div>
+            )}
+
+            {isSentryEnabled && (
+              <p className="text-muted-foreground text-sm mb-6 text-center">
+                O erro foi reportado automaticamente para nossa equipe.
+              </p>
+            )}
 
             <button
               onClick={() => window.location.reload()}
@@ -48,7 +66,7 @@ class ErrorBoundary extends Component<Props, State> {
               )}
             >
               <RotateCcw size={16} />
-              Reload Page
+              Recarregar Página
             </button>
           </div>
         </div>
