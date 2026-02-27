@@ -407,7 +407,7 @@ type LandingDesign = {
     cardButtonText?: string;
     cardButtonBgColor?: string;
     cardButtonTextColor?: string;
-    // 2.4 Fundo da Seção
+    // 2.5 Fundo da Seção
     bgColor?: string;
     bgGradient?: boolean;
     bgGradientFrom?: string;
@@ -417,14 +417,14 @@ type LandingDesign = {
     bgMediaType?: "image" | "video";
     bgOverlayOpacity?: number;
     bgOverlayColor?: string;
-    // 2.5 Botão Ver Todas
+    // 2.6 Botão Ver Todas
     viewAllBgColor?: string;
     viewAllTextColor?: string;
     viewAllFont?: string;
     viewAllFontSize?: number;
     viewAllFontWeight?: string;
     viewAllLabel?: string;
-    // 2.6 Botão CTA (Rodapé)
+    // 2.7 Botão CTA (Rodapé)
     ctaText?: string;
     ctaBgColor?: string;
     ctaTextColor?: string;
@@ -1438,6 +1438,8 @@ export default function DesignPage() {
                         data={design.products || {}}
                         categories={landingData?.categories || []}
                         onChange={(field, value) => updateDesign("products", field, value)}
+                        menuData={design.menu || {}}
+                        onMenuChange={(field, value) => updateDesign("menu", field, value)}
                         onImageUploaderUpload={handleImageUploaderUpload}
                         onDirectUpload={handleDirectUpload}
                         uploading={uploadMutation.isPending}
@@ -2522,6 +2524,8 @@ function ProductsSection({
   data,
   categories,
   onChange,
+  menuData,
+  onMenuChange,
   onImageUploaderUpload,
   onDirectUpload,
   uploading,
@@ -2529,48 +2533,64 @@ function ProductsSection({
   data: NonNullable<LandingDesign["products"]>;
   categories: { id: number; name: string }[];
   onChange: (field: string, value: unknown) => void;
+  menuData: NonNullable<LandingDesign["menu"]>;
+  onMenuChange: (field: string, value: unknown) => void;
   onImageUploaderUpload: (base64Data: string, fileName: string) => Promise<string>;
   onDirectUpload: (file: File, onSuccess: (url: string) => void) => void;
   uploading: boolean;
 }) {
-  // Reusable color picker row
-  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => (
-    <div>
-      <Label className="text-[10px] text-zinc-400">{label}</Label>
-      <div className="flex items-center gap-2">
-        <ColorPickerInput
-          value={value || defaultVal}
-          onChange={(v) => onChange(field, v)}
-          className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
-        />
-        <Input
-          value={value || defaultVal}
-          onChange={(e) => onChange(field, e.target.value)}
-          className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
-        />
-      </div>
-    </div>
-  );
+  // Route helper: fields prefixed with "__modal_" go to onMenuChange (menu data), others to onChange (products data)
+  const resolveHandler = (field: string): { handler: (f: string, v: unknown) => void; realField: string } => {
+    if (field.startsWith('__modal_')) {
+      return { handler: onMenuChange, realField: field.replace('__modal_', '') };
+    }
+    return { handler: onChange, realField: field };
+  };
 
-  // Reusable font selector
-  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => (
-    <div>
-      <Label className="text-[10px] text-zinc-400">{label}</Label>
-      <Select value={value || ""} onValueChange={(v) => onChange(field, v)}>
-        <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
-          <SelectValue placeholder="Herdar Global" />
-        </SelectTrigger>
-        <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
-          <SelectItem value="inherit">Herdar Global</SelectItem>
-          {ALL_FONTS.map((f) => (
-            <SelectItem key={f} value={f}>
-              <span style={{ fontFamily: f }}>{f}</span>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
+  // Reusable color picker row — supports __modal_ prefix for menu data routing
+  const ColorRow = ({ label, value, defaultVal, field }: { label: string; value?: string; defaultVal: string; field: string }) => {
+    const { handler, realField } = resolveHandler(field);
+    return (
+      <div>
+        <Label className="text-[10px] text-zinc-400">{label}</Label>
+        <div className="flex items-center gap-2">
+          <ColorPickerInput
+            value={value || defaultVal}
+            onChange={(v) => handler(realField, v)}
+            className="w-7 h-7 rounded border border-zinc-700 bg-transparent cursor-pointer shrink-0"
+          />
+          <Input
+            value={value || defaultVal}
+            onChange={(e) => handler(realField, e.target.value)}
+            className="h-6 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-[10px] font-mono flex-1"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  // Reusable font selector — supports __modal_ prefix for menu data routing
+  const FontSelect = ({ label, value, field }: { label: string; value?: string; field: string }) => {
+    const { handler, realField } = resolveHandler(field);
+    return (
+      <div>
+        <Label className="text-[10px] text-zinc-400">{label}</Label>
+        <Select value={value || ""} onValueChange={(v) => handler(realField, v)}>
+          <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
+            <SelectValue placeholder="Herdar Global" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 bg-zinc-900 border-zinc-800 text-white">
+            <SelectItem value="inherit">Herdar Global</SelectItem>
+            {ALL_FONTS.map((f) => (
+              <SelectItem key={f} value={f}>
+                <span style={{ fontFamily: f }}>{f}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -2782,8 +2802,71 @@ function ProductsSection({
         </div>
       </SubPanel>
 
-      {/* ===== 2.4 FUNDO DA SEÇÃO ===== */}
-      <SubPanel id="2-4-fundo-da-se-o" title="2.4 Fundo da Seção">
+      {/* ===== 2.4 MODAL DE PRODUTO (GIANT CARD) ===== */}
+      <SubPanel id="2-4-modal-produto-giant-card" title="2.4 Modal de Produto (Giant Card)">
+        <p className="text-[9px] text-zinc-600">Personalize as cores do modal de produto que aparece ao clicar em um item. Layout: imagem no topo + conteúdo abaixo com glassmorphism.</p>
+
+        <ColorRow label="Fundo da Área de Conteúdo" value={menuData.modalBgColor} defaultVal="#111111" field="__modal_modalBgColor" />
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Textos</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <ColorRow label="Cor do Título" value={menuData.modalNameColor} defaultVal="#ffffff" field="__modal_modalNameColor" />
+          <ColorRow label="Cor do Preço" value={menuData.modalPriceColor} defaultVal="#d4a574" field="__modal_modalPriceColor" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <ColorRow label="Descrição" value={menuData.modalDescColor} defaultVal="#999999" field="__modal_modalDescColor" />
+          <ColorRow label="Unidade / Peso" value={menuData.modalUnitColor} defaultVal="#ffffff" field="__modal_modalUnitColor" />
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Botão CTA (Adicionar ao Carrinho)</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <ColorRow label="Cor de Fundo" value={menuData.modalCtaBgColor} defaultVal="#d4a574" field="__modal_modalCtaBgColor" />
+          <ColorRow label="Cor do Texto" value={menuData.modalCtaTextColor} defaultVal="#000000" field="__modal_modalCtaTextColor" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <FontSelect label="Fonte" value={menuData.modalCtaFont} field="__modal_modalCtaFont" />
+          <div>
+            <Label className="text-[10px] text-zinc-400">Tamanho (px)</Label>
+            <Input
+              type="number"
+              value={menuData.modalCtaFontSize ?? 18}
+              onChange={(e) => onMenuChange("modalCtaFontSize", Number(e.target.value))}
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
+            />
+          </div>
+        </div>
+        <div className="mt-2">
+          <div>
+            <Label className="text-[10px] text-zinc-400">Peso</Label>
+            <Select value={menuData.modalCtaFontWeight || "600"} onValueChange={(v) => onMenuChange("modalCtaFontWeight", v)}>
+              <SelectTrigger className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+                {FONT_WEIGHT_OPTIONS.map((w) => (
+                  <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Separator className="bg-zinc-800" />
+        <Label className="text-[10px] text-zinc-400 uppercase tracking-wider">Seletor de Quantidade (+/-)</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <ColorRow label="Texto 'Quantidade'" value={menuData.qtyLabelColor} defaultVal="#ffffff" field="__modal_qtyLabelColor" />
+          <ColorRow label="Cor do Número" value={menuData.qtyNumberColor} defaultVal="#ffffff" field="__modal_qtyNumberColor" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <ColorRow label="Fundo Botões +/-" value={menuData.qtyBtnBgColor} defaultVal="#d4a574" field="__modal_qtyBtnBgColor" />
+          <ColorRow label="Ícones Botões +/-" value={menuData.qtyBtnTextColor} defaultVal="#000000" field="__modal_qtyBtnTextColor" />
+        </div>
+      </SubPanel>
+
+      {/* ===== 2.5 FUNDO DA SEÇÃO ===== */}
+      <SubPanel id="2-5-fundo-da-se-o" title="2.5 Fundo da Seção">
 
         <ColorRow label="Cor Sólida" value={data.bgColor} defaultVal="" field="bgColor" />
 
@@ -2846,8 +2929,8 @@ function ProductsSection({
         <ColorRow label="Cor do Overlay" value={data.bgOverlayColor} defaultVal="#000000" field="bgOverlayColor" />
       </SubPanel>
 
-      {/* ===== 2.5 BOTÃO VER TODAS ===== */}
-      <SubPanel id="2-5-botao-ver-todas" title='2.5 Botão "Ver Todas"'>
+      {/* ===== 2.6 BOTÃO VER TODAS ===== */}
+      <SubPanel id="2-6-botao-ver-todas" title='2.6 Botão "Ver Todas"'>
         <div>
           <Label className="text-[10px] text-zinc-400">Label</Label>
           <Input
@@ -2891,8 +2974,8 @@ function ProductsSection({
         </div>
       </SubPanel>
 
-      {/* ===== 2.6 BOTÃO CTA ===== */}
-      <SubPanel id="2-6-bot-o-cta-ver-card-pio-com" title="2.6 Botão CTA (Ver Cardápio Completo)">
+      {/* ===== 2.7 BOTÃO CTA ===== */}
+      <SubPanel id="2-7-bot-o-cta-ver-card-pio-com" title="2.7 Botão CTA (Ver Cardápio Completo)">
         <div>
           <Label className="text-[10px] text-zinc-400">Label</Label>
           <Input
@@ -3225,7 +3308,7 @@ function MenuSection({
 }
 
 // ============================================
-// TOAST SECTION (2.7)
+// TOAST SECTION (2.8)
 // ============================================
 
 function ToastSection({
@@ -3255,7 +3338,7 @@ function ToastSection({
 
   return (
     <div className="space-y-4">
-      <SubPanel id="toast-2-7" title="2.7 Notificação de Sucesso (Toast)">
+      <SubPanel id="toast-2-8" title="2.8 Notificação de Sucesso (Toast)">
         <p className="text-[9px] text-zinc-600">Personalize o popup de 'Produto adicionado!' que aparece ao adicionar itens ao carrinho.</p>
         <ColorRow label="Fundo da Notificação" value={data.bgColor} defaultVal="#111111" field="bgColor" />
         <ColorRow label="Borda" value={data.borderColor} defaultVal="#333333" field="borderColor" />

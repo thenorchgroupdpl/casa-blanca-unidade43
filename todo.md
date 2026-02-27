@@ -1504,3 +1504,19 @@
 - [x] Lógica de upsell, carrinho e GA4 (view_item, add_to_cart) mantida
 - [x] 13 campos Design System via inline styles (modalBg, name, unit, price, desc, CTA, qty)
 - [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
+
+## Seção 2.4 Modal de Produto no Design System Super Admin
+- [x] Auditar estrutura atual de acordeões e numeração no Design.tsx
+- [x] Criar nova seção '2.4 MODAL DE PRODUTO (GIANT CARD)' após '2.3 TEMPLATE DE CARDS'
+- [x] Renumerar seções seguintes (2.4→2.5, 2.5→2.6, 2.6→2.7, 2.7→2.8)
+- [x] Color picker: Fundo da Área de Conteúdo (modalBgColor)
+- [x] Color picker: Cor do Título (modalNameColor)
+- [x] Color picker: Cor dos Textos Secundários - descrição, peso (modalDescColor, modalUnitColor)
+- [x] Color picker: Cor do Preço (modalPriceColor)
+- [x] Color picker: Botão CTA - Cor de Fundo (modalCtaBgColor)
+- [x] Color picker: Botão CTA - Cor do Texto (modalCtaTextColor)
+- [x] Color picker: Seletor de Quantidade - Cor dos ícones +/- (qtyBtnTextColor)
+- [x] Color picker: Seletor de Quantidade - Fundo do contador (qtyBtnBgColor)
+- [x] Preview dinâmico: alterações refletem instantaneamente no preview via inline styles
+- [x] Sincronização com schema do banco de dados (campos já existentes no MenuStyleOverrides)
+- [x] 0 erros TypeScript e todos os 570 testes passando
