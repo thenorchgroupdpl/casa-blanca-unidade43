@@ -1529,6 +1529,88 @@ export async function getTopProducts(tenantId: number, period: 'today' | '7d' | 
   });
 }
 
+/**
+ * Get top N products for a custom date range.
+ */
+export async function getTopProductsCustomRange(tenantId: number, fromDate: Date, toDate: Date, limit: number = 5) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { ANALYTICS_EPOCH_DATE } = await import('@shared/const');
+
+  // Clamp start to epoch
+  if (fromDate < ANALYTICS_EPOCH_DATE) {
+    fromDate = new Date(ANALYTICS_EPOCH_DATE);
+  }
+
+  // Set end date to end of day
+  const endOfDay = new Date(toDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const orderRows = await db
+    .select({ items: orders.items })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      ne(orders.status, 'cancelado'),
+      gte(orders.createdAt, fromDate),
+      lte(orders.createdAt, endOfDay)
+    ));
+
+  const productCounts = new Map<number, { count: number; name: string }>();
+  for (const row of orderRows) {
+    const items = row.items as Array<{ productId: number; name: string; quantity: number; price: number }> | null;
+    if (!items) continue;
+    for (const item of items) {
+      const existing = productCounts.get(item.productId);
+      if (existing) {
+        existing.count += item.quantity;
+      } else {
+        productCounts.set(item.productId, { count: item.quantity, name: item.name });
+      }
+    }
+  }
+
+  const sorted = Array.from(productCounts.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, limit);
+
+  if (sorted.length === 0) return [];
+
+  const productIds = sorted.map(([id]) => id);
+  const productDetails = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      imageUrl: products.imageUrl,
+      categoryId: products.categoryId,
+    })
+    .from(products)
+    .where(inArray(products.id, productIds));
+
+  const categoryIds = Array.from(new Set(productDetails.map(p => p.categoryId)));
+  const categoryDetails = categoryIds.length > 0
+    ? await db
+        .select({ id: categories.id, name: categories.name })
+        .from(categories)
+        .where(inArray(categories.id, categoryIds))
+    : [];
+
+  const productMap = new Map(productDetails.map(p => [p.id, p]));
+  const categoryMap = new Map(categoryDetails.map(c => [c.id, c.name]));
+
+  return sorted.map(([productId, { count, name }]) => {
+    const product = productMap.get(productId);
+    return {
+      productId,
+      name: product?.name || name,
+      imageUrl: product?.imageUrl || null,
+      category: product ? (categoryMap.get(product.categoryId) || 'Sem categoria') : 'Sem categoria',
+      count,
+    };
+  });
+}
+
 // ============================================
 // ORDER NOTIFICATION BADGE - Viewed tracking
 // ============================================

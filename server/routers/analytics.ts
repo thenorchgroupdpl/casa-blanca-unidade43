@@ -16,7 +16,7 @@ function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
 }
 
 /** All supported analytics periods */
-const analyticsPeriodSchema = z.enum(['today', '7d', '30d', 'month', 'year', 'all']);
+const analyticsPeriodSchema = z.enum(['today', '7d', '30d', 'month', 'year', 'all', 'custom']);
 
 export const analyticsRouter = router({
   /**
@@ -36,10 +36,14 @@ export const analyticsRouter = router({
    * For 'all', queries from ANALYTICS_EPOCH (2026-01-01) to today.
    */
   getRevenueByDay: clientAdminProcedure
-    .input(z.object({ period: analyticsPeriodSchema.default('30d') }))
+    .input(z.object({
+      period: analyticsPeriodSchema.default('30d'),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }))
     .query(async ({ ctx, input }) => {
       const tenantId = getTenantIdFromUser(ctx.user);
-      const { startDate, days } = periodToDateRange(input.period);
+      const { startDate, days } = periodToDateRange(input.period, input.startDate, input.endDate);
       return db.getRevenueByDay(tenantId, days, startDate);
     }),
 
@@ -48,11 +52,15 @@ export const analyticsRouter = router({
    * Now accepts a period to scope the weekday analysis.
    */
   getOrdersByWeekday: clientAdminProcedure
-    .input(z.object({ period: analyticsPeriodSchema.default('30d') }).optional())
+    .input(z.object({
+      period: analyticsPeriodSchema.default('30d'),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }).optional())
     .query(async ({ ctx, input }) => {
       const tenantId = getTenantIdFromUser(ctx.user);
       const period = input?.period || '30d';
-      const { days } = periodToDateRange(period);
+      const { days } = periodToDateRange(period, input?.startDate, input?.endDate);
       return db.getOrdersByWeekday(tenantId, days);
     }),
 
@@ -63,10 +71,19 @@ export const analyticsRouter = router({
   getTopProducts: clientAdminProcedure
     .input(z.object({
       period: analyticsPeriodSchema.default('30d'),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
       const tenantId = getTenantIdFromUser(ctx.user);
-      return db.getTopProducts(tenantId, input.period);
+      if (input.period === 'custom') {
+        if (input.startDate && input.endDate) {
+          return db.getTopProductsCustomRange(tenantId, new Date(input.startDate), new Date(input.endDate));
+        }
+        // Fallback to 30d if custom period has no dates
+        return db.getTopProducts(tenantId, '30d');
+      }
+      return db.getTopProducts(tenantId, input.period as Exclude<typeof input.period, 'custom'>);
     }),
 });
 
@@ -74,7 +91,7 @@ export const analyticsRouter = router({
  * Convert a period string to a start date and day count.
  * Ensures the start date is never before ANALYTICS_EPOCH (2026-01-01).
  */
-function periodToDateRange(period: string): { startDate: Date; days: number } {
+function periodToDateRange(period: string, customStart?: string, customEnd?: string): { startDate: Date; days: number } {
   const now = new Date();
   const todayStart = new Date(now);
   todayStart.setHours(0, 0, 0, 0);
@@ -102,6 +119,14 @@ function periodToDateRange(period: string): { startDate: Date; days: number } {
     case 'all':
       startDate = new Date(ANALYTICS_EPOCH_DATE);
       break;
+    case 'custom':
+      if (customStart) {
+        startDate = new Date(customStart);
+      } else {
+        startDate = new Date(todayStart);
+        startDate.setDate(startDate.getDate() - 30);
+      }
+      break;
     default:
       startDate = new Date(todayStart);
       startDate.setDate(startDate.getDate() - 30);
@@ -112,6 +137,11 @@ function periodToDateRange(period: string): { startDate: Date; days: number } {
     startDate = new Date(ANALYTICS_EPOCH_DATE);
   }
 
-  const days = Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  // For custom period with endDate, calculate days between start and end
+  const endPoint = (period === 'custom' && customEnd) ? new Date(customEnd) : now;
+  // Add 1 day to endPoint to include the end date itself
+  const endPointEnd = new Date(endPoint);
+  endPointEnd.setHours(23, 59, 59, 999);
+  const days = Math.max(1, Math.ceil((endPointEnd.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
   return { startDate, days };
 }

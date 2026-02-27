@@ -436,6 +436,92 @@ describe("Analytics Router", () => {
   });
 
   // ============================================
+  // Custom Period (date range)
+  // ============================================
+  describe("Custom period (date range)", () => {
+    it("getRevenueByDay accepts custom period with startDate and endDate", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.analytics.getRevenueByDay({
+        period: 'custom',
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+      });
+
+      expect(Array.isArray(result)).toBe(true);
+      for (const entry of result) {
+        expect(entry).toHaveProperty('date');
+        expect(entry).toHaveProperty('revenue');
+        expect(entry).toHaveProperty('orders');
+      }
+    });
+
+    it("getRevenueByDay custom period without dates falls back to 30d", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.analytics.getRevenueByDay({ period: 'custom' });
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it("getOrdersByWeekday accepts custom period", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.analytics.getOrdersByWeekday({
+        period: 'custom',
+        startDate: '2026-01-01',
+        endDate: '2026-02-27',
+      });
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(7);
+    });
+
+    it("getTopProducts accepts custom period with date range", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      const result = await caller.analytics.getTopProducts({
+        period: 'custom',
+        startDate: '2026-01-01',
+        endDate: '2026-02-27',
+      });
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeLessThanOrEqual(5);
+    });
+
+    it("getTopProducts custom period without dates falls back to 30d", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      // Without startDate/endDate, it should use the non-custom path
+      const result = await caller.analytics.getTopProducts({ period: 'custom' });
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it("custom period clamps start date to epoch", async () => {
+      const { ctx } = createClientAdminContext(1);
+      const caller = appRouter.createCaller(ctx);
+
+      // Start date before epoch should be clamped to 2026-01-01
+      const result = await caller.analytics.getRevenueByDay({
+        period: 'custom',
+        startDate: '2020-01-01',
+        endDate: '2026-02-27',
+      });
+
+      expect(Array.isArray(result)).toBe(true);
+      // First date should not be before epoch
+      if (result.length > 0) {
+        expect(result[0].date >= '2026-01-01').toBe(true);
+      }
+    });
+  });
+
+  // ============================================
   // CROSS-CUTTING: Super Admin access
   // ============================================
   describe("Super Admin access", () => {

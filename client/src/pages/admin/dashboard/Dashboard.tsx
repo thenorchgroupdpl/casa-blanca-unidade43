@@ -64,7 +64,7 @@ import {
 // ============================================
 // TYPES
 // ============================================
-type AnalyticsPeriod = 'today' | '7d' | '30d' | 'month' | 'year' | 'all';
+type AnalyticsPeriod = 'today' | '7d' | '30d' | 'month' | 'year' | 'all' | 'custom';
 
 // ============================================
 // HELPER FUNCTIONS
@@ -96,6 +96,7 @@ const periodDaysMap: Record<AnalyticsPeriod, number> = {
   month: 30,
   year: 365,
   all: 9999,
+  custom: 0,
 };
 
 /** Human-readable labels for each analytics period */
@@ -106,6 +107,7 @@ const periodLabels: Record<AnalyticsPeriod, string> = {
   month: 'Este Mês',
   year: 'Este Ano',
   all: 'Todo o Período',
+  custom: 'Personalizado',
 };
 
 const periodLabelShort: Record<AnalyticsPeriod, string> = {
@@ -115,7 +117,21 @@ const periodLabelShort: Record<AnalyticsPeriod, string> = {
   month: 'deste Mês',
   year: 'deste Ano',
   all: 'de Todo o Período (desde Jan/2026)',
+  custom: 'do Período Personalizado',
 };
+
+/** Epoch date: minimum selectable date */
+const EPOCH_MIN_DATE = new Date('2026-01-01T00:00:00');
+
+/** Format date as dd/MM/yyyy */
+function formatDateBR(date: Date): string {
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+/** Format date as YYYY-MM-DD for API */
+function formatDateISO(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
 
 // ============================================
 // SKELETON COMPONENTS
@@ -222,24 +238,49 @@ export default function ClientDashboard() {
   // ANALYTICS QUERIES
   // ============================================
   const [analyticsPeriod, setAnalyticsPeriod] = useState<AnalyticsPeriod>('30d');
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Build query params based on period type
+  const analyticsQueryParams = useMemo(() => {
+    if (analyticsPeriod === 'custom' && customStartDate && customEndDate) {
+      return {
+        period: 'custom' as const,
+        startDate: formatDateISO(customStartDate),
+        endDate: formatDateISO(customEndDate),
+      };
+    }
+    return { period: analyticsPeriod };
+  }, [analyticsPeriod, customStartDate, customEndDate]);
+
+  // Dynamic label for custom period
+  const currentPeriodLabel = useMemo(() => {
+    if (analyticsPeriod === 'custom' && customStartDate && customEndDate) {
+      return `de ${formatDateBR(customStartDate)} a ${formatDateBR(customEndDate)}`;
+    }
+    return periodLabelShort[analyticsPeriod];
+  }, [analyticsPeriod, customStartDate, customEndDate]);
+
+  const isCustomReady = analyticsPeriod !== 'custom' || (customStartDate && customEndDate);
 
   const summaryQuery = trpc.analytics.getDashboardSummary.useQuery(undefined, {
     enabled: !!tenantId,
   });
 
   const revenueByDayQuery = trpc.analytics.getRevenueByDay.useQuery(
-    { period: analyticsPeriod },
-    { enabled: !!tenantId }
+    analyticsQueryParams,
+    { enabled: !!tenantId && !!isCustomReady }
   );
 
   const weekdayQuery = trpc.analytics.getOrdersByWeekday.useQuery(
-    { period: analyticsPeriod },
-    { enabled: !!tenantId }
+    analyticsQueryParams,
+    { enabled: !!tenantId && !!isCustomReady }
   );
 
   const topProductsQuery = trpc.analytics.getTopProducts.useQuery(
-    { period: analyticsPeriod },
-    { enabled: !!tenantId }
+    analyticsQueryParams,
+    { enabled: !!tenantId && !!isCustomReady }
   );
 
   // Mutations
@@ -757,33 +798,114 @@ export default function ClientDashboard() {
         {/* ============================================ */}
         {/* PERIOD SELECTOR */}
         {/* ============================================ */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-amber-400" />
-            Analytics
-          </h3>
-          <div className="flex items-center gap-1 bg-zinc-900/80 border border-zinc-800/60 rounded-lg p-0.5 flex-wrap">
-            {([
-              { key: 'today' as const, label: 'Hoje' },
-              { key: '7d' as const, label: '7 dias' },
-              { key: '30d' as const, label: '30 dias' },
-              { key: 'month' as const, label: 'Este mês' },
-              { key: 'year' as const, label: 'Este ano' },
-              { key: 'all' as const, label: 'Todo período' },
-            ]).map(({ key, label }) => (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-amber-400" />
+              Analytics
+              {analyticsPeriod === 'custom' && customStartDate && customEndDate && (
+                <span className="text-xs font-normal text-zinc-400 ml-1">
+                  ({formatDateBR(customStartDate)} — {formatDateBR(customEndDate)})
+                </span>
+              )}
+            </h3>
+            <div className="flex items-center gap-1 bg-zinc-900/80 border border-zinc-800/60 rounded-lg p-0.5 flex-wrap">
+              {([
+                { key: 'today' as const, label: 'Hoje' },
+                { key: '7d' as const, label: '7d' },
+                { key: '30d' as const, label: '30d' },
+                { key: 'month' as const, label: 'Mês' },
+                { key: 'year' as const, label: 'Ano' },
+                { key: 'all' as const, label: 'Tudo' },
+              ]).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setAnalyticsPeriod(key);
+                    setShowDatePicker(false);
+                  }}
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    analyticsPeriod === key
+                      ? 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30'
+                      : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
               <button
-                key={key}
-                onClick={() => setAnalyticsPeriod(key)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  analyticsPeriod === key
+                onClick={() => {
+                  setAnalyticsPeriod('custom');
+                  setShowDatePicker(prev => !prev);
+                }}
+                className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1 ${
+                  analyticsPeriod === 'custom'
                     ? 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30'
                     : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
                 }`}
               >
-                {label}
+                <CalendarDays className="w-3 h-3" />
+                Personalizado
               </button>
-            ))}
+            </div>
           </div>
+
+          {/* Custom Date Range Picker */}
+          {analyticsPeriod === 'custom' && showDatePicker && (
+            <div className="bg-zinc-900/80 border border-zinc-800/60 rounded-xl p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+                <div className="flex items-end gap-3 flex-wrap">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Data Inicial</label>
+                    <input
+                      type="date"
+                      min="2026-01-01"
+                      max={customEndDate ? formatDateISO(customEndDate) : formatDateISO(new Date())}
+                      value={customStartDate ? formatDateISO(customStartDate) : ''}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setCustomStartDate(new Date(e.target.value + 'T00:00:00'));
+                        }
+                      }}
+                      className="px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-sm text-white hover:border-zinc-700 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-colors outline-none min-w-[160px] [color-scheme:dark]"
+                    />
+                  </div>
+                  <span className="text-zinc-600 pb-2.5">—</span>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">Data Final</label>
+                    <input
+                      type="date"
+                      min={customStartDate ? formatDateISO(customStartDate) : '2026-01-01'}
+                      max={formatDateISO(new Date())}
+                      value={customEndDate ? formatDateISO(customEndDate) : ''}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setCustomEndDate(new Date(e.target.value + 'T00:00:00'));
+                        }
+                      }}
+                      className="px-3 py-2 rounded-lg bg-zinc-950 border border-zinc-800 text-sm text-white hover:border-zinc-700 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-colors outline-none min-w-[160px] [color-scheme:dark]"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {customStartDate && customEndDate && (
+                    <Badge variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/10 text-xs">
+                      {Math.ceil((customEndDate.getTime() - customStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1} dias
+                    </Badge>
+                  )}
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+              {(!customStartDate || !customEndDate) && (
+                <p className="text-xs text-zinc-500 mt-3">Selecione as datas de início e fim para visualizar os dados do período.</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ============================================ */}
@@ -800,7 +922,7 @@ export default function ClientDashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="text-sm font-semibold text-white">
-                        Faturamento {periodLabelShort[analyticsPeriod]}
+                        Faturamento {currentPeriodLabel}
                       </h4>
                       <p className="text-xs text-zinc-500 mt-0.5">
                         Total: <span className="text-amber-400 font-semibold">{formatCurrency(totalRevenuePeriod)}</span> no período
@@ -951,7 +1073,10 @@ export default function ClientDashboard() {
                     Produtos Mais Pedidos
                   </h4>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    {periodLabels[analyticsPeriod]}
+                    {analyticsPeriod === 'custom' && customStartDate && customEndDate
+                      ? `${formatDateBR(customStartDate)} — ${formatDateBR(customEndDate)}`
+                      : periodLabels[analyticsPeriod]
+                    }
                   </p>
                 </div>
               </div>

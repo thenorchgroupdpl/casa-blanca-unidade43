@@ -1455,3 +1455,15 @@
 - [x] Frontend: XAxis interval adaptativo para períodos longos (preserveStartEnd)
 - [x] Fix: aba Entregas já removida do sidebar e App.tsx (confirmado)
 - [x] 0 erros TypeScript e todos os 564 testes passando (27 arquivos)
+
+## Filtro Personalizado de Intervalo de Datas
+- [x] Backend: suporte a period='custom' com startDate/endDate no analytics router
+- [x] Backend: getRevenueByDay, getOrdersByWeekday e getTopProducts aceitam custom range
+- [x] Backend: getTopProductsCustomRange para queries com date range direto
+- [x] Frontend: botão 'Personalizado' com ícone CalendarDays no seletor de período
+- [x] Frontend: date pickers nativos (De/Até) com min=2026-01-01, max=hoje, color-scheme:dark
+- [x] Frontend: badge dinâmica mostrando quantidade de dias selecionados
+- [x] Frontend: queries passam startDate/endDate via analyticsQueryParams (desabilitadas até ambas datas)
+- [x] Frontend: título dinâmico (currentPeriodLabel) refletindo intervalo customizado
+- [x] Testes: 6 testes para custom period (com datas, sem datas, clamp epoch)
+- [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
