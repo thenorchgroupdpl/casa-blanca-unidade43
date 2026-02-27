@@ -1,4 +1,4 @@
-import { eq, and, asc, desc, like, inArray, sql, isNotNull, gte, lte, sum, count, ne, between, avg } from "drizzle-orm";
+import { eq, and, asc, desc, like, inArray, sql, isNotNull, isNull, gte, lte, sum, count, ne, between, avg } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
@@ -1489,4 +1489,38 @@ export async function getTopProducts(tenantId: number, period: 'today' | '7d' | 
       count,
     };
   });
+}
+
+// ============================================
+// ORDER NOTIFICATION BADGE - Viewed tracking
+// ============================================
+
+export async function getUnviewedOrdersCount(tenantId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)`.as('count') })
+    .from(orders)
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      eq(orders.status, 'novo'),
+      isNull(orders.viewedAt)
+    ));
+
+  return Number(result[0]?.count ?? 0);
+}
+
+export async function markOrdersAsViewed(tenantId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .update(orders)
+    .set({ viewedAt: new Date() })
+    .where(and(
+      eq(orders.tenantId, tenantId),
+      eq(orders.status, 'novo'),
+      isNull(orders.viewedAt)
+    ));
 }

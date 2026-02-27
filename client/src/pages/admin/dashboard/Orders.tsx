@@ -4,7 +4,7 @@
  * Dark mode, warm luxury theme
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import ClientAdminLayout from "@/components/ClientAdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,6 +143,24 @@ export default function OrdersPage() {
 
   const utils = trpc.useUtils();
   const { data: orders, isLoading } = trpc.orders.list.useQuery();
+  const [highlightedOrderId, setHighlightedOrderId] = useState<number | null>(null);
+
+  // Check for highlight param from SSE toast navigation
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const highlightId = params.get('highlight');
+    if (highlightId) {
+      const id = parseInt(highlightId, 10);
+      if (!isNaN(id)) {
+        setHighlightedOrderId(id);
+        // Clear highlight after 3 seconds
+        const timer = setTimeout(() => setHighlightedOrderId(null), 3000);
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
 
   const updateStatus = trpc.orders.updateStatus.useMutation({
     onSuccess: () => {
@@ -316,6 +334,7 @@ export default function OrdersPage() {
               onMoveOrder={handleMoveOrder}
               onViewOrder={handleViewOrder}
               isUpdating={updateStatus.isPending}
+              highlightedOrderId={highlightedOrderId}
             />
           ))}
         </div>
@@ -421,12 +440,14 @@ function KanbanColumnComponent({
   onMoveOrder,
   onViewOrder,
   isUpdating,
+  highlightedOrderId,
 }: {
   column: KanbanColumn;
   orders: any[];
   onMoveOrder: (orderId: number, newStatus: OrderStatus) => void;
   onViewOrder: (order: any) => void;
   isUpdating: boolean;
+  highlightedOrderId?: number | null;
 }) {
   return (
     <div className={`rounded-xl border border-zinc-800 bg-zinc-900 p-3 min-h-[300px]`}>
@@ -457,6 +478,7 @@ function KanbanColumnComponent({
               onMoveOrder={onMoveOrder}
               onViewOrder={onViewOrder}
               isUpdating={isUpdating}
+              isHighlighted={order.id === highlightedOrderId}
             />
           ))
         )}
@@ -475,18 +497,42 @@ function OrderCard({
   onMoveOrder,
   onViewOrder,
   isUpdating,
+  isHighlighted,
 }: {
   order: any;
   column: KanbanColumn;
   onMoveOrder: (orderId: number, newStatus: OrderStatus) => void;
   onViewOrder: (order: any) => void;
   isUpdating: boolean;
+  isHighlighted?: boolean;
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const nextStatuses = STATUS_FLOW[order.status as OrderStatus] || [];
+
+  // Auto-scroll to highlighted card
+  useEffect(() => {
+    if (isHighlighted && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isHighlighted]);
+
+  // Check if this is a new order (created in the last 10 seconds) for entrance animation
+  const isNew = useMemo(() => {
+    if (!order.createdAt) return false;
+    const created = new Date(order.createdAt).getTime();
+    return Date.now() - created < 10_000;
+  }, [order.createdAt]);
 
   return (
     <div
-      className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 cursor-pointer hover:border-zinc-600 transition-colors group"
+      ref={cardRef}
+      className={`bg-zinc-800 border rounded-lg p-3 cursor-pointer hover:border-zinc-600 transition-all group ${
+        isHighlighted
+          ? 'border-amber-500 ring-2 ring-amber-500/50 animate-pulse'
+          : isNew && !order.viewedAt
+            ? 'border-amber-500/50 animate-[slideDown_0.3s_ease-out]'
+            : 'border-zinc-700'
+      }`}
       onClick={() => onViewOrder(order)}
     >
       {/* Header */}

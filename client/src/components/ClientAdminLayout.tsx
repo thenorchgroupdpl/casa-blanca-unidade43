@@ -43,6 +43,9 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import { trpc } from "@/lib/trpc";
+import { useOrderNotifications } from "@/hooks/useOrderNotifications";
+import NotificationPermissionModal from "@/components/NotificationPermissionModal";
+import { BellOff, BellRing, Wifi, WifiOff } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
@@ -182,6 +185,7 @@ export default function ClientAdminLayout({
         {children}
       </ClientAdminLayoutContent>
       <BillingPopupModal />
+      <NotificationPermissionModal />
     </SidebarProvider>
   );
 }
@@ -206,6 +210,24 @@ function ClientAdminLayoutContent({
   const { data: roleData } = trpc.auth.getRole.useQuery();
   const { data: unreadCount } = trpc.notifications.unreadCount.useQuery();
   const utils = trpc.useUtils();
+
+  // Real-time order notifications via SSE
+  const { isConnected, unviewedCount, soundEnabled, toggleSound } = useOrderNotifications(
+    roleData?.tenantName || "Casa Blanca"
+  );
+
+  // Mark orders as viewed when navigating to orders page
+  const markViewedMutation = trpc.orders.markViewed.useMutation({
+    onSuccess: () => {
+      utils.orders.unviewedCount.invalidate();
+    },
+  });
+
+  useEffect(() => {
+    if (location === '/admin/dashboard/orders') {
+      markViewedMutation.mutate();
+    }
+  }, [location]);
 
   // Mutation para liberar tenant (Super Admin volta ao modo sem tenant)
   const releaseTenantMutation = trpc.tenants.releaseTenant.useMutation({
@@ -277,13 +299,38 @@ function ClientAdminLayoutContent({
                 <PanelLeft className="h-4 w-4 text-zinc-400" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <Store className="h-5 w-5 text-amber-500 shrink-0" />
                   <span className="font-semibold tracking-tight truncate text-white">
                     Minha Loja
                   </span>
                 </div>
               ) : null}
+              {!isCollapsed && (
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <button
+                    onClick={toggleSound}
+                    className="h-7 w-7 flex items-center justify-center hover:bg-zinc-800 rounded-md transition-colors"
+                    title={soundEnabled ? "Silenciar notificações" : "Ativar som"}
+                  >
+                    {soundEnabled ? (
+                      <BellRing className="h-3.5 w-3.5 text-amber-500" />
+                    ) : (
+                      <BellOff className="h-3.5 w-3.5 text-zinc-500" />
+                    )}
+                  </button>
+                  <div
+                    className="h-7 w-7 flex items-center justify-center"
+                    title={isConnected ? "Tempo real ativo" : "Reconectando..."}
+                  >
+                    {isConnected ? (
+                      <Wifi className="h-3 w-3 text-emerald-500" />
+                    ) : (
+                      <WifiOff className="h-3 w-3 text-red-500 animate-pulse" />
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </SidebarHeader>
 
@@ -307,6 +354,11 @@ function ClientAdminLayoutContent({
                         className={`h-4 w-4 ${isActive ? "text-amber-500" : ""}`}
                       />
                       <span className="flex-1">{item.label}</span>
+                      {item.path === '/admin/dashboard/orders' && unviewedCount > 0 && (
+                        <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                          {unviewedCount > 99 ? '99+' : unviewedCount}
+                        </span>
+                      )}
                       {item.path === '/admin/dashboard/notifications' && (unreadCount ?? 0) > 0 && (
                         <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-black bg-amber-500 rounded-full">
                           {unreadCount! > 99 ? '99+' : unreadCount}
@@ -418,17 +470,52 @@ function ClientAdminLayoutContent({
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setLocation('/admin/dashboard/notifications')}
-              className="relative p-2 rounded-lg hover:bg-zinc-800 transition-colors"
-            >
-              <Bell className="h-5 w-5 text-zinc-400" />
-              {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-black bg-amber-500 rounded-full">
-                  {unreadCount! > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Sound toggle */}
+              <button
+                onClick={toggleSound}
+                className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+                title={soundEnabled ? "Silenciar notificações" : "Ativar som"}
+              >
+                {soundEnabled ? (
+                  <BellRing className="h-5 w-5 text-amber-500" />
+                ) : (
+                  <BellOff className="h-5 w-5 text-zinc-500" />
+                )}
+              </button>
+              {/* SSE status indicator */}
+              <div className="p-2" title={isConnected ? "Conectado" : "Desconectado"}>
+                {isConnected ? (
+                  <Wifi className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <WifiOff className="h-4 w-4 text-red-500" />
+                )}
+              </div>
+              {/* Orders badge (mobile) */}
+              <button
+                onClick={() => setLocation('/admin/dashboard/orders')}
+                className="relative p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+              >
+                <ClipboardList className="h-5 w-5 text-zinc-400" />
+                {unviewedCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                    {unviewedCount > 99 ? '99+' : unviewedCount}
+                  </span>
+                )}
+              </button>
+              {/* Notifications bell */}
+              <button
+                onClick={() => setLocation('/admin/dashboard/notifications')}
+                className="relative p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+              >
+                <Bell className="h-5 w-5 text-zinc-400" />
+                {(unreadCount ?? 0) > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-black bg-amber-500 rounded-full">
+                    {unreadCount! > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         )}
         <main className="flex-1 p-4 overflow-auto bg-[#0A0A0A] min-h-screen w-full">{children}</main>

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, clientAdminProcedure, publicProcedure } from "../_core/trpc";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { notifyTenant, type OrderEvent } from "../sse";
 
 // Helper to get tenant ID from user context
 function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
@@ -81,7 +82,39 @@ export const ordersRouter = router({
     }))
     .mutation(async ({ input }) => {
       const id = await db.createOrderFull(input);
+
+      // Notify tenant via SSE
+      try {
+        const event: OrderEvent = {
+          orderId: id,
+          customerName: input.customerName,
+          total: parseFloat(input.totalValue),
+          itemCount: input.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
+          createdAt: new Date().toISOString(),
+          zone: input.deliveryZoneName || "Retirada no Local",
+        };
+        notifyTenant(input.tenantId, event);
+      } catch (err) {
+        console.error("[SSE] Failed to notify tenant:", err);
+      }
+
       return { id };
+    }),
+
+  // Get count of unviewed new orders (for badge)
+  unviewedCount: clientAdminProcedure
+    .query(async ({ ctx }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      const count = await db.getUnviewedOrdersCount(tenantId);
+      return { count };
+    }),
+
+  // Mark all new orders as viewed (when lojista opens orders page)
+  markViewed: clientAdminProcedure
+    .mutation(async ({ ctx }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      await db.markOrdersAsViewed(tenantId);
+      return { success: true };
     }),
 });
 

@@ -1234,3 +1234,30 @@
 - [x] Frontend: Mover widget de disponibilidade rápida para abaixo dos analytics
 - [x] Frontend: Valores em R$ formato brasileiro, datas em DD/MM
 - [x] Testes: Cobertura para getDashboardSummary, getRevenueByDay, getOrdersByWeekday, getTopProducts (25 testes passando)
+
+## Sistema de Notificações em Tempo Real (SSE)
+- [x] Schema: Adicionar campo viewedAt na tabela orders + db:push
+- [x] Backend: Criar endpoint SSE /api/events/orders com autenticação JWT
+- [x] Backend: Criar módulo sse.ts com gerenciador de conexões por tenant
+- [x] Backend: Função notifyTenant() para broadcast de eventos
+- [x] Backend: Integrar notifyTenant no orders.create (orders.ts)
+- [x] Backend: Integrar notifyTenant no store.createOrder (store.ts)
+- [x] Backend: Procedure orders.unviewedCount (badge de pedidos não vistos)
+- [x] Backend: Procedure orders.markViewed (marcar pedidos como vistos)
+- [x] Backend: Heartbeat a cada 30s para manter conexão SSE viva
+- [x] Frontend: Hook useOrderNotifications com SSE + reconexão exponencial
+- [x] Frontend: Som de notificação (Web Audio API, double beep 880Hz)
+- [x] Frontend: Toggle de som (BellRing/BellOff) no sidebar e header mobile
+- [x] Frontend: Indicador de conexão SSE (Wifi/WifiOff verde/vermelho)
+- [x] Frontend: Toast customizado com nome, valor, zona e botão "Ver Pedido"
+- [x] Frontend: Notificação nativa do browser (Notification API)
+- [x] Frontend: Modal de permissão de notificação (exibido uma vez após login)
+- [x] Frontend: Badge vermelho pulsante no sidebar "Pedidos" com contagem
+- [x] Frontend: Badge vermelho no header mobile com ícone ClipboardList
+- [x] Frontend: Auto-invalidate de orders.list e unviewedCount ao receber SSE
+- [x] Frontend: markViewed automático ao navegar para /admin/dashboard/orders
+- [x] Frontend: Highlight de pedido no Kanban via ?highlight=orderId (do toast)
+- [x] Frontend: Animação slideDown para novos pedidos no Kanban
+- [x] Frontend: Preferência de som salva em localStorage
+- [x] Testes: 21 testes para SSE (notifyTenant, conexões, badge, markViewed, OrderEvent)
+- [x] Testes: Suite completa 395 testes passando (20 arquivos)

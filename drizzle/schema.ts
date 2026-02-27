@@ -397,6 +397,9 @@ export const orders = mysqlTable("orders", {
   // Legacy (kept for backward compat)
   isCompleted: boolean("isCompleted").default(false).notNull(),
   
+  // Notification tracking
+  viewedAt: timestamp("viewedAt"),
+  
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

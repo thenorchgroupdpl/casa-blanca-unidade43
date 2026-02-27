@@ -2,6 +2,7 @@ import { z } from "zod";
 import { router, clientAdminProcedure, publicProcedure } from "../_core/trpc";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { notifyTenant, type OrderEvent } from "../sse";
 
 // Helper to get tenant ID from user context
 function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
@@ -213,6 +214,22 @@ export const storeRouter = router({
         summary: input.summary,
         totalValue: input.totalValue,
       });
+
+      // Notify tenant via SSE
+      try {
+        const event: OrderEvent = {
+          orderId: id,
+          customerName: input.customerName,
+          total: parseFloat(input.totalValue),
+          itemCount: 0,
+          createdAt: new Date().toISOString(),
+          zone: "Manual",
+        };
+        notifyTenant(tenantId, event);
+      } catch (err) {
+        console.error("[SSE] Failed to notify tenant:", err);
+      }
+
       return { success: true, id };
     }),
 
