@@ -180,10 +180,6 @@ export default function SettingsPage() {
     }
 
     const whatsappDigits = whatsapp.replace(/\D/g, "");
-    if (!whatsappDigits || whatsappDigits.length < 10) {
-      toast.error("WhatsApp é obrigatório (mínimo 10 dígitos)");
-      return;
-    }
 
     try {
       // Determine landing status based on client status
@@ -209,11 +205,13 @@ export default function SettingsPage() {
         data: { name: name.trim() },
       });
 
-      // Update WhatsApp in store settings
-      await updateStoreMutation.mutateAsync({
-        whatsapp: whatsappDigits,
-        tenantId: selectedTenantId,
-      });
+      // Update WhatsApp in store settings only if a valid number is provided
+      if (whatsappDigits && whatsappDigits.length >= 10) {
+        await updateStoreMutation.mutateAsync({
+          whatsapp: whatsappDigits,
+          tenantId: selectedTenantId,
+        });
+      }
 
       toast.success("Configurações salvas com sucesso!");
       setIsDirty(false);

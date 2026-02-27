@@ -1576,4 +1576,10 @@
 - [x] Criar README.md completo (visão geral, setup, variáveis de ambiente, stack)
 - [x] Criar ARCHITECTURE.md (estrutura de pastas, fluxos, componentes-chave)
 - [x] Criar CONTRIBUTING.md (guia de contribuição, padrões de código)
-- [ ] Salvar checkpoint e exportar para GitHub repo 'cb'
+- [x] Salvar checkpoint e exportar para GitHub repo 'cb'
+
+## Bug Fix: Botão Salvar não funciona ao mudar status para Inativa
+- [x] Auditar página de Configurações do Super Admin (Settings.tsx)
+- [x] Causa raiz: validação de WhatsApp bloqueava save quando campo vazio (loja sem WhatsApp)
+- [x] Fix: WhatsApp agora é atualizado condicionalmente (só se >= 10 dígitos)
+- [x] 0 erros TypeScript e 570 testes passando
