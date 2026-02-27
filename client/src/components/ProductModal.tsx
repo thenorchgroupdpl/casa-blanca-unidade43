@@ -1,19 +1,17 @@
 /**
  * Product Modal - Casa Blanca
- * Design: Warm Luxury - Glassmorphism centered modal
+ * Design: "Giant Card" — always stacked vertical layout (image top + content bottom)
  *
- * Desktop/Tablet: Side-by-side — image covers full height on left, info scrolls on right
- * Mobile: Stacked — large image top (~60vh), info scrolls below
- *
- * Glassmorphism: backdrop-blur-lg + bg-black/60 overlay for premium depth effect
- *
- * Features: Full description (no truncation), highlight badges over expanded image,
- * original price strikethrough, unit of measure, quantity controls, add to cart, upsell.
+ * Key design decisions:
+ * - ALWAYS stacked vertical, even on desktop (max-w-lg centered = elegant giant card)
+ * - Image edge-to-edge at top (no padding, glued to borders, ~55% of modal height)
+ * - Content area below with solid color-blocked background (modalBgColor)
+ * - Glassmorphism overlay: backdrop-blur-md + bg-black/60
+ * - Badge floats over image (top-left corner)
+ * - Hierarchy: Name → Weight/Category → Price → Quantity → Wide CTA button
  *
  * All styles injected via inline styles from menu_style (Design System).
- * 5 key variables: product_modal_bg → modalBgColor, product_modal_text → modalNameColor,
- * product_modal_price → modalPriceColor, product_modal_button_bg → modalCtaBgColor,
- * product_modal_button_text → modalCtaTextColor.
+ * 5 key variables: modalBgColor, modalNameColor, modalPriceColor, modalCtaBgColor, modalCtaTextColor
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -138,220 +136,213 @@ export default function ProductModal() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={closeProductSheet}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-lg"
-            style={ms?.panelOverlayColor ? {
-              backgroundColor: `${ms.panelOverlayColor}${Math.round((ms.panelOverlayOpacity ?? 60) * 2.55).toString(16).padStart(2, '0')}`,
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-            } : undefined}
+            className="fixed inset-0 z-50"
+            style={{
+              backgroundColor: ms?.panelOverlayColor
+                ? `${ms.panelOverlayColor}${Math.round((ms.panelOverlayOpacity ?? 60) * 2.55).toString(16).padStart(2, '0')}`
+                : 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+            }}
           />
 
-          {/* ===== CENTERED MODAL CONTAINER ===== */}
+          {/* ===== GIANT CARD MODAL ===== */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            initial={{ opacity: 0, scale: 0.93, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-            className="fixed z-50 inset-0 flex items-center justify-center p-3 sm:p-6 pointer-events-none"
+            exit={{ opacity: 0, scale: 0.93, y: 30 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 350 }}
+            className="fixed z-50 inset-0 flex items-center justify-center p-4 pointer-events-none"
           >
             <div
               className={cn(
-                'relative w-full max-w-5xl pointer-events-auto',
+                'relative w-full max-w-lg pointer-events-auto',
                 'rounded-3xl overflow-hidden',
-                'shadow-[0_25px_80px_-12px_rgba(0,0,0,0.6)]',
+                'shadow-[0_30px_80px_-15px_rgba(0,0,0,0.7)]',
                 'ring-1 ring-white/10',
-                !modalBg && 'bg-[#111111]'
+                'flex flex-col'
               )}
-              style={{
-                ...(modalBg ? { backgroundColor: modalBg } : {}),
-                maxHeight: '92vh',
-              }}
+              style={{ maxHeight: '90vh' }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button (X) */}
-              <button
-                onClick={closeProductSheet}
-                className="absolute right-4 top-4 z-30 p-2.5 rounded-full bg-black/50 hover:bg-black/70 text-white/90 hover:text-white transition-all backdrop-blur-md ring-1 ring-white/10"
-                aria-label="Fechar"
+              {/* ===== IMAGE SECTION (edge-to-edge, top) ===== */}
+              <div className="relative w-full flex-shrink-0 overflow-hidden bg-black/20">
+                <div className="relative w-full" style={{ height: 'clamp(220px, 55vh, 420px)' }}>
+                  {selectedProduct.images?.[currentImageIndex] ? (
+                    <img
+                      src={selectedProduct.images[currentImageIndex]}
+                      alt={selectedProduct.name}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-black/30">
+                      <ShoppingBag className="w-20 h-20 text-white/15" />
+                    </div>
+                  )}
+
+                  {/* Close Button (X) — subtle, floating over image */}
+                  <button
+                    onClick={closeProductSheet}
+                    className="absolute right-3 top-3 z-30 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-all backdrop-blur-sm"
+                    aria-label="Fechar"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  {/* Highlight Badge — floating over image, top-left */}
+                  {highlightLabel && (
+                    <span className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs font-semibold backdrop-blur-sm">
+                      {highlightLabel}
+                    </span>
+                  )}
+
+                  {/* Image Navigation Dots */}
+                  {selectedProduct.images && selectedProduct.images.length > 1 && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                      {selectedProduct.images.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={cn(
+                            'h-2 rounded-full transition-all duration-300',
+                            index === currentImageIndex
+                              ? 'bg-white w-6'
+                              : 'bg-white/40 hover:bg-white/60 w-2'
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ===== CONTENT AREA (color-blocked, below image) ===== */}
+              <div
+                className={cn(
+                  'flex-1 overflow-y-auto',
+                  !modalBg && 'bg-[#111111]'
+                )}
+                style={modalBg ? { backgroundColor: modalBg } : undefined}
               >
-                <X className="w-5 h-5" />
-              </button>
-
-              {/* ===== RESPONSIVE LAYOUT ===== */}
-              <div className="flex flex-col md:flex-row" style={{ maxHeight: '92vh' }}>
-
-                {/* ===== IMAGE SECTION ===== */}
-                {/* Desktop: full height, fixed width | Mobile: large top image */}
-                <div className="relative w-full md:w-[55%] flex-shrink-0 bg-black/20">
-                  {/* Desktop: image fills full modal height */}
-                  <div className="relative w-full h-[50vh] sm:h-[55vh] md:h-full md:min-h-[500px] overflow-hidden">
-                    {selectedProduct.images?.[currentImageIndex] ? (
-                      <img
-                        src={selectedProduct.images[currentImageIndex]}
-                        alt={selectedProduct.name}
-                        className="w-full h-full object-cover object-center"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-black/30">
-                        <ShoppingBag className="w-24 h-24 text-white/20" />
-                      </div>
+                <div className="px-5 pt-5 pb-6 space-y-4">
+                  {/* Product Name */}
+                  <h2
+                    className={cn(
+                      'font-display text-xl sm:text-2xl font-bold leading-tight',
+                      !nameColor && 'text-white'
                     )}
+                    style={nameColor ? { color: nameColor } : undefined}
+                  >
+                    {selectedProduct.name}
+                  </h2>
 
-                    {/* Subtle gradient at bottom for text readability on mobile */}
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent md:hidden" />
+                  {/* Weight / Category / Unit */}
+                  {unitDisplay && (
+                    <p
+                      className={cn('text-sm -mt-2', !unitColor && 'text-white/50')}
+                      style={unitColor ? { color: unitColor } : undefined}
+                    >
+                      {unitDisplay}
+                    </p>
+                  )}
 
-                    {/* Highlight Badge — elegantly floating over the expanded image */}
-                    {highlightLabel && (
-                      <span className="absolute top-4 left-4 z-10 px-4 py-2 rounded-full bg-black/60 text-white text-sm font-semibold backdrop-blur-md ring-1 ring-white/15 shadow-lg">
-                        {highlightLabel}
+                  {/* Description */}
+                  {selectedProduct.description && (
+                    <p
+                      className={cn('text-sm leading-relaxed', !descColor && 'text-white/55')}
+                      style={descColor ? { color: descColor } : undefined}
+                    >
+                      {selectedProduct.description}
+                    </p>
+                  )}
+
+                  {/* Price Block */}
+                  <div className="flex items-baseline gap-3 pt-1">
+                    <p
+                      className={cn('text-2xl sm:text-3xl font-bold', !priceColor && 'text-amber-400')}
+                      style={priceColor ? { color: priceColor } : undefined}
+                    >
+                      {formatPrice(selectedProduct.price)}
+                    </p>
+                    {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
+                      <span className="text-white/35 text-base line-through">
+                        {formatPrice(selectedProduct.originalPrice)}
                       </span>
                     )}
-
-                    {/* Image Navigation Dots */}
-                    {selectedProduct.images && selectedProduct.images.length > 1 && (
-                      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
-                        {selectedProduct.images.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentImageIndex(index)}
-                            className={cn(
-                              'h-2.5 rounded-full transition-all duration-300 shadow-md',
-                              index === currentImageIndex
-                                ? 'bg-white w-8'
-                                : 'bg-white/40 hover:bg-white/60 w-2.5'
-                            )}
-                          />
-                        ))}
-                      </div>
-                    )}
                   </div>
-                </div>
 
-                {/* ===== INFO SECTION ===== */}
-                <div className="w-full md:w-[45%] overflow-y-auto flex flex-col" style={{ maxHeight: '92vh' }}>
-                  <div className="p-6 sm:p-8 flex flex-col flex-1">
-                    {/* Product Info */}
-                    <div className="space-y-5 flex-1">
-                      {/* Name */}
-                      <h2
-                        className={cn('font-display text-2xl sm:text-3xl font-bold leading-tight', !nameColor && 'text-white')}
-                        style={nameColor ? { color: nameColor } : undefined}
-                      >
-                        {selectedProduct.name}
-                      </h2>
+                  {/* Divider */}
+                  <div className="border-t border-white/10" />
 
-                      {/* Unit of measure */}
-                      {unitDisplay && (
-                        <p
-                          className={cn('text-sm -mt-3', !unitColor && 'text-white/50')}
-                          style={unitColor ? { color: unitColor } : undefined}
-                        >
-                          {unitDisplay}
-                        </p>
-                      )}
-
-                      {/* Price Block */}
-                      <div className="flex items-baseline gap-3">
-                        <p
-                          className={cn('text-3xl sm:text-4xl font-bold', !priceColor && 'text-amber-400')}
-                          style={priceColor ? { color: priceColor } : undefined}
-                        >
-                          {formatPrice(selectedProduct.price)}
-                        </p>
-                        {selectedProduct.originalPrice && selectedProduct.originalPrice > selectedProduct.price && (
-                          <span className="text-white/40 text-lg line-through">
-                            {formatPrice(selectedProduct.originalPrice)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Divider */}
-                      <div className="h-px bg-white/10" />
-
-                      {/* Description — full, no truncation */}
-                      {selectedProduct.description && (
-                        <p
-                          className={cn('leading-relaxed text-base', !descColor && 'text-white/60')}
-                          style={descColor ? { color: descColor } : undefined}
-                        >
-                          {selectedProduct.description}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* ===== BOTTOM ACTIONS ===== */}
-                    <div className="mt-8 space-y-5 pt-5 border-t border-white/10">
-                      {/* Quantity Selector */}
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={cn('font-medium text-base', !qtyLabelColor && 'text-white/80')}
-                          style={qtyLabelColor ? { color: qtyLabelColor } : undefined}
-                        >
-                          Quantidade
-                        </span>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={decrementQuantity}
-                            disabled={quantity <= 1}
-                            className={cn(
-                              'w-11 h-11 rounded-full flex items-center justify-center transition-all',
-                              quantity <= 1
-                                ? 'bg-white/5 text-white/20 cursor-not-allowed'
-                                : 'bg-white/10 hover:bg-white/20 text-white'
-                            )}
-                            style={quantity > 1 ? {
-                              ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
-                              ...(qtyBtnText ? { color: qtyBtnText } : {}),
-                            } : undefined}
-                          >
-                            <Minus className="w-5 h-5" />
-                          </button>
-                          <span
-                            className={cn('text-2xl font-bold w-10 text-center tabular-nums', !qtyNumColor && 'text-white')}
-                            style={qtyNumColor ? { color: qtyNumColor } : undefined}
-                          >
-                            {quantity}
-                          </span>
-                          <button
-                            onClick={incrementQuantity}
-                            className={cn(
-                              'w-11 h-11 rounded-full flex items-center justify-center transition-all',
-                              'bg-white/10 hover:bg-white/20 text-white'
-                            )}
-                            style={{
-                              ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
-                              ...(qtyBtnText ? { color: qtyBtnText } : {}),
-                            }}
-                          >
-                            <Plus className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Add to Cart CTA */}
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn('font-medium text-sm', !qtyLabelColor && 'text-white/70')}
+                      style={qtyLabelColor ? { color: qtyLabelColor } : undefined}
+                    >
+                      Quantidade
+                    </span>
+                    <div className="flex items-center gap-2.5">
                       <button
-                        onClick={handleAddToCart}
+                        onClick={decrementQuantity}
+                        disabled={quantity <= 1}
                         className={cn(
-                          'w-full py-4 rounded-2xl font-semibold text-lg',
-                          'flex items-center justify-center gap-3',
-                          'transition-all duration-200 hover:brightness-110 active:scale-[0.98]',
-                          'shadow-lg',
-                          !ctaBg && 'bg-amber-500',
-                          !ctaText && 'text-black'
+                          'w-9 h-9 rounded-full flex items-center justify-center transition-all',
+                          quantity <= 1
+                            ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                        )}
+                        style={quantity > 1 ? {
+                          ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
+                          ...(qtyBtnText ? { color: qtyBtnText } : {}),
+                        } : undefined}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span
+                        className={cn('text-xl font-bold w-8 text-center tabular-nums', !qtyNumColor && 'text-white')}
+                        style={qtyNumColor ? { color: qtyNumColor } : undefined}
+                      >
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={incrementQuantity}
+                        className={cn(
+                          'w-9 h-9 rounded-full flex items-center justify-center transition-all',
+                          'bg-white/10 hover:bg-white/20 text-white'
                         )}
                         style={{
-                          ...(ctaBg ? { backgroundColor: ctaBg } : {}),
-                          ...(ctaText ? { color: ctaText } : {}),
-                          ...(ctaFont && ctaFont !== 'inherit' ? { fontFamily: ctaFont } : {}),
-                          ...(ctaFontSize ? { fontSize: `${ctaFontSize}px` } : {}),
-                          ...(ctaFontWeight ? { fontWeight: ctaFontWeight } : {}),
+                          ...(qtyBtnBg ? { backgroundColor: qtyBtnBg } : {}),
+                          ...(qtyBtnText ? { color: qtyBtnText } : {}),
                         }}
                       >
-                        <ShoppingBag className="w-5 h-5" />
-                        Adicionar ({quantity}) — {formatPrice(totalPrice)}
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
+
+                  {/* Add to Cart CTA — wide button */}
+                  <button
+                    onClick={handleAddToCart}
+                    className={cn(
+                      'w-full py-3.5 rounded-2xl font-semibold text-base',
+                      'flex items-center justify-center gap-2.5',
+                      'transition-all duration-200 hover:brightness-110 active:scale-[0.98]',
+                      'shadow-lg',
+                      !ctaBg && 'bg-amber-500',
+                      !ctaText && 'text-black'
+                    )}
+                    style={{
+                      ...(ctaBg ? { backgroundColor: ctaBg } : {}),
+                      ...(ctaText ? { color: ctaText } : {}),
+                      ...(ctaFont && ctaFont !== 'inherit' ? { fontFamily: ctaFont } : {}),
+                      ...(ctaFontSize ? { fontSize: `${ctaFontSize}px` } : {}),
+                      ...(ctaFontWeight ? { fontWeight: ctaFontWeight } : {}),
+                    }}
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Adicionar ({quantity}) — {formatPrice(totalPrice)}
+                  </button>
                 </div>
               </div>
             </div>

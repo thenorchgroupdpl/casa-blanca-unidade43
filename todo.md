@@ -1490,3 +1490,17 @@
 - [x] 5 campos mapeados: modalBgColor, modalNameColor, modalPriceColor, modalCtaBgColor, modalCtaTextColor
 - [x] Lógica de upsell, carrinho, GA4 (view_item, add_to_cart) e Escape mantida
 - [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
+
+## Redesign ProductModal - Giant Card Empilhado (v2)
+- [x] Layout SEMPRE empilhado vertical (imagem topo + conteúdo inferior) em mobile E desktop
+- [x] Desktop: max-w-lg centralizado (card gigante elegante, não side-by-side)
+- [x] Imagem edge-to-edge no topo (sem padding, colada nas bordas, clamp 220px-55vh-420px)
+- [x] Área inferior color-blocked com cor sólida (modalBgColor, fallback #111111)
+- [x] Badge flutuando sobre a imagem (canto superior esquerdo, bg-black/60 + backdrop-blur)
+- [x] Hierarquia: Nome → Peso/Categoria → Descrição → Preço grande → Quantidade → Botão largo
+- [x] Botão CTA largo (w-full, rounded-2xl, shadow-lg)
+- [x] Glassmorphism overlay: backdrop-blur 12px com bg-black/60
+- [x] Fechar: overlay click, botão X sutil sobre imagem (bg-black/40), tecla Escape
+- [x] Lógica de upsell, carrinho e GA4 (view_item, add_to_cart) mantida
+- [x] 13 campos Design System via inline styles (modalBg, name, unit, price, desc, CTA, qty)
+- [x] 0 erros TypeScript e todos os 570 testes passando (27 arquivos)
