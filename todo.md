@@ -1433,3 +1433,11 @@
 - [x] Frontend: aba "Integrações" adicionada no sidebar do ClientAdminLayout (icon Plug)
 - [x] Frontend: rota /admin/dashboard/integrations registrada no App.tsx
 - [x] 0 erros TypeScript e todos os 562 testes passando (27 arquivos)
+
+## Correções: Dark Mode Integrações + Remoção Entregas
+- [x] Fix: removido bg-background (resolvia para claro), container herda bg-[#0A0A0A] do layout
+- [x] Fix: contraste correto — text-white nos inputs, text-zinc-300 nos labels, text-zinc-500 nas descrições
+- [x] Fix: inputs com bg-zinc-950 e border-zinc-800 consistentes com outras páginas
+- [x] Fix: removida aba "Entregas" do sidebar do ClientAdminLayout + import Truck
+- [x] Fix: removida rota /admin/dashboard/delivery e import DeliveryPage do App.tsx
+- [x] 0 erros TypeScript e todos os 562 testes passando (27 arquivos)

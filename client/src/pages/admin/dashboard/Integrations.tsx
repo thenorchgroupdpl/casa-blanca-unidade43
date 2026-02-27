@@ -75,7 +75,7 @@ export default function IntegrationsPage() {
 
   return (
     <ClientAdminLayout>
-      <div className="space-y-6 bg-background min-h-screen">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -157,11 +157,12 @@ export default function IntegrationsPage() {
                       readOnly
                       disabled
                       placeholder="Gerenciada pelo administrador"
-                      className="bg-zinc-950/50 border-zinc-800/80 font-mono text-sm opacity-60 cursor-not-allowed"
+                      className="bg-zinc-950 border-zinc-800 font-mono text-sm text-zinc-400 opacity-60 cursor-not-allowed"
                     />
                     <p className="text-[11px] text-zinc-600">
                       Chave da API do Google para mapas e avaliações. Gerenciada pelo Super Admin.
                     </p>
+
                   </div>
 
                   {/* Place ID - Editable */}
@@ -171,9 +172,9 @@ export default function IntegrationsPage() {
                       value={formData.googlePlaceId}
                       onChange={(e) => setFormData({ ...formData, googlePlaceId: e.target.value })}
                       placeholder="ChIJ..."
-                      className="bg-zinc-950/50 border-zinc-800/80 font-mono text-sm focus:border-blue-500/50 focus:ring-blue-500/20"
+                      className="bg-zinc-950 border-zinc-800 font-mono text-sm text-white placeholder:text-zinc-500 focus:border-blue-500/50 focus:ring-blue-500/20"
                     />
-                    <p className="text-[11px] text-zinc-600">
+                    <p className="text-[11px] text-zinc-500">
                       ID do estabelecimento no Google Maps.
                       <a
                         href="https://developers.google.com/maps/documentation/places/web-service/place-id"
@@ -236,9 +237,9 @@ export default function IntegrationsPage() {
                     value={formData.metaPixelId}
                     onChange={(e) => setFormData({ ...formData, metaPixelId: e.target.value })}
                     placeholder="Ex: 1234567890"
-                    className="bg-zinc-950/50 border-zinc-800/80 font-mono text-sm focus:border-purple-500/50 focus:ring-purple-500/20"
+                    className="bg-zinc-950 border-zinc-800 font-mono text-sm text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
                   />
-                  <p className="text-[11px] text-zinc-600">
+                  <p className="text-[11px] text-zinc-500">
                     ID do Pixel para rastrear conversões e eventos do Facebook/Instagram Ads.
                     <a
                       href="https://business.facebook.com/events_manager"
@@ -263,9 +264,9 @@ export default function IntegrationsPage() {
                     value={formData.ga4MeasurementId}
                     onChange={(e) => setFormData({ ...formData, ga4MeasurementId: e.target.value })}
                     placeholder="Ex: G-XXXXXXXXXX"
-                    className="bg-zinc-950/50 border-zinc-800/80 font-mono text-sm focus:border-purple-500/50 focus:ring-purple-500/20"
+                    className="bg-zinc-950 border-zinc-800 font-mono text-sm text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
                   />
-                  <p className="text-[11px] text-zinc-600">
+                  <p className="text-[11px] text-zinc-500">
                     Measurement ID do GA4 para análise de tráfego e comportamento de visitantes.
                     <a
                       href="https://analytics.google.com/"
@@ -290,9 +291,9 @@ export default function IntegrationsPage() {
                     value={formData.gtmContainerId}
                     onChange={(e) => setFormData({ ...formData, gtmContainerId: e.target.value })}
                     placeholder="Ex: GTM-XXXXXXX"
-                    className="bg-zinc-950/50 border-zinc-800/80 font-mono text-sm focus:border-purple-500/50 focus:ring-purple-500/20"
+                    className="bg-zinc-950 border-zinc-800 font-mono text-sm text-white placeholder:text-zinc-500 focus:border-purple-500/50 focus:ring-purple-500/20"
                   />
-                  <p className="text-[11px] text-zinc-600">
+                  <p className="text-[11px] text-zinc-500">
                     Container ID do GTM para gerenciar tags, pixels e scripts de terceiros.
                     <a
                       href="https://tagmanager.google.com/"

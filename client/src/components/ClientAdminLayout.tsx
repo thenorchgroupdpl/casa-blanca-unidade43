@@ -35,7 +35,6 @@ import {
   User,
   Bell,
   ClipboardList,
-  Truck,
   History,
   Ticket,
   Plug
@@ -56,7 +55,6 @@ const menuItems = [
   { icon: History, label: "Hist\u00f3rico", path: "/admin/dashboard/history" },
   { icon: Package, label: "Catálogo", path: "/admin/dashboard/catalog" },
   { icon: LayoutGrid, label: "Vitrine", path: "/admin/dashboard/vitrine" },
-  { icon: Truck, label: "Entregas", path: "/admin/dashboard/delivery" },
   { icon: Ticket, label: "Cupons", path: "/admin/dashboard/coupons" },
   { icon: Plug, label: "Integrações", path: "/admin/dashboard/integrations" },
   { icon: Store, label: "Dados da Loja", path: "/admin/dashboard/store" },
