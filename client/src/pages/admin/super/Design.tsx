@@ -66,8 +66,13 @@ import {
   Layers,
   Menu,
   MessageCircle,
+  Sparkles,
+  Wand2,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { DESIGN_PRESETS, type DesignPreset } from "@/data/designPresets";
 
 // ============================================
 // REUSABLE SUB-PANEL (Accordion)
@@ -910,6 +915,8 @@ export default function DesignPage() {
   const [borderRadius, setBorderRadius] = useState("0.75rem");
   const [isDirty, setIsDirty] = useState(false);
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop">("mobile");
+  const [showPresets, setShowPresets] = useState(false);
+  const [pendingPreset, setPendingPreset] = useState<DesignPreset | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const utils = trpc.useUtils();
@@ -1116,6 +1123,37 @@ export default function DesignPage() {
     return result.url;
   }, [selectedTenantId, uploadMutation]);
 
+  // Apply a design preset
+  const applyPreset = useCallback((preset: DesignPreset) => {
+    // Deep merge: keep user images (logoUrl, bgMediaUrl, imageUrl, mapImageUrl) but override everything else
+    const currentDesign = design;
+    const merged = { ...preset.design };
+    // Preserve user-uploaded images
+    if (currentDesign.home?.logoUrl) {
+      merged.home = { ...merged.home, logoUrl: currentDesign.home.logoUrl };
+    }
+    if (currentDesign.home?.bgMediaUrl) {
+      merged.home = { ...merged.home, bgMediaUrl: currentDesign.home.bgMediaUrl };
+    }
+    if (currentDesign.about?.imageUrl) {
+      merged.about = { ...merged.about, imageUrl: currentDesign.about.imageUrl };
+    }
+    if (currentDesign.info?.mapImageUrl) {
+      merged.info = { ...merged.info, mapImageUrl: currentDesign.info.mapImageUrl };
+    }
+    if (currentDesign.home?.companyName) {
+      merged.home = { ...merged.home, companyName: currentDesign.home.companyName };
+    }
+    setDesign(merged as LandingDesign);
+    setColors(preset.themeColors);
+    setFontFamily(preset.fontFamily);
+    setFontDisplay(preset.fontDisplay);
+    setBorderRadius(preset.borderRadius);
+    setIsDirty(true);
+    setPendingPreset(null);
+    toast.success(`Preset "${preset.name}" aplicado! Clique em Salvar para confirmar.`);
+  }, [design]);
+
   // Direct upload (for video or URL paste - no crop)
   const handleDirectUpload = async (file: File, onSuccess: (url: string) => void) => {
     if (!selectedTenantId) return;
@@ -1233,6 +1271,21 @@ export default function DesignPage() {
               </button>
             </div>
 
+            {selectedTenantId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPresets(!showPresets)}
+                className={`border-zinc-700 h-8 text-xs transition-all ${
+                  showPresets
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                    : 'text-zinc-300 hover:text-white'
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5 mr-1" />
+                Temas
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -1293,6 +1346,51 @@ export default function DesignPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Presets Panel (collapsible) */}
+              {showPresets && (
+                <div className="shrink-0 border-b border-zinc-800/80 bg-zinc-900/60">
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Wand2 className="h-3.5 w-3.5 text-amber-500" />
+                        <span className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">Aplicar Tema Rápido</span>
+                      </div>
+                      <button onClick={() => setShowPresets(false)} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {DESIGN_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          onClick={() => setPendingPreset(preset)}
+                          className="group relative rounded-lg overflow-hidden border border-zinc-700/60 hover:border-amber-500/50 transition-all duration-200 hover:ring-1 hover:ring-amber-500/30"
+                        >
+                          {/* Color Preview Swatch */}
+                          <div className="h-16 relative" style={{ background: `linear-gradient(135deg, ${preset.themeColors.primary} 0%, ${preset.themeColors.accent} 50%, ${preset.themeColors.background} 100%)` }}>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            <div className="absolute bottom-1.5 left-2 right-2">
+                              <span className="text-[10px] font-bold text-white drop-shadow-lg">{preset.name}</span>
+                            </div>
+                            {/* Mini color dots */}
+                            <div className="absolute top-1.5 right-1.5 flex gap-0.5">
+                              {[preset.themeColors.primary, preset.themeColors.accent, preset.themeColors.background, preset.themeColors.foreground].map((c, i) => (
+                                <div key={i} className="w-2.5 h-2.5 rounded-full border border-white/30" style={{ backgroundColor: c }} />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="px-2 py-1.5 bg-zinc-800/80">
+                            <p className="text-[9px] text-zinc-400 leading-tight truncate">{preset.description}</p>
+                            <p className="text-[8px] text-zinc-600 mt-0.5">{preset.fontFamily} + {preset.fontDisplay}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-zinc-600 mt-2 text-center">Clique num tema para pré-visualizar. Imagens e textos serão preservados.</p>
+                  </div>
+                </div>
+              )}
 
               {/* Editor Content */}
               <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin">
@@ -1500,6 +1598,80 @@ export default function DesignPage() {
           </div>
         )}
       </div>
+
+      {/* Preset Confirmation Modal */}
+      {pendingPreset && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setPendingPreset(null)} />
+          <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Preview Header */}
+            <div className="h-24 relative" style={{ background: `linear-gradient(135deg, ${pendingPreset.themeColors.primary} 0%, ${pendingPreset.themeColors.accent} 50%, ${pendingPreset.themeColors.background} 100%)` }}>
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent" />
+              <div className="absolute bottom-3 left-4 right-4">
+                <h3 className="text-lg font-bold text-white drop-shadow-lg">{pendingPreset.name}</h3>
+                <p className="text-xs text-white/70">{pendingPreset.description}</p>
+              </div>
+            </div>
+
+            <div className="p-5">
+              {/* Color Preview */}
+              <div className="flex gap-2 mb-4">
+                {[
+                  { label: 'Primária', color: pendingPreset.themeColors.primary },
+                  { label: 'Destaque', color: pendingPreset.themeColors.accent },
+                  { label: 'Fundo', color: pendingPreset.themeColors.background },
+                  { label: 'Superfície', color: pendingPreset.themeColors.accent },
+                  { label: 'Texto', color: pendingPreset.themeColors.foreground },
+                ].map(({ label, color }) => (
+                  <div key={label} className="flex-1 text-center">
+                    <div className="w-full h-8 rounded-md border border-zinc-700/50 mb-1" style={{ backgroundColor: color }} />
+                    <span className="text-[9px] text-zinc-500">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Typography */}
+              <div className="flex items-center gap-3 mb-4 p-2.5 rounded-lg bg-zinc-800/60 border border-zinc-700/40">
+                <Type className="h-4 w-4 text-zinc-500 shrink-0" />
+                <div>
+                  <p className="text-xs text-zinc-300">
+                    <span className="font-medium">Corpo:</span> {pendingPreset.fontFamily}
+                  </p>
+                  <p className="text-xs text-zinc-300">
+                    <span className="font-medium">Display:</span> {pendingPreset.fontDisplay}
+                  </p>
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-4">
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-amber-400/90 leading-relaxed">
+                  Todas as cores, fontes e estilos serão substituídos. Suas imagens e textos serão preservados. Clique em <strong>Salvar</strong> após aplicar para confirmar.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-zinc-700 text-zinc-300 hover:text-white"
+                  onClick={() => setPendingPreset(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+                  onClick={() => applyPreset(pendingPreset)}
+                >
+                  <Sparkles className="h-4 w-4 mr-1.5" />
+                  Aplicar Tema
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </SuperAdminLayout>
   );

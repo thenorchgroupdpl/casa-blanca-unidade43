@@ -1173,3 +1173,18 @@
 - [x] Criar procedure tRPC para gerar link WhatsApp de cobrança por tenant
 - [x] Adicionar botão 'Enviar WhatsApp' na tabela de Gestão Financeira para tenants warning/overdue/suspended
 - [x] Botão abre WhatsApp diretamente com mensagem formatada (target="_blank")
+
+## Presets Visuais — Design System
+- [x] Auditar tipo LandingDesign completo para garantir cobertura 100% nos presets
+- [x] Criar arquivo client/src/data/designPresets.ts com 6 presets tipados
+- [x] Preset 1: Warm Luxury (Dark Gold) — tema padrão atual
+- [x] Preset 2: Bistrô Moderno (Light Clean) — verde-musgo + branco
+- [x] Preset 3: Pizzaria Rústica (Warm Red) — vermelho tomate + creme
+- [x] Preset 4: Doceria Rosé (Pink Soft) — rosa antigo + off-white
+- [x] Preset 5: Açaí & Healthy (Green Fresh) — verde neon + escuro
+- [x] Preset 6: Japonês Minimalista (Black & White) — preto puro + branco
+- [x] Interface: seção "Aplicar Tema Rápido" no topo do Design System com cards visuais em grid 2x3
+- [x] Modal de confirmação com preview de cores, fontes e aviso de sobrescrita
+- [x] Aplicação atômica: atualizar estado local + preview via postMessage (salvar manual)
+- [x] Toast de sucesso após aplicação
+- [x] Preparar interface/tipo CustomPreset para presets personalizados futuros
