@@ -79,6 +79,8 @@ export const ordersRouter = router({
       deliveryZoneId: z.number().optional(),
       deliveryZoneName: z.string().optional(),
       deliveryFee: z.string().optional(),
+      couponCode: z.string().optional(),
+      couponDiscount: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const id = await db.createOrderFull(input);

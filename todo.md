@@ -1371,3 +1371,24 @@
 - [x] Frontend: herda ClientAdminLayout (sidebar + dark mode)
 - [x] Testes: 14 testes para filtro diário, histórico e exclusão
 - [x] 0 erros TypeScript, 486 testes passando (25 arquivos)
+
+## Sistema de Cupons de Desconto
+- [x] Schema: criar tabela coupons (id, tenantId, code uppercase único por tenant, discountPercentage, isActive, expiresAt, usageLimit, usageCount, createdAt, updatedAt)
+- [x] db:push para sincronizar schema
+- [x] Backend: db helpers (createCoupon, listCoupons, updateCoupon, deleteCoupon, validateCoupon, incrementUsage)
+- [x] Backend: couponRouter com CRUD protegido (clientAdmin) + validate público
+- [x] Backend: registrar couponRouter no routers.ts
+- [x] Frontend: criar página Cupons (/admin/dashboard/coupons) com CRUD completo
+- [x] Frontend: tabela listando cupons (Código, % Desconto, Validade, Limite, Status)
+- [x] Frontend: modal Criar/Editar Cupom com formulário
+- [x] Frontend: toggle ativar/desativar e botão excluir cupom
+- [x] Frontend: dark mode forçado (bg-background), sidebar presente (ClientAdminLayout)
+- [x] Frontend: adicionar aba "Cupons" no sidebar
+- [x] Frontend: campo "Possui cupom?" no CartDrawer com botão Aplicar
+- [x] Frontend: campo "Possui cupom?" no CartPopup com botão Aplicar
+- [x] Frontend: validação do cupom via API (válido, ativo, dentro da validade, limite)
+- [x] Frontend: exibir "Desconto aplicado: - R$ X,XX" antes do total
+- [x] Frontend: integrar cupom na mensagem WhatsApp (*Cupom Usado:* [CODE] (-X%))
+- [x] Frontend: incluir cupom no payload do pedido salvo no banco
+- [x] Testes: 43 testes unitários para normalização, validação, cálculo, WhatsApp, status e duplicatas
+- [x] 0 erros TypeScript e todos os 529 testes passando (26 arquivos)

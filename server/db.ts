@@ -12,7 +12,8 @@ import {
   globalSettings, GlobalSetting, InsertGlobalSetting,
   notifications, Notification, InsertNotification,
   productUpsells, ProductUpsell, InsertProductUpsell,
-  deliveryZones, DeliveryZone, InsertDeliveryZone
+  deliveryZones, DeliveryZone, InsertDeliveryZone,
+  coupons, Coupon, InsertCoupon
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1567,4 +1568,119 @@ export async function deleteOrdersByDate(tenantId: number, dateStart: Date, date
       lte(orders.createdAt, dateEnd),
     )
   );
+}
+
+// ============================================
+// COUPONS HELPERS
+// ============================================
+
+export async function createCoupon(data: {
+  tenantId: number;
+  code: string;
+  discountPercentage: string;
+  isActive?: boolean;
+  expiresAt?: Date | null;
+  usageLimit?: number | null;
+}) {
+  const db = (await getDb())!;
+  const result = await db.insert(coupons).values({
+    tenantId: data.tenantId,
+    code: data.code.toUpperCase().trim(),
+    discountPercentage: data.discountPercentage,
+    isActive: data.isActive ?? true,
+    expiresAt: data.expiresAt ?? null,
+    usageLimit: data.usageLimit ?? null,
+    usageCount: 0,
+  });
+  return { id: result[0].insertId };
+}
+
+export async function listCoupons(tenantId: number) {
+  const db = (await getDb())!;
+  return db
+    .select()
+    .from(coupons)
+    .where(eq(coupons.tenantId, tenantId))
+    .orderBy(desc(coupons.createdAt));
+}
+
+export async function getCouponById(id: number, tenantId: number) {
+  const db = (await getDb())!;
+  const rows = await db
+    .select()
+    .from(coupons)
+    .where(and(eq(coupons.id, id), eq(coupons.tenantId, tenantId)));
+  return rows[0] ?? null;
+}
+
+export async function updateCoupon(id: number, tenantId: number, data: {
+  code?: string;
+  discountPercentage?: string;
+  isActive?: boolean;
+  expiresAt?: Date | null;
+  usageLimit?: number | null;
+}) {
+  const db = (await getDb())!;
+  const updateData: Record<string, unknown> = {};
+  if (data.code !== undefined) updateData.code = data.code.toUpperCase().trim();
+  if (data.discountPercentage !== undefined) updateData.discountPercentage = data.discountPercentage;
+  if (data.isActive !== undefined) updateData.isActive = data.isActive;
+  if (data.expiresAt !== undefined) updateData.expiresAt = data.expiresAt;
+  if (data.usageLimit !== undefined) updateData.usageLimit = data.usageLimit;
+  
+  await db
+    .update(coupons)
+    .set(updateData)
+    .where(and(eq(coupons.id, id), eq(coupons.tenantId, tenantId)));
+}
+
+export async function deleteCoupon(id: number, tenantId: number) {
+  const db = (await getDb())!;
+  await db
+    .delete(coupons)
+    .where(and(eq(coupons.id, id), eq(coupons.tenantId, tenantId)));
+}
+
+export async function validateCoupon(tenantId: number, code: string) {
+  const db = (await getDb())!;
+  const rows = await db
+    .select()
+    .from(coupons)
+    .where(
+      and(
+        eq(coupons.tenantId, tenantId),
+        eq(coupons.code, code.toUpperCase().trim()),
+        eq(coupons.isActive, true)
+      )
+    );
+  
+  const coupon = rows[0];
+  if (!coupon) return { valid: false, reason: "Cupom inválido ou inativo" as const };
+  
+  // Check expiration
+  if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+    return { valid: false, reason: "Cupom expirado" as const };
+  }
+  
+  // Check usage limit
+  if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
+    return { valid: false, reason: "Cupom esgotado" as const };
+  }
+  
+  return {
+    valid: true,
+    coupon: {
+      id: coupon.id,
+      code: coupon.code,
+      discountPercentage: Number(coupon.discountPercentage),
+    },
+  };
+}
+
+export async function incrementCouponUsage(id: number) {
+  const db = (await getDb())!;
+  await db
+    .update(coupons)
+    .set({ usageCount: sql`${coupons.usageCount} + 1` })
+    .where(eq(coupons.id, id));
 }

@@ -33,6 +33,7 @@ import StoreDataPage from "./pages/admin/dashboard/StoreData";
 import OrdersPage from "./pages/admin/dashboard/Orders";
 import OrderHistoryPage from "./pages/admin/dashboard/OrderHistory";
 import DeliveryPage from "./pages/admin/dashboard/Delivery";
+import CouponsPage from "./pages/admin/dashboard/Coupons";
 
 // Onboarding
 import OnboardingPage from "./pages/Onboarding";
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/admin/dashboard/orders" component={OrdersPage} />
       <Route path="/admin/dashboard/history" component={OrderHistoryPage} />
       <Route path="/admin/dashboard/delivery" component={DeliveryPage} />
+      <Route path="/admin/dashboard/coupons" component={CouponsPage} />
       
       {/* Shared Admin Routes */}
       <Route path="/admin/profile" component={ProfilePage} />

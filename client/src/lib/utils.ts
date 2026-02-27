@@ -307,7 +307,8 @@ export function generateWhatsAppMessage(
   total: number,
   observation?: string,
   storeName?: string,
-  delivery?: { zoneName: string; fee: number } | null
+  delivery?: { zoneName: string; fee: number } | null,
+  coupon?: { code: string; discountPercentage: number } | null
 ): string {
   const nome = storeName || 'Casa Blanca';
 
@@ -328,6 +329,10 @@ export function generateWhatsAppMessage(
     } else {
       message += ` (Grátis)`;
     }
+  }
+
+  if (coupon) {
+    message += `\n\n*Cupom Usado:* ${coupon.code} (-${coupon.discountPercentage}%)`;
   }
 
   message += `\n\n*Total: ${formatPrice(total)}*`;

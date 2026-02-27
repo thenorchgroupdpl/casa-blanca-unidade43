@@ -463,3 +463,32 @@ export const deliveryZones = mysqlTable("delivery_zones", {
 
 export type DeliveryZone = typeof deliveryZones.$inferSelect;
 export type InsertDeliveryZone = typeof deliveryZones.$inferInsert;
+
+// ============================================
+// COUPONS TABLE - Discount Coupons per Tenant
+// ============================================
+export const coupons = mysqlTable("coupons", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  
+  // Coupon Code (unique per tenant, stored uppercase)
+  code: varchar("code", { length: 50 }).notNull(),
+  
+  // Discount Configuration
+  discountPercentage: decimal("discountPercentage", { precision: 5, scale: 2 }).notNull(), // e.g., 10.00 = 10%
+  
+  // Status
+  isActive: boolean("isActive").default(true).notNull(),
+  
+  // Optional Limits
+  expiresAt: timestamp("expiresAt"), // null = never expires
+  usageLimit: int("usageLimit"), // null = unlimited
+  usageCount: int("usageCount").default(0).notNull(),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = typeof coupons.$inferInsert;

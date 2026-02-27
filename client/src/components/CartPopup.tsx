@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag, MessageCircle, Ticket, Check, Loader2 } from 'lucide-react';
 import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/utils';
 import { useCart, useSiteData } from '@/store/useStore';
 import { trpc } from '@/lib/trpc';
@@ -25,6 +25,54 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
 
   const createOrder = trpc.orders.create.useMutation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: number; code: string; discountPercentage: number } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  const validateCouponQuery = trpc.coupons.validate.useQuery(
+    { tenantId: tenantId!, code: couponCode.trim().toUpperCase() },
+    { enabled: false }
+  );
+
+  const incrementUsage = trpc.coupons.incrementUsage.useMutation();
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Digite um c\u00f3digo de cupom');
+      return;
+    }
+    if (!tenantId) return;
+
+    setIsValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      const result = await validateCouponQuery.refetch();
+      if (result.data?.valid && result.data.coupon) {
+        setAppliedCoupon({
+          id: result.data.coupon.id,
+          code: result.data.coupon.code,
+          discountPercentage: result.data.coupon.discountPercentage,
+        });
+        setCouponError('');
+      } else {
+        setCouponError(result.data?.reason || 'Cupom inv\u00e1lido');
+        setAppliedCoupon(null);
+      }
+    } catch {
+      setCouponError('Erro ao validar cupom');
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
 
   const handleFinishOrder = async () => {
     if (!data || items.length === 0 || isSubmitting) return;
@@ -32,8 +80,13 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
     setIsSubmitting(true);
 
     const storeName = data.project_name || 'Casa Blanca';
-    const total = getTotalPrice();
-    const message = generateWhatsAppMessage(items, total, undefined, storeName);
+    const subtotal = getTotalPrice();
+    const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage / 100) : 0;
+    const total = subtotal - couponDiscount;
+    const couponInfo = appliedCoupon
+      ? { code: appliedCoupon.code, discountPercentage: appliedCoupon.discountPercentage }
+      : null;
+    const message = generateWhatsAppMessage(items, total, undefined, storeName, null, couponInfo);
 
     // 1. Save order in the database FIRST
     try {
@@ -56,7 +109,18 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
           price: item.product.price,
         })),
         totalValue: total.toFixed(2),
+        couponCode: appliedCoupon?.code,
+        couponDiscount: couponDiscount > 0 ? couponDiscount.toFixed(2) : undefined,
       });
+
+      // Increment coupon usage after successful order
+      if (appliedCoupon) {
+        try {
+          await incrementUsage.mutateAsync({ couponId: appliedCoupon.id });
+        } catch {
+          // Non-critical
+        }
+      }
     } catch {
       setIsSubmitting(false);
       alert('N\u00e3o foi poss\u00edvel registrar seu pedido. Por favor, tente novamente.');
@@ -68,6 +132,9 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
 
     // 3. Clear cart after success
     clearCart();
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
     setIsSubmitting(false);
     onClose();
   };
@@ -241,9 +308,98 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
               )}
             </div>
 
+            {/* Coupon Section */}
+            {items.length > 0 && (
+              <div className="px-4 pb-2 pt-3 border-t border-lp-border">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <div className="flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-green-500" />
+                      <span className="font-mono text-sm font-semibold text-green-400">
+                        {appliedCoupon.code}
+                      </span>
+                      <span className="text-green-400/70 text-xs">
+                        (-{appliedCoupon.discountPercentage}%)
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleRemoveCoupon}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => {
+                          setCouponCode(e.target.value.toUpperCase());
+                          setCouponError('');
+                        }}
+                        placeholder="Cupom"
+                        className={cn(
+                          'flex-1 px-3 py-2 rounded-lg text-sm font-mono uppercase',
+                          'focus:outline-none focus:ring-1 focus:ring-lp-highlight-soft',
+                          !cs?.obsBgColor && 'bg-lp-surface-soft',
+                          !cs?.obsBorderColor && 'border border-lp-border',
+                          !cs?.obsTextColor && 'text-lp-text placeholder:text-lp-text-muted'
+                        )}
+                        style={{
+                          ...(cs?.obsBgColor ? { backgroundColor: cs.obsBgColor } : {}),
+                          ...(cs?.obsBorderColor ? { borderColor: cs.obsBorderColor, borderWidth: '1px', borderStyle: 'solid' } : {}),
+                          ...(cs?.obsTextColor ? { color: cs.obsTextColor } : {}),
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleApplyCoupon();
+                        }}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isValidatingCoupon || !couponCode.trim()}
+                        className={cn(
+                          'px-3 py-2 rounded-lg text-xs font-medium transition-colors',
+                          'bg-lp-btn text-lp-btn-fg',
+                          (isValidatingCoupon || !couponCode.trim()) && 'opacity-50 cursor-not-allowed'
+                        )}
+                      >
+                        {isValidatingCoupon ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          'Aplicar'
+                        )}
+                      </button>
+                    </div>
+                    {couponError && (
+                      <p className="text-red-400 text-[11px] mt-1">{couponError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Footer */}
             {items.length > 0 && (
               <div className="p-4 border-t border-lp-border space-y-3">
+                {/* Subtotal + Coupon breakdown */}
+                {appliedCoupon && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-lp-text-muted">Subtotal</span>
+                      <span className="text-lp-text">{formatPrice(getTotalPrice())}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-green-400 flex items-center gap-1">
+                        <Ticket className="w-3 h-3" /> {appliedCoupon.code}
+                      </span>
+                      <span className="text-green-400">-{formatPrice(getTotalPrice() * appliedCoupon.discountPercentage / 100)}</span>
+                    </div>
+                    <div className="border-t border-lp-border my-1" />
+                  </div>
+                )}
+
                 {/* Total — ISOLATED: totalLabelColor, totalValueColor */}
                 <div className="flex items-center justify-between">
                   <span
@@ -256,7 +412,7 @@ export default function CartPopup({ isOpen, onClose }: CartPopupProps) {
                     className={cn("text-xl font-bold", !cs?.totalValueColor && "text-lp-text")}
                     style={{ color: cs?.totalValueColor || undefined }}
                   >
-                    {formatPrice(getTotalPrice())}
+                    {formatPrice(appliedCoupon ? getTotalPrice() - (getTotalPrice() * appliedCoupon.discountPercentage / 100) : getTotalPrice())}
                   </span>
                 </div>
 

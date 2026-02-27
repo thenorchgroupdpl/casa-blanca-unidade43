@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, Trash2, MessageCircle, ShoppingBag, Truck, Store, MapPin, ChevronDown } from 'lucide-react';
+import { X, Minus, Plus, Trash2, MessageCircle, ShoppingBag, Truck, Store, MapPin, ChevronDown, Ticket, Check, Loader2 } from 'lucide-react';
 import { cn, formatPrice, generateWhatsAppMessage, openWhatsApp } from '@/lib/utils';
 import { useCart, useSiteData } from '@/store/useStore';
 import { trpc } from '@/lib/trpc';
@@ -19,6 +19,10 @@ export default function CartDrawer() {
   const [observation, setObservation] = useState('');
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const [showZoneSelector, setShowZoneSelector] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: number; code: string; discountPercentage: number } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice, tenantId } = useCart();
   const { data } = useSiteData();
 
@@ -40,7 +44,54 @@ export default function CartDrawer() {
 
   const deliveryFee = selectedZone ? parseFloat(selectedZone.feeAmount || '0') : 0;
   const subtotal = getTotalPrice();
-  const totalWithDelivery = subtotal + deliveryFee;
+  const couponDiscount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage / 100) : 0;
+  const subtotalAfterCoupon = subtotal - couponDiscount;
+  const totalWithDelivery = subtotalAfterCoupon + deliveryFee;
+
+  // Validate coupon mutation
+  const validateCouponQuery = trpc.coupons.validate.useQuery(
+    { tenantId: tenantId!, code: couponCode.trim().toUpperCase() },
+    { enabled: false }
+  );
+
+  const incrementUsage = trpc.coupons.incrementUsage.useMutation();
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Digite um código de cupom');
+      return;
+    }
+    if (!tenantId) return;
+
+    setIsValidatingCoupon(true);
+    setCouponError('');
+
+    try {
+      const result = await validateCouponQuery.refetch();
+      if (result.data?.valid && result.data.coupon) {
+        setAppliedCoupon({
+          id: result.data.coupon.id,
+          code: result.data.coupon.code,
+          discountPercentage: result.data.coupon.discountPercentage,
+        });
+        setCouponError('');
+      } else {
+        setCouponError(result.data?.reason || 'Cupom inválido');
+        setAppliedCoupon(null);
+      }
+    } catch {
+      setCouponError('Erro ao validar cupom');
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
 
   // Listen for cart open event
   useEffect(() => {
@@ -76,7 +127,11 @@ export default function CartDrawer() {
       ? { zoneName: selectedZone.zoneName, fee: deliveryFee }
       : null;
 
-    const message = generateWhatsAppMessage(items, totalWithDelivery, observation || undefined, storeName, deliveryInfo);
+    const couponInfo = appliedCoupon
+      ? { code: appliedCoupon.code, discountPercentage: appliedCoupon.discountPercentage }
+      : null;
+
+    const message = generateWhatsAppMessage(items, totalWithDelivery, observation || undefined, storeName, deliveryInfo, couponInfo);
 
     // 1. Save order in the database FIRST
     try {
@@ -102,7 +157,18 @@ export default function CartDrawer() {
         deliveryZoneId: selectedZone?.id,
         deliveryZoneName: selectedZone?.zoneName,
         deliveryFee: deliveryFee > 0 ? deliveryFee.toFixed(2) : undefined,
+        couponCode: appliedCoupon?.code,
+        couponDiscount: couponDiscount > 0 ? couponDiscount.toFixed(2) : undefined,
       });
+
+      // Increment coupon usage after successful order
+      if (appliedCoupon) {
+        try {
+          await incrementUsage.mutateAsync({ couponId: appliedCoupon.id });
+        } catch {
+          // Non-critical: don't block checkout if usage increment fails
+        }
+      }
     } catch {
       // Show error and DO NOT open WhatsApp
       setIsSubmitting(false);
@@ -118,6 +184,9 @@ export default function CartDrawer() {
     clearCart();
     setObservation('');
     setSelectedZoneId(null);
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
     setIsOpen(false);
     setIsSubmitting(false);
   };
@@ -432,31 +501,119 @@ export default function CartDrawer() {
                         }}
                       />
                     </div>
+
+                    {/* Coupon Field */}
+                    <div className="pt-4">
+                      <label
+                        className={cn("block text-sm font-medium mb-2", !cs?.headerTextColor && "text-lp-text")}
+                        style={{ color: cs?.headerTextColor || undefined }}
+                      >
+                        <Ticket className="w-4 h-4 inline mr-1" />
+                        Cupom de Desconto
+                      </label>
+                      {appliedCoupon ? (
+                        <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                          <div className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            <span className="font-mono font-semibold text-green-400 tracking-wider">
+                              {appliedCoupon.code}
+                            </span>
+                            <span className="text-green-400/70 text-sm">
+                              (-{appliedCoupon.discountPercentage}%)
+                            </span>
+                          </div>
+                          <button
+                            onClick={handleRemoveCoupon}
+                            className="text-sm text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={couponCode}
+                              onChange={(e) => {
+                                setCouponCode(e.target.value.toUpperCase());
+                                setCouponError('');
+                              }}
+                              placeholder="Ex: PROMO10"
+                              className={cn(
+                                'flex-1 px-4 py-3 rounded-xl font-mono tracking-wider uppercase',
+                                'focus:outline-none focus:ring-1 focus:ring-lp-highlight-soft',
+                                'transition-all',
+                                !cs?.obsBgColor && 'bg-lp-surface-soft',
+                                !cs?.obsBorderColor && 'border border-lp-border',
+                                !cs?.obsTextColor && 'text-lp-text placeholder:text-lp-text-muted'
+                              )}
+                              style={{
+                                ...(cs?.obsBgColor ? { backgroundColor: cs.obsBgColor } : {}),
+                                ...(cs?.obsBorderColor ? { borderColor: cs.obsBorderColor, borderWidth: '1px', borderStyle: 'solid' } : {}),
+                                ...(cs?.obsTextColor ? { color: cs.obsTextColor } : {}),
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleApplyCoupon();
+                              }}
+                            />
+                            <button
+                              onClick={handleApplyCoupon}
+                              disabled={isValidatingCoupon || !couponCode.trim()}
+                              className={cn(
+                                'px-4 py-3 rounded-xl font-medium text-sm transition-colors whitespace-nowrap',
+                                'bg-lp-btn text-lp-btn-fg',
+                                (isValidatingCoupon || !couponCode.trim()) && 'opacity-50 cursor-not-allowed'
+                              )}
+                            >
+                              {isValidatingCoupon ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                'Aplicar'
+                              )}
+                            </button>
+                          </div>
+                          {couponError && (
+                            <p className="text-red-400 text-xs mt-1.5">{couponError}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Footer */}
                   <div className="p-6 border-t border-lp-border space-y-3">
-                    {/* Subtotal + Delivery Fee breakdown */}
-                    {hasDeliveryZones && selectedZone && (
+                    {/* Subtotal + Coupon + Delivery Fee breakdown */}
+                    {(appliedCoupon || (hasDeliveryZones && selectedZone)) && (
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-lp-text-muted">Subtotal</span>
                           <span className="text-lp-text">{formatPrice(subtotal)}</span>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-lp-text-muted flex items-center gap-1">
-                            {selectedZone.isPickup ? (
-                              <><Store className="w-3 h-3" /> Retirada</>
-                            ) : (
-                              <><Truck className="w-3 h-3" /> Entrega</>
-                            )}
-                          </span>
-                          <span className={cn(
-                            deliveryFee === 0 ? "text-green-500" : "text-lp-text"
-                          )}>
-                            {deliveryFee === 0 ? 'Grátis' : formatPrice(deliveryFee)}
-                          </span>
-                        </div>
+                        {appliedCoupon && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-green-400 flex items-center gap-1">
+                              <Ticket className="w-3 h-3" /> Cupom ({appliedCoupon.code})
+                            </span>
+                            <span className="text-green-400">-{formatPrice(couponDiscount)}</span>
+                          </div>
+                        )}
+                        {hasDeliveryZones && selectedZone && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-lp-text-muted flex items-center gap-1">
+                              {selectedZone.isPickup ? (
+                                <><Store className="w-3 h-3" /> Retirada</>
+                              ) : (
+                                <><Truck className="w-3 h-3" /> Entrega</>
+                              )}
+                            </span>
+                            <span className={cn(
+                              deliveryFee === 0 ? "text-green-500" : "text-lp-text"
+                            )}>
+                              {deliveryFee === 0 ? 'Grátis' : formatPrice(deliveryFee)}
+                            </span>
+                          </div>
+                        )}
                         <div className="border-t border-lp-border my-1" />
                       </div>
                     )}

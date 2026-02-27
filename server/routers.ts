@@ -17,6 +17,7 @@ import { billingRouter, billingPopupRouter, notificationsRouter } from "./router
 import { ordersRouter, upsellsRouter, deliveryZonesRouter } from "./routers/orders";
 import { onboardingRouter } from './routers/onboarding';
 import { analyticsRouter } from './routers/analytics';
+import { couponsRouter } from './routers/coupons';
 
 export const appRouter = router({
   // System routes
@@ -129,6 +130,9 @@ export const appRouter = router({
 
   // Delivery Zones (Logística)
   deliveryZones: deliveryZonesRouter,
+
+  // Coupons (Marketing)
+  coupons: couponsRouter,
 
   // ============================================
   // PUBLIC ROUTES (Landing Page)
