@@ -31,6 +31,7 @@ import NotificationsPage from "./pages/admin/dashboard/Notifications";
 import VitrinePage from "./pages/admin/dashboard/Vitrine";
 import StoreDataPage from "./pages/admin/dashboard/StoreData";
 import OrdersPage from "./pages/admin/dashboard/Orders";
+import OrderHistoryPage from "./pages/admin/dashboard/OrderHistory";
 import DeliveryPage from "./pages/admin/dashboard/Delivery";
 
 // Onboarding
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/admin/dashboard/vitrine" component={VitrinePage} />
       <Route path="/admin/dashboard/store" component={StoreDataPage} />
       <Route path="/admin/dashboard/orders" component={OrdersPage} />
+      <Route path="/admin/dashboard/history" component={OrderHistoryPage} />
       <Route path="/admin/dashboard/delivery" component={DeliveryPage} />
       
       {/* Shared Admin Routes */}

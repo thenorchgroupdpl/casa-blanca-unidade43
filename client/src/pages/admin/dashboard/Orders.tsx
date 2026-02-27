@@ -40,6 +40,7 @@ import {
   Loader2,
   AlertTriangle,
   Undo2,
+  Trash2,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -159,6 +160,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeView, setActiveView] = useState<"kanban" | "list">("kanban");
 
   const utils = trpc.useUtils();
@@ -191,6 +193,16 @@ export default function OrdersPage() {
       toast.success("Pedido cancelado!");
       utils.orders.list.invalidate();
       setConfirmCancel(false);
+      setDetailOpen(false);
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const deleteOrder = trpc.orders.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Pedido excluído!");
+      utils.orders.list.invalidate();
+      setConfirmDelete(false);
       setDetailOpen(false);
     },
     onError: (error) => toast.error(error.message),
@@ -327,8 +339,15 @@ export default function OrdersPage() {
   const handleViewOrder = useCallback((order: any) => {
     setSelectedOrder(order);
     setConfirmCancel(false);
+    setConfirmDelete(false);
     setDetailOpen(true);
   }, []);
+
+  const handleDeleteFromCard = useCallback((orderId: number) => {
+    if (window.confirm("Tem certeza que deseja excluir este pedido? Esta ação é permanente.")) {
+      deleteOrder.mutate({ id: orderId });
+    }
+  }, [deleteOrder]);
 
   // ============================================
   // RENDER
@@ -447,6 +466,7 @@ export default function OrdersPage() {
               orders={ordersByStatus[column.id]}
               onMoveOrder={handleMoveOrder}
               onViewOrder={handleViewOrder}
+              onDeleteOrder={handleDeleteFromCard}
               isUpdating={updateStatus.isPending}
               highlightedOrderId={highlightedOrderId}
             />
@@ -559,6 +579,52 @@ export default function OrdersPage() {
                         );
                       })()
                     )}
+                  </div>
+                )}
+              </div>
+
+              {/* Delete Button with Confirmation */}
+              <div className="pt-2 border-t border-zinc-800">
+                {!confirmDelete ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setConfirmDelete(true)}
+                    className="w-full border-zinc-700 text-zinc-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir Pedido
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                      <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                      <p className="text-sm text-red-300">Tem certeza que deseja excluir permanentemente este pedido? Esta a\u00e7\u00e3o n\u00e3o pode ser desfeita.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setConfirmDelete(false)}
+                        className="flex-1 border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                      >
+                        N\u00e3o, manter
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteOrder.mutate({ id: selectedOrder.id })}
+                        disabled={deleteOrder.isPending}
+                        className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/20 bg-red-500/10"
+                      >
+                        {deleteOrder.isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 mr-2" />
+                        )}
+                        Sim, excluir
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -776,6 +842,7 @@ function KanbanColumnComponent({
   orders,
   onMoveOrder,
   onViewOrder,
+  onDeleteOrder,
   isUpdating,
   highlightedOrderId,
 }: {
@@ -783,6 +850,7 @@ function KanbanColumnComponent({
   orders: any[];
   onMoveOrder: (orderId: number, newStatus: OrderStatus) => void;
   onViewOrder: (order: any) => void;
+  onDeleteOrder: (orderId: number) => void;
   isUpdating: boolean;
   highlightedOrderId?: number | null;
 }) {
@@ -814,6 +882,7 @@ function KanbanColumnComponent({
               column={column}
               onMoveOrder={onMoveOrder}
               onViewOrder={onViewOrder}
+              onDeleteOrder={onDeleteOrder}
               isUpdating={isUpdating}
               isHighlighted={order.id === highlightedOrderId}
             />
@@ -833,6 +902,7 @@ function OrderCard({
   column,
   onMoveOrder,
   onViewOrder,
+  onDeleteOrder,
   isUpdating,
   isHighlighted,
 }: {
@@ -840,6 +910,7 @@ function OrderCard({
   column: KanbanColumn;
   onMoveOrder: (orderId: number, newStatus: OrderStatus) => void;
   onViewOrder: (order: any) => void;
+  onDeleteOrder: (orderId: number) => void;
   isUpdating: boolean;
   isHighlighted?: boolean;
 }) {
@@ -917,7 +988,7 @@ function OrderCard({
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             );
-          })() : null}         <button
+          })() : null}          <button
             onClick={(e) => {
               e.stopPropagation();
               onViewOrder(order);
@@ -927,7 +998,16 @@ function OrderCard({
           >
             <Eye className="w-3.5 h-3.5" />
           </button>
-        </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteOrder(order.id);
+            }}
+            className="p-1.5 rounded-md bg-zinc-800 hover:bg-red-900/50 transition-colors text-zinc-500 hover:text-red-400"
+            title="Excluir pedido"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>        </div>
       </div>
     </div>
   );

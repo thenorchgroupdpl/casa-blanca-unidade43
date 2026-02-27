@@ -988,7 +988,17 @@ export async function getOrdersByStatus(tenantId: number, status?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const conditions = [eq(orders.tenantId, tenantId)];
+  // Filter only today's orders for the Kanban (daily reset)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  
+  const conditions = [
+    eq(orders.tenantId, tenantId),
+    gte(orders.createdAt, todayStart),
+    lte(orders.createdAt, todayEnd),
+  ];
   if (status) {
     conditions.push(eq(orders.status, status as any));
   }
@@ -1524,4 +1534,37 @@ export async function markOrdersAsViewed(tenantId: number): Promise<void> {
       eq(orders.status, 'novo'),
       isNull(orders.viewedAt)
     ));
+}
+
+// ============================================
+// ORDERS - History & Deletion
+// ============================================
+
+export async function getOrdersHistory(tenantId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return db.select().from(orders)
+    .where(eq(orders.tenantId, tenantId))
+    .orderBy(desc(orders.createdAt));
+}
+
+export async function deleteOrder(orderId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(orders).where(eq(orders.id, orderId));
+}
+
+export async function deleteOrdersByDate(tenantId: number, dateStart: Date, dateEnd: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(orders).where(
+    and(
+      eq(orders.tenantId, tenantId),
+      gte(orders.createdAt, dateStart),
+      lte(orders.createdAt, dateEnd),
+    )
+  );
 }

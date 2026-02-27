@@ -179,6 +179,45 @@ export const ordersRouter = router({
       await db.markOrdersAsViewed(tenantId);
       return { success: true };
     }),
+
+  // Get all orders for history (grouped by date on frontend)
+  history: clientAdminProcedure
+    .query(async ({ ctx }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      return db.getOrdersHistory(tenantId);
+    }),
+
+  // Hard delete a single order
+  delete: clientAdminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const order = await db.getOrderById(input.id);
+      if (!order) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Pedido n\u00e3o encontrado" });
+      }
+      const tenantId = getTenantIdFromUser(ctx.user);
+      if (order.tenantId !== tenantId) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      await db.deleteOrder(input.id);
+      return { success: true };
+    }),
+
+  // Hard delete all orders for a specific date
+  deleteByDate: clientAdminProcedure
+    .input(z.object({ date: z.string() })) // "YYYY-MM-DD"
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      const dateStart = new Date(input.date + "T00:00:00");
+      const dateEnd = new Date(input.date + "T23:59:59.999");
+      
+      if (isNaN(dateStart.getTime())) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Data inv\u00e1lida" });
+      }
+      
+      await db.deleteOrdersByDate(tenantId, dateStart, dateEnd);
+      return { success: true };
+    }),
 });
 
 // ============================================

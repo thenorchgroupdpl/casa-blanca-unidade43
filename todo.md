@@ -1350,3 +1350,24 @@
 - [x] Confirmação antes de cancelar ("Tem certeza? Esta ação não pode ser desfeita")
 - [x] Pedidos concluídos: permitir voltar para etapa anterior + cancelar
 - [x] 0 erros TypeScript, 472 testes passando
+
+## Ciclo de Vida dos Pedidos: Kanban Diário + Histórico + Exclusão
+- [x] Backend: alterar query do Kanban para filtrar apenas pedidos do dia atual (00:00-23:59)
+- [x] Backend: criar db helper getOrderHistory (todos os pedidos do tenant)
+- [x] Backend: criar db helper deleteOrderById (hard delete por id + tenantId)
+- [x] Backend: criar db helper deleteOrdersByDate (hard delete por data + tenantId)
+- [x] Backend: criar procedure orders.history (listar todos os pedidos)
+- [x] Backend: criar procedure orders.delete (exclusão individual)
+- [x] Backend: criar procedure orders.deleteByDate (exclusão em massa por data)
+- [x] Frontend Kanban: filtrar pedidos do dia atual na query (reset automático à meia-noite)
+- [x] Frontend Kanban: ícone de lixeira em cada card de pedido
+- [x] Frontend Kanban: confirmação antes de excluir (window.confirm + dialog)
+- [x] Frontend: criar página Histórico (/admin/dashboard/history)
+- [x] Frontend Histórico: layout em lista agrupada por data (expandível com chevron)
+- [x] Frontend Histórico: botão excluir individual em cada linha de pedido
+- [x] Frontend Histórico: botão "Excluir Relatório do Dia" no cabeçalho de cada data
+- [x] Frontend Histórico: modal de confirmação para exclusões (Dialog customizado)
+- [x] Frontend: aba "Histórico" no sidebar (abaixo de Pedidos, ícone History)
+- [x] Frontend: herda ClientAdminLayout (sidebar + dark mode)
+- [x] Testes: 14 testes para filtro diário, histórico e exclusão
+- [x] 0 erros TypeScript, 486 testes passando (25 arquivos)

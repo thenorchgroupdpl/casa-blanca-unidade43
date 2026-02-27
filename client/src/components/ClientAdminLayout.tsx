@@ -35,7 +35,8 @@ import {
   User,
   Bell,
   ClipboardList,
-  Truck
+  Truck,
+  History
 } from "lucide-react";
 import { toast } from "sonner";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -50,6 +51,7 @@ import { BellOff, BellRing, Wifi, WifiOff } from "lucide-react";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
   { icon: ClipboardList, label: "Pedidos", path: "/admin/dashboard/orders" },
+  { icon: History, label: "Hist\u00f3rico", path: "/admin/dashboard/history" },
   { icon: Package, label: "Catálogo", path: "/admin/dashboard/catalog" },
   { icon: LayoutGrid, label: "Vitrine", path: "/admin/dashboard/vitrine" },
   { icon: Truck, label: "Entregas", path: "/admin/dashboard/delivery" },
