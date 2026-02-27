@@ -6,6 +6,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
+import ClientAdminLayout from "@/components/ClientAdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -210,6 +211,7 @@ export default function OrdersPage() {
   // ============================================
 
   return (
+    <ClientAdminLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -405,6 +407,7 @@ export default function OrdersPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </ClientAdminLayout>
   );
 }
 
@@ -426,7 +429,7 @@ function KanbanColumnComponent({
   isUpdating: boolean;
 }) {
   return (
-    <div className={`rounded-xl border ${column.borderColor} ${column.bgColor} p-3 min-h-[300px]`}>
+    <div className={`rounded-xl border border-zinc-800 bg-zinc-900 p-3 min-h-[300px]`}>
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3">
         <div className={`flex items-center gap-2 ${column.color}`}>
@@ -442,7 +445,8 @@ function KanbanColumnComponent({
       <div className="space-y-2">
         {orders.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-xs text-zinc-500">Nenhum pedido</p>
+            <Package className="w-6 h-6 text-zinc-600 mx-auto mb-2" />
+            <p className="text-xs text-zinc-400">Nenhum pedido</p>
           </div>
         ) : (
           orders.map((order: any) => (
@@ -482,7 +486,7 @@ function OrderCard({
 
   return (
     <div
-      className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 cursor-pointer hover:border-zinc-700 transition-colors group"
+      className="bg-zinc-800 border border-zinc-700 rounded-lg p-3 cursor-pointer hover:border-zinc-600 transition-colors group"
       onClick={() => onViewOrder(order)}
     >
       {/* Header */}

@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import ClientAdminLayout from "@/components/ClientAdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ export default function NotificationsPage() {
   };
 
   return (
+    <ClientAdminLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -106,8 +108,8 @@ export default function NotificationsPage() {
             <div className="p-4 rounded-full bg-zinc-800 mb-4">
               <BellOff className="h-8 w-8 text-zinc-500" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-1">Nenhuma notificação</h3>
-            <p className="text-sm text-zinc-500">Você receberá avisos sobre pagamentos e atualizações aqui</p>
+            <h3 className="text-lg font-medium text-zinc-100 mb-1">Nenhuma notificação</h3>
+            <p className="text-sm text-zinc-400">Você receberá avisos sobre pagamentos e atualizações aqui</p>
           </CardContent>
         </Card>
       ) : (
@@ -164,5 +166,6 @@ export default function NotificationsPage() {
         </div>
       )}
     </div>
+    </ClientAdminLayout>
   );
 }

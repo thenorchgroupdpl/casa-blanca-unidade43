@@ -1151,3 +1151,11 @@
 - [x] M3.3: UI Lojista — aba "Entregas" no menu lateral com CRUD completo
 - [x] M3.4: Frontend Público — select de zona no checkout (CartDrawer), taxa dinâmica, mensagem WhatsApp atualizada
 - [x] Testes: 31 novos testes para orders, delivery zones, upsells e billing popup (349 total passando)
+
+## Correção Urgente UI/UX — Alinhamento Visual
+- [x] Correção 1: Verificar envelopamento de layout (Sidebar) nas 3 telas (Pedidos, Entregas, Notificações)
+- [x] Correção 2: Restaurar dark mode — remover bg-white/bg-gray/bg-slate e aplicar bg-background/bg-zinc-950
+- [x] Correção 3a: Kanban — colunas bg-zinc-900 border-zinc-800, cards bg-zinc-800, empty state text-zinc-400
+- [x] Correção 3b: Entregas — banner translúcido escuro (bg-amber-500/10 border-amber-500/20)
+- [x] Correção 3c: Notificações — empty state text-zinc-100/text-zinc-400, cards com contraste adequado
+- [x] Validação: navegação fluida entre todas as abas, sem fundos claros residuais

@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import ClientAdminLayout from "@/components/ClientAdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,7 @@ export default function DeliveryPage() {
   // ============================================
 
   return (
+    <ClientAdminLayout>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -163,13 +165,13 @@ export default function DeliveryPage() {
       </div>
 
       {/* Info Card */}
-      <Card className="bg-amber-500/10 border-amber-500/20">
+      <Card className="bg-amber-500/10 border border-amber-500/20">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Truck className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm text-amber-200 font-medium">Como funciona?</p>
-              <p className="text-xs text-amber-200/70 mt-1">
+              <p className="text-sm text-amber-300 font-medium">Como funciona?</p>
+              <p className="text-xs text-amber-300/70 mt-1">
                 Crie zonas de entrega (bairros, regiões) com taxas diferentes. O cliente
                 escolhe a zona no checkout e a taxa é adicionada automaticamente ao pedido.
                 Você também pode criar uma zona de "Retirada no Local" com taxa zero.
@@ -372,5 +374,6 @@ export default function DeliveryPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </ClientAdminLayout>
   );
 }
