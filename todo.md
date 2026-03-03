@@ -1583,3 +1583,14 @@
 - [x] Causa raiz: validação de WhatsApp bloqueava save quando campo vazio (loja sem WhatsApp)
 - [x] Fix: WhatsApp agora é atualizado condicionalmente (só se >= 10 dígitos)
 - [x] 0 erros TypeScript e 570 testes passando
+
+## 6 Novos Temas para Mercados Não-Alimentícios
+- [x] Ler estrutura atual dos presets (designPresets.ts)
+- [x] Tema 19 — Assistência Técnica (Tech Repair) | Tech Blue | Dark
+- [x] Tema 20 — Oficina Mecânica (Auto Garage) | Steel Orange | Dark
+- [x] Tema 21 — Salão de Beleza (Beauty Rose) | Rose Gold | Light
+- [x] Tema 22 — Pet Shop (Pet Care) | Teal Paw | Light
+- [x] Tema 23 — Loja de Roupas (Fashion Noir) | Minimal B&W | Dark
+- [x] Tema 24 — Materiais de Construção (Builder Pro) | Builder Yellow | Dark
+- [x] Layout já suporta 24 cards (max-h + scroll implementado anteriormente)
+- [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)
