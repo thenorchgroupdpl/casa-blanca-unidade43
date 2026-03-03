@@ -1608,3 +1608,13 @@
 ## Selo Visual OFERTA no Order Bump
 - [x] Adicionar badge "-X% OFF" sobre a imagem do produto no UpsellModal quando há desconto
 - [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente)
+
+## Mensagens Personalizáveis no Order Bump
+- [x] Auditar UpsellModal e painel de upsells no Catalog.tsx
+- [x] Criar tabela upsell_messages no schema (id, tenantId, title, subtitle) + campo messageId em product_upsells
+- [x] Criar upsellMessagesRouter (list, create, delete) + db helpers
+- [x] Adicionar seção de gerenciamento de frases no Catalog.tsx (criar/deletar mensagens)
+- [x] Adicionar seletor de frase por produto no formulário de upsell (dropdown)
+- [x] UpsellProvider busca mensagens via /api/trpc/upsellMessages.list e passa para UpsellModal
+- [x] UpsellModal resolve título/subtítulo baseado no messageId do primeiro produto
+- [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)

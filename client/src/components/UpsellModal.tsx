@@ -27,10 +27,17 @@ interface UpsellModalProps {
     imageUrl: string | null;
     tenantId: number;
     discountPrice?: string | null;
+    messageId?: number | null;
+  }>;
+  /** Custom upsell messages from the backend */
+  upsellMessages?: Array<{
+    id: number;
+    title: string;
+    subtitle: string;
   }>;
 }
 
-export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellProducts }: UpsellModalProps) {
+export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellProducts, upsellMessages }: UpsellModalProps) {
   const { addItem } = useCart();
   const { showToast } = useToast();
   const { data } = useSiteData();
@@ -71,6 +78,25 @@ export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellPro
     setAddedIds(prev => new Set(prev).add(upsell.id));
     showToast('Adicionado!', `${upsell.name} adicionado à sacola.`);
   };
+
+  // Resolve the message to display based on the first upsell product's messageId
+  // If a custom message is linked, use it; otherwise fall back to Design System defaults
+  const { resolvedTitle, resolvedSubtitle } = useMemo(() => {
+    // Check if any upsell product has a custom message assigned
+    const firstMessageId = upsellProducts.find(u => u.messageId)?.messageId;
+    if (firstMessageId && upsellMessages) {
+      const customMsg = upsellMessages.find(m => m.id === firstMessageId);
+      if (customMsg) {
+        return { resolvedTitle: customMsg.title, resolvedSubtitle: customMsg.subtitle };
+      }
+    }
+    // Fall back to Design System values or hardcoded defaults
+    const ds = data?.upsell_style;
+    return {
+      resolvedTitle: ds?.title || 'Que tal adicionar?',
+      resolvedSubtitle: ds?.subtitle || 'Sugest\u00f5es que combinam com seu pedido',
+    };
+  }, [upsellProducts, upsellMessages, data?.upsell_style]);
 
   if (!triggerProduct || upsellProducts.length === 0) return null;
 
@@ -133,13 +159,13 @@ export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellPro
                     className="font-semibold text-lg"
                     style={{ color: upsellStyle?.titleColor || '#ffffff' }}
                   >
-                    {upsellStyle?.title || 'Que tal adicionar?'}
+                    {resolvedTitle}
                   </h3>
                   <p
                     className="text-sm"
                     style={{ color: upsellStyle?.subtitleColor || 'rgba(255,255,255,0.6)' }}
                   >
-                    {upsellStyle?.subtitle || 'Sugestões que combinam com seu pedido'}
+                    {resolvedSubtitle}
                   </p>
                 </div>
               </div>

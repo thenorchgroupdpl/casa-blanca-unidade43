@@ -14,7 +14,7 @@ import { emailAuthRouter } from "./routers/auth";
 import { usersRouter } from "./routers/users";
 import { globalSettingsRouter, publicGlobalSettingsRouter } from "./routers/globalSettings";
 import { billingRouter, billingPopupRouter, notificationsRouter } from "./routers/billing";
-import { ordersRouter, upsellsRouter, deliveryZonesRouter } from "./routers/orders";
+import { ordersRouter, upsellsRouter, upsellMessagesRouter, deliveryZonesRouter } from "./routers/orders";
 import { onboardingRouter } from './routers/onboarding';
 import { analyticsRouter } from './routers/analytics';
 import { couponsRouter } from './routers/coupons';
@@ -127,6 +127,9 @@ export const appRouter = router({
 
   // Product Upsells (Order Bump)
   upsells: upsellsRouter,
+
+  // Upsell Messages (Custom Order Bump Messages)
+  upsellMessages: upsellMessagesRouter,
 
   // Delivery Zones (Logística)
   deliveryZones: deliveryZonesRouter,

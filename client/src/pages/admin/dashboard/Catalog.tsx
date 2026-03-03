@@ -42,6 +42,9 @@ import {
   Loader2,
   Zap,
   Check,
+  MessageSquare,
+  PlusCircle,
+  Trash,
 } from "lucide-react";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
@@ -141,7 +144,10 @@ export default function CatalogPage() {
   const [productForm, setProductForm] = useState<ProductFormData>(defaultProductForm);
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [upsellItems, setUpsellItems] = useState<Array<{ upsellProductId: number; discountPrice: string | null }>>([]);
+  const [upsellItems, setUpsellItems] = useState<Array<{ upsellProductId: number; discountPrice: string | null; messageId: number | null }>>([]);
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [newMessageTitle, setNewMessageTitle] = useState('');
+  const [newMessageSubtitle, setNewMessageSubtitle] = useState('');
 
   const utils = trpc.useUtils();
   
@@ -267,6 +273,28 @@ export default function CatalogPage() {
   
   const setUpsellsMutation = trpc.upsells.set.useMutation({
     onError: (error) => toast.error(`Erro ao salvar upsells: ${error.message}`),
+  });
+
+  // Upsell Messages query & mutations
+  const { data: upsellMessages } = trpc.upsellMessages.list.useQuery();
+  const createMessageMutation = trpc.upsellMessages.create.useMutation({
+    onSuccess: () => {
+      toast.success('Mensagem criada!');
+      utils.upsellMessages.list.invalidate();
+      setShowMessageForm(false);
+      setNewMessageTitle('');
+      setNewMessageSubtitle('');
+    },
+    onError: (error) => toast.error(error.message),
+  });
+  const deleteMessageMutation = trpc.upsellMessages.delete.useMutation({
+    onSuccess: () => {
+      toast.success('Mensagem removida!');
+      utils.upsellMessages.list.invalidate();
+      // Clear messageId references in current upsellItems
+      setUpsellItems(prev => prev.map(u => ({ ...u, messageId: null })));
+    },
+    onError: (error) => toast.error(error.message),
   });
 
   // Sync upsell items when editing product changes
@@ -1090,7 +1118,7 @@ export default function CatalogPage() {
                                 setUpsellItems(prev =>
                                   isSelected
                                     ? prev.filter(u => u.upsellProductId !== p.id)
-                                    : [...prev, { upsellProductId: p.id, discountPrice: null }]
+                                    : [...prev, { upsellProductId: p.id, discountPrice: null, messageId: null }]
                                 );
                               }}
                               className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm transition-colors ${
@@ -1113,7 +1141,7 @@ export default function CatalogPage() {
                               </span>
                             </button>
                             {/* Discount Price Field - shown when product is selected */}
-                            {isSelected && (
+                            {isSelected && (<>
                               <div className="ml-7 flex items-center gap-2 px-3 pb-2">
                                 <label className="text-xs text-zinc-400 whitespace-nowrap">Preço no Bump:</label>
                                 <div className="relative flex-1 max-w-[160px]">
@@ -1146,7 +1174,38 @@ export default function CatalogPage() {
                                   <span className="text-xs text-zinc-600">Sem desconto</span>
                                 )}
                               </div>
-                            )}
+                              {/* Message Selector */}
+                              <div className="ml-7 flex items-center gap-2 px-3 pb-2">
+                                <label className="text-xs text-zinc-400 whitespace-nowrap flex items-center gap-1">
+                                  <MessageSquare className="w-3 h-3" />
+                                  Mensagem:
+                                </label>
+                                <Select
+                                  value={upsellItem?.messageId ? String(upsellItem.messageId) : 'default'}
+                                  onValueChange={(val) => {
+                                    setUpsellItems(prev =>
+                                      prev.map(u =>
+                                        u.upsellProductId === p.id
+                                          ? { ...u, messageId: val === 'default' ? null : Number(val) }
+                                          : u
+                                      )
+                                    );
+                                  }}
+                                >
+                                  <SelectTrigger className="h-7 text-xs flex-1 max-w-[280px] bg-zinc-900 border-zinc-600">
+                                    <SelectValue placeholder="Padrão" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="default">Padrão (Que tal adicionar?)</SelectItem>
+                                    {upsellMessages?.map(msg => (
+                                      <SelectItem key={msg.id} value={String(msg.id)}>
+                                        {msg.title}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </>)}
                           </div>
                         );
                       })}
@@ -1159,6 +1218,103 @@ export default function CatalogPage() {
                       {upsellItems.length} produto{upsellItems.length > 1 ? 's' : ''} selecionado{upsellItems.length > 1 ? 's' : ''} como sugestão
                     </p>
                   )}
+
+                  {/* Upsell Messages Management */}
+                  <div className="mt-3 pt-3 border-t border-zinc-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="flex items-center gap-2 text-xs">
+                        <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
+                        Mensagens do Order Bump
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs text-blue-400 hover:text-blue-300"
+                        onClick={() => setShowMessageForm(!showMessageForm)}
+                      >
+                        <PlusCircle className="w-3 h-3 mr-1" />
+                        Nova
+                      </Button>
+                    </div>
+                    <p className="text-xs text-zinc-500 mb-2">
+                      Crie mensagens personalizadas para exibir no popup de sugestões.
+                    </p>
+
+                    {/* New Message Form */}
+                    {showMessageForm && (
+                      <div className="space-y-2 p-3 rounded-lg bg-zinc-800/80 border border-zinc-700 mb-2">
+                        <Input
+                          placeholder='Título (ex: "Aproveite e leve junto!")'
+                          value={newMessageTitle}
+                          onChange={(e) => setNewMessageTitle(e.target.value)}
+                          className="h-8 text-xs bg-zinc-900 border-zinc-600"
+                        />
+                        <Input
+                          placeholder='Subtítulo (ex: "Combina perfeitamente com seu pedido")'
+                          value={newMessageSubtitle}
+                          onChange={(e) => setNewMessageSubtitle(e.target.value)}
+                          className="h-8 text-xs bg-zinc-900 border-zinc-600"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-7 text-xs"
+                            disabled={!newMessageTitle.trim() || !newMessageSubtitle.trim() || createMessageMutation.isPending}
+                            onClick={() => {
+                              createMessageMutation.mutate({
+                                title: newMessageTitle.trim(),
+                                subtitle: newMessageSubtitle.trim(),
+                              });
+                            }}
+                          >
+                            {createMessageMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Salvar'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              setShowMessageForm(false);
+                              setNewMessageTitle('');
+                              setNewMessageSubtitle('');
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Existing Messages List */}
+                    {upsellMessages && upsellMessages.length > 0 ? (
+                      <div className="space-y-1">
+                        {upsellMessages.map(msg => (
+                          <div key={msg.id} className="flex items-center gap-2 px-3 py-2 rounded-md bg-zinc-800/50 border border-zinc-700/50">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-zinc-200 truncate">{msg.title}</p>
+                              <p className="text-xs text-zinc-500 truncate">{msg.subtitle}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-zinc-500 hover:text-red-400"
+                              onClick={() => deleteMessageMutation.mutate({ id: msg.id })}
+                            >
+                              <Trash className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-zinc-600 text-center py-2">
+                        Nenhuma mensagem personalizada. A mensagem padrão será usada.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

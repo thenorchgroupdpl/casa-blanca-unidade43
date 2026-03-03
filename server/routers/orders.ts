@@ -248,6 +248,7 @@ export const upsellsRouter = router({
       upsellItems: z.array(z.object({
         upsellProductId: z.number(),
         discountPrice: z.string().nullable().optional(),
+        messageId: z.number().nullable().optional(),
       })),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -262,6 +263,53 @@ export const upsellsRouter = router({
       }
       
       await db.setProductUpsells(input.productId, input.upsellItems);
+      return { success: true };
+    }),
+});
+
+// ============================================
+// UPSELL MESSAGES ROUTER (Custom Order Bump Messages)
+// ============================================
+
+export const upsellMessagesRouter = router({
+  // List all messages for the tenant
+  list: clientAdminProcedure
+    .query(async ({ ctx }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      return db.getUpsellMessages(tenantId);
+    }),
+
+  // Create a new message
+  create: clientAdminProcedure
+    .input(z.object({
+      title: z.string().min(1).max(255),
+      subtitle: z.string().min(1).max(255),
+      isDefault: z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      return db.createUpsellMessage({ tenantId, ...input });
+    }),
+
+  // Update a message
+  update: clientAdminProcedure
+    .input(z.object({
+      id: z.number(),
+      title: z.string().min(1).max(255).optional(),
+      subtitle: z.string().min(1).max(255).optional(),
+      isDefault: z.boolean().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      await db.updateUpsellMessage(id, data);
+      return { success: true };
+    }),
+
+  // Delete a message
+  delete: clientAdminProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await db.deleteUpsellMessage(input.id);
       return { success: true };
     }),
 });

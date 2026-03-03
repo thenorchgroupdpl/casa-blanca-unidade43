@@ -309,11 +309,27 @@ export const productUpsells = mysqlTable("product_upsells", {
   productId: int("productId").notNull(),
   upsellProductId: int("upsellProductId").notNull(),
   discountPrice: decimal("discountPrice", { precision: 10, scale: 2 }),
+  messageId: int("messageId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type ProductUpsell = typeof productUpsells.$inferSelect;
 export type InsertProductUpsell = typeof productUpsells.$inferInsert;
+
+// ============================================
+// UPSELL MESSAGES TABLE - Custom Order Bump Messages
+// ============================================
+export const upsellMessages = mysqlTable("upsell_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenantId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  subtitle: varchar("subtitle", { length: 255 }).notNull(),
+  isDefault: boolean("isDefault").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UpsellMessage = typeof upsellMessages.$inferSelect;
+export type InsertUpsellMessage = typeof upsellMessages.$inferInsert;
 
 // ============================================
 // HOME ROWS TABLE - Vitrine Configuration

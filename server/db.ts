@@ -12,6 +12,7 @@ import {
   globalSettings, GlobalSetting, InsertGlobalSetting,
   notifications, Notification, InsertNotification,
   productUpsells, ProductUpsell, InsertProductUpsell,
+  upsellMessages, UpsellMessage, InsertUpsellMessage,
   deliveryZones, DeliveryZone, InsertDeliveryZone,
   coupons, Coupon, InsertCoupon
 } from "../drizzle/schema";
@@ -947,6 +948,7 @@ export async function getProductUpsells(productId: number) {
     imageUrl: products.imageUrl,
     tenantId: products.tenantId,
     discountPrice: productUpsells.discountPrice,
+    messageId: productUpsells.messageId,
   })
     .from(productUpsells)
     .innerJoin(products, eq(productUpsells.upsellProductId, products.id))
@@ -955,13 +957,14 @@ export async function getProductUpsells(productId: number) {
   return rows;
 }
 
-export async function getProductUpsellIds(productId: number): Promise<{ upsellProductId: number; discountPrice: string | null }[]> {
+export async function getProductUpsellIds(productId: number): Promise<{ upsellProductId: number; discountPrice: string | null; messageId: number | null }[]> {
   const db = await getDb();
   if (!db) return [];
   
   const rows = await db.select({
     upsellProductId: productUpsells.upsellProductId,
     discountPrice: productUpsells.discountPrice,
+    messageId: productUpsells.messageId,
   })
     .from(productUpsells)
     .where(eq(productUpsells.productId, productId));
@@ -971,7 +974,7 @@ export async function getProductUpsellIds(productId: number): Promise<{ upsellPr
 
 export async function setProductUpsells(
   productId: number,
-  upsellItems: Array<{ upsellProductId: number; discountPrice?: string | null }>
+  upsellItems: Array<{ upsellProductId: number; discountPrice?: string | null; messageId?: number | null }>
 ) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -987,9 +990,53 @@ export async function setProductUpsells(
         productId,
         upsellProductId: item.upsellProductId,
         discountPrice: item.discountPrice || null,
+        messageId: item.messageId || null,
       }))
     );
   }
+}
+
+// ============================================
+// UPSELL MESSAGES (Custom Order Bump Messages)
+// ============================================
+
+export async function getUpsellMessages(tenantId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(upsellMessages).where(eq(upsellMessages.tenantId, tenantId)).orderBy(upsellMessages.createdAt);
+}
+
+export async function createUpsellMessage(data: { tenantId: number; title: string; subtitle: string; isDefault?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const [result] = await db.insert(upsellMessages).values({
+    tenantId: data.tenantId,
+    title: data.title,
+    subtitle: data.subtitle,
+    isDefault: data.isDefault ?? false,
+  });
+  return { id: result.insertId };
+}
+
+export async function updateUpsellMessage(id: number, data: { title?: string; subtitle?: string; isDefault?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(upsellMessages).set(data).where(eq(upsellMessages.id, id));
+}
+
+export async function deleteUpsellMessage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Clear messageId references first
+  await db.update(productUpsells).set({ messageId: null }).where(eq(productUpsells.messageId, id));
+  await db.delete(upsellMessages).where(eq(upsellMessages.id, id));
+}
+
+export async function getUpsellMessageById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [row] = await db.select().from(upsellMessages).where(eq(upsellMessages.id, id)).limit(1);
+  return row ?? null;
 }
 
 // ============================================

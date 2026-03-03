@@ -5,7 +5,7 @@
  * if there are upsell products and show the modal.
  */
 
-import { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import UpsellModal from './UpsellModal';
 import type { Product } from '@/types';
 
@@ -34,8 +34,34 @@ export default function UpsellProvider({ children }: UpsellProviderProps) {
     price: string;
     imageUrl: string | null;
     tenantId: number;
+    discountPrice?: string | null;
+    messageId?: number | null;
+  }>>([]);
+  const [upsellMessages, setUpsellMessages] = useState<Array<{
+    id: number;
+    title: string;
+    subtitle: string;
   }>>([]);
   const fetchingRef = useRef(false);
+  const messagesLoadedRef = useRef(false);
+
+  // Fetch upsell messages once on mount (they don't change per product)
+  useEffect(() => {
+    if (messagesLoadedRef.current) return;
+    messagesLoadedRef.current = true;
+
+    fetch(`/api/trpc/upsellMessages.list?input=${encodeURIComponent(JSON.stringify({ json: {} }))}`)
+      .then(res => res.json())
+      .then(data => {
+        const results = data?.result?.data?.json;
+        if (results && Array.isArray(results)) {
+          setUpsellMessages(results);
+        }
+      })
+      .catch(() => {
+        // Silently fail - messages are optional, defaults will be used
+      });
+  }, []);
 
   const triggerUpsell = useCallback(async (product: Product, tenantId: number) => {
     if (fetchingRef.current) return;
@@ -77,6 +103,7 @@ export default function UpsellProvider({ children }: UpsellProviderProps) {
         isOpen={isOpen}
         onClose={handleClose}
         upsellProducts={upsellProducts}
+        upsellMessages={upsellMessages}
       />
     </UpsellContext.Provider>
   );
