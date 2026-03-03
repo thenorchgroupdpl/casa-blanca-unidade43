@@ -1618,3 +1618,14 @@
 - [x] UpsellProvider busca mensagens via /api/trpc/upsellMessages.list e passa para UpsellModal
 - [x] UpsellModal resolve título/subtítulo baseado no messageId do primeiro produto
 - [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)
+
+## Webhook de Notificação de Novos Pedidos (Pushcut)
+- [x] Auditar fluxo de criação de pedidos (3 pontos: orders.create, orders.createManual, store.createOrder)
+- [x] Adicionar campos webhookUrl + webhookEnabled na tabela store_settings + db:push
+- [x] Criar endpoints: store.getWebhookConfig, store.updateWebhookConfig, store.testWebhook
+- [x] Criar server/webhook.ts com dispatchOrderWebhook (fire-and-forget, 10s timeout)
+- [x] Integrar disparo em todos os 3 pontos de criação de pedidos
+- [x] UI na página de Notificações: input URL, switch on/off, botão testar, preview payload, dica Pushcut
+- [x] Payload: event, title, text, order (id, customer, summary, total, items, zone, fee), timestamp
+- [x] Tratamento silencioso: console.error apenas, nunca bloqueia pedido
+- [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)

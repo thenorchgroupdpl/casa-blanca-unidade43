@@ -3,6 +3,7 @@ import { router, clientAdminProcedure, publicProcedure } from "../_core/trpc";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { notifyTenant, type OrderEvent } from "../sse";
+import { dispatchOrderWebhook } from "../webhook";
 
 // Helper to get tenant ID from user context
 function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
@@ -85,6 +86,8 @@ export const ordersRouter = router({
     .mutation(async ({ input }) => {
       const id = await db.createOrderFull(input);
 
+      const createdAt = new Date().toISOString();
+
       // Notify tenant via SSE
       try {
         const event: OrderEvent = {
@@ -92,13 +95,25 @@ export const ordersRouter = router({
           customerName: input.customerName,
           total: parseFloat(input.totalValue),
           itemCount: input.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
-          createdAt: new Date().toISOString(),
+          createdAt,
           zone: input.deliveryZoneName || "Retirada no Local",
         };
         notifyTenant(input.tenantId, event);
       } catch (err) {
         console.error("[SSE] Failed to notify tenant:", err);
       }
+
+      // Dispatch webhook notification (fire-and-forget)
+      dispatchOrderWebhook(input.tenantId, {
+        orderId: id,
+        customerName: input.customerName,
+        summary: input.summary,
+        totalValue: input.totalValue,
+        items: input.items,
+        deliveryZoneName: input.deliveryZoneName,
+        deliveryFee: input.deliveryFee,
+        createdAt,
+      });
 
       return { id };
     }),
@@ -142,6 +157,18 @@ export const ordersRouter = router({
         deliveryZoneName: input.deliveryZoneName,
         deliveryFee: input.deliveryFee,
         status: 'novo',
+      });
+
+      // Dispatch webhook notification (fire-and-forget)
+      dispatchOrderWebhook(tenantId, {
+        orderId: id,
+        customerName: input.customerName,
+        summary,
+        totalValue,
+        items: input.items,
+        deliveryZoneName: input.deliveryZoneName,
+        deliveryFee: input.deliveryFee,
+        createdAt: new Date().toISOString(),
       });
 
       return { id };

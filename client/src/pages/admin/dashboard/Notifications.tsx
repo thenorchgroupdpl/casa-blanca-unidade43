@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import ClientAdminLayout from "@/components/ClientAdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Bell,
@@ -16,6 +19,12 @@ import {
   CreditCard,
   MessageCircle,
   ShieldAlert,
+  Webhook,
+  Send,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  ExternalLink,
 } from "lucide-react";
 
 // ============================================
@@ -73,7 +82,6 @@ function BillingAlertCard({
     <Card className="bg-red-500/10 border-red-500/50 overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          {/* Icon */}
           <div className={`p-3 rounded-xl shrink-0 ${isSuspended ? "bg-red-500/20" : "bg-red-500/15"}`}>
             {isSuspended ? (
               <ShieldAlert className="h-6 w-6 text-red-400" />
@@ -81,8 +89,6 @@ function BillingAlertCard({
               <Clock className="h-6 w-6 text-red-400" />
             )}
           </div>
-
-          {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
               <h3 className="font-bold text-base text-red-100">
@@ -95,13 +101,10 @@ function BillingAlertCard({
                 {isSuspended ? "Urgente" : "Cobrança"}
               </Badge>
             </div>
-
             <p className="text-sm leading-relaxed text-red-200/80 mb-4">
               {popup.message ||
                 "Sua mensalidade está vencida. Sua loja pode ser suspensa a qualquer momento. Pague agora para evitar a interrupção do serviço."}
             </p>
-
-            {/* PIX Key (if available) */}
             {popup.pixKey && (
               <div className="rounded-lg p-3 border border-red-500/20 bg-red-500/5 mb-4">
                 <div className="flex items-center gap-2 mb-1">
@@ -110,9 +113,7 @@ function BillingAlertCard({
                     Chave PIX
                   </span>
                 </div>
-                <p className="text-sm font-mono break-all text-red-100">
-                  {popup.pixKey}
-                </p>
+                <p className="text-sm font-mono break-all text-red-100">{popup.pixKey}</p>
                 <button
                   onClick={async () => {
                     try {
@@ -128,10 +129,7 @@ function BillingAlertCard({
                 </button>
               </div>
             )}
-
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2">
-              {/* Primary: Regularizar Pagamento */}
               <button
                 onClick={handleRegularize}
                 className="flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-red-500 text-white hover:bg-red-600 active:scale-[0.98]"
@@ -139,8 +137,6 @@ function BillingAlertCard({
                 <CreditCard className="h-4 w-4" />
                 Regularizar Pagamento
               </button>
-
-              {/* Secondary: Já realizei o pagamento */}
               <button
                 onClick={handleAlreadyPaid}
                 className="flex-1 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 border border-red-500/30 text-red-200 hover:bg-red-500/10 active:scale-[0.98]"
@@ -150,6 +146,245 @@ function BillingAlertCard({
               </button>
             </div>
           </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================
+// WEBHOOK CONFIG COMPONENT
+// ============================================
+
+function WebhookConfigSection() {
+  const utils = trpc.useUtils();
+  const { data: config, isLoading } = trpc.store.getWebhookConfig.useQuery();
+
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookEnabled, setWebhookEnabled] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [testStatus, setTestStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [testError, setTestError] = useState("");
+
+  // Sync local state with server data
+  useEffect(() => {
+    if (config) {
+      setWebhookUrl(config.webhookUrl || "");
+      setWebhookEnabled(config.webhookEnabled);
+      setHasChanges(false);
+    }
+  }, [config]);
+
+  const updateMutation = trpc.store.updateWebhookConfig.useMutation({
+    onSuccess: () => {
+      utils.store.getWebhookConfig.invalidate();
+      toast.success("Configuração de webhook salva!");
+      setHasChanges(false);
+    },
+    onError: (err) => {
+      toast.error(`Erro ao salvar: ${err.message}`);
+    },
+  });
+
+  const testMutation = trpc.store.testWebhook.useMutation({
+    onSuccess: (result) => {
+      if (result.success) {
+        setTestStatus("success");
+        toast.success("Webhook testado com sucesso! Verifique seu dispositivo.");
+      } else {
+        setTestStatus("error");
+        setTestError(result.error || "Erro desconhecido");
+        toast.error(`Falha no teste: ${result.error}`);
+      }
+      setTimeout(() => setTestStatus("idle"), 5000);
+    },
+    onError: (err) => {
+      setTestStatus("error");
+      setTestError(err.message);
+      toast.error(`Erro: ${err.message}`);
+      setTimeout(() => setTestStatus("idle"), 5000);
+    },
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate({ webhookUrl, webhookEnabled });
+  };
+
+  const handleTest = () => {
+    if (!webhookUrl) {
+      toast.error("Insira a URL do webhook antes de testar");
+      return;
+    }
+    try {
+      new URL(webhookUrl);
+    } catch {
+      toast.error("URL inválida. Verifique o formato.");
+      return;
+    }
+    setTestStatus("loading");
+    setTestError("");
+    testMutation.mutate({ webhookUrl });
+  };
+
+  const handleUrlChange = (value: string) => {
+    setWebhookUrl(value);
+    setHasChanges(true);
+  };
+
+  const handleToggle = (checked: boolean) => {
+    setWebhookEnabled(checked);
+    setHasChanges(true);
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="bg-zinc-900 border-zinc-800 animate-pulse">
+        <CardContent className="p-6">
+          <div className="h-5 bg-zinc-800 rounded w-1/3 mb-4" />
+          <div className="h-10 bg-zinc-800 rounded w-full mb-3" />
+          <div className="h-4 bg-zinc-800 rounded w-2/3" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-zinc-900 border-zinc-800 overflow-hidden">
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="p-5 border-b border-zinc-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-violet-500/10">
+                <Webhook className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-white text-base">Webhook de Pedidos</h3>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Receba notificações push a cada novo pedido
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-500">
+                {webhookEnabled ? "Ativo" : "Inativo"}
+              </span>
+              <Switch
+                checked={webhookEnabled}
+                onCheckedChange={handleToggle}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Config Body */}
+        <div className="p-5 space-y-4">
+          {/* URL Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
+              URL do Endpoint
+            </label>
+            <Input
+              value={webhookUrl}
+              onChange={(e) => handleUrlChange(e.target.value)}
+              placeholder="https://api.pushcut.io/..."
+              className="bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-600 font-mono text-sm"
+            />
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Cole a URL do seu webhook (ex: Pushcut, Make, Zapier, n8n). A cada novo pedido, enviaremos um POST com os dados do pedido.
+            </p>
+          </div>
+
+          {/* Pushcut Helper */}
+          <div className="rounded-lg p-3 border border-violet-500/20 bg-violet-500/5">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-violet-400 mt-0.5 shrink-0" />
+              <div className="text-xs text-violet-300/80 leading-relaxed">
+                <span className="font-semibold text-violet-300">Usando Pushcut?</span>{" "}
+                Crie uma notificação no app, copie o webhook URL e cole aqui. Você receberá uma push notification no iPhone a cada novo pedido.{" "}
+                <a
+                  href="https://www.pushcut.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-400 hover:text-violet-300 underline underline-offset-2 inline-flex items-center gap-0.5"
+                >
+                  pushcut.io <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Payload Preview */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              Exemplo de Payload
+            </label>
+            <pre className="rounded-lg p-3 bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 font-mono overflow-x-auto leading-relaxed">
+{`{
+  "event": "new_order",
+  "title": "Novo Pedido #42",
+  "text": "João Silva — R$ 89.90",
+  "order": {
+    "id": 42,
+    "customerName": "João Silva",
+    "summary": "2x Pizza Margherita, 1x Coca",
+    "totalValue": "89.90",
+    "deliveryZone": "Centro",
+    "deliveryFee": "5.00"
+  },
+  "timestamp": "2026-03-03T18:00:00Z"
+}`}
+            </pre>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 pt-1">
+            <Button
+              onClick={handleSave}
+              disabled={!hasChanges || updateMutation.isPending}
+              className="bg-violet-600 hover:bg-violet-700 text-white"
+              size="sm"
+            >
+              {updateMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 mr-1.5" />
+              )}
+              Salvar
+            </Button>
+
+            <Button
+              onClick={handleTest}
+              disabled={!webhookUrl || testMutation.isPending}
+              variant="outline"
+              size="sm"
+              className="border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-600"
+            >
+              {testMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+              ) : testStatus === "success" ? (
+                <CheckCircle2 className="h-4 w-4 mr-1.5 text-green-400" />
+              ) : testStatus === "error" ? (
+                <XCircle className="h-4 w-4 mr-1.5 text-red-400" />
+              ) : (
+                <Send className="h-4 w-4 mr-1.5" />
+              )}
+              {testStatus === "success"
+                ? "Enviado!"
+                : testStatus === "error"
+                  ? "Falhou"
+                  : "Testar Webhook"}
+            </Button>
+          </div>
+
+          {/* Test Error Message */}
+          {testStatus === "error" && testError && (
+            <div className="rounded-lg p-3 border border-red-500/20 bg-red-500/5">
+              <p className="text-xs text-red-300">
+                <span className="font-semibold">Erro:</span> {testError}
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -253,6 +488,9 @@ export default function NotificationsPage() {
         <BillingAlertCard popup={billingPopup} />
       )}
 
+      {/* Webhook Configuration */}
+      <WebhookConfigSection />
+
       {/* Notifications List */}
       {isLoading ? (
         <div className="space-y-3">
@@ -295,12 +533,9 @@ export default function NotificationsPage() {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    {/* Icon */}
                     <div className={`p-2 rounded-lg shrink-0 ${config.color}`}>
                       <TypeIcon className="h-4 w-4" />
                     </div>
-
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className={`font-medium text-sm ${!notif.isRead ? "text-white" : "text-zinc-400"}`}>

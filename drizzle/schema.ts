@@ -216,6 +216,10 @@ export const storeSettings = mysqlTable("store_settings", {
   // Google Maps Link
   googleMapsLink: varchar("googleMapsLink", { length: 500 }),
   
+  // Webhook Notification (for new orders)
+  webhookUrl: varchar("webhookUrl", { length: 500 }),
+  webhookEnabled: boolean("webhookEnabled").default(false).notNull(),
+  
   // Manual Override (Lojista can force open/closed)
   manualOverride: varchar("manualOverride", { length: 20 }).$type<'open' | 'closed' | null>(),
   

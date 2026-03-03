@@ -3,6 +3,7 @@ import { router, clientAdminProcedure, publicProcedure } from "../_core/trpc";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 import { notifyTenant, type OrderEvent } from "../sse";
+import { dispatchOrderWebhook } from "../webhook";
 
 // Helper to get tenant ID from user context
 function getTenantIdFromUser(user: { tenantId: number | null; role: string }) {
@@ -117,6 +118,56 @@ export const storeRouter = router({
       return { success: true };
     }),
 
+  // Get webhook config
+  getWebhookConfig: clientAdminProcedure.query(async ({ ctx }) => {
+    const tenantId = getTenantIdFromUser(ctx.user);
+    const settings = await db.getStoreSettings(tenantId);
+    return {
+      webhookUrl: settings?.webhookUrl || "",
+      webhookEnabled: settings?.webhookEnabled ?? false,
+    };
+  }),
+
+  // Update webhook config
+  updateWebhookConfig: clientAdminProcedure
+    .input(z.object({
+      webhookUrl: z.string().max(500),
+      webhookEnabled: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tenantId = getTenantIdFromUser(ctx.user);
+      await db.upsertStoreSettings(tenantId, {
+        webhookUrl: input.webhookUrl || null,
+        webhookEnabled: input.webhookEnabled,
+      });
+      return { success: true };
+    }),
+
+  // Test webhook (send a test payload)
+  testWebhook: clientAdminProcedure
+    .input(z.object({ webhookUrl: z.string().url() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const response = await fetch(input.webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "test",
+            title: "Teste de Webhook",
+            text: "Se você recebeu esta notificação, seu webhook está funcionando corretamente!",
+            timestamp: new Date().toISOString(),
+          }),
+          signal: AbortSignal.timeout(10000),
+        });
+        if (!response.ok) {
+          return { success: false, error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message || "Falha ao conectar" };
+      }
+    }),
+
   // Get home rows configuration
   getHomeRows: clientAdminProcedure.query(async ({ ctx }) => {
     const tenantId = getTenantIdFromUser(ctx.user);
@@ -215,6 +266,8 @@ export const storeRouter = router({
         totalValue: input.totalValue,
       });
 
+      const createdAt = new Date().toISOString();
+
       // Notify tenant via SSE
       try {
         const event: OrderEvent = {
@@ -222,13 +275,22 @@ export const storeRouter = router({
           customerName: input.customerName,
           total: parseFloat(input.totalValue),
           itemCount: 0,
-          createdAt: new Date().toISOString(),
+          createdAt,
           zone: "Manual",
         };
         notifyTenant(tenantId, event);
       } catch (err) {
         console.error("[SSE] Failed to notify tenant:", err);
       }
+
+      // Dispatch webhook notification (fire-and-forget)
+      dispatchOrderWebhook(tenantId, {
+        orderId: id,
+        customerName: input.customerName,
+        summary: input.summary,
+        totalValue: input.totalValue,
+        createdAt,
+      });
 
       return { success: true, id };
     }),
