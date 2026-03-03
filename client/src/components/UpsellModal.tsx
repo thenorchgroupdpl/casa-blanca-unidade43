@@ -160,7 +160,7 @@ export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellPro
                       }}
                     >
                       {/* Product Image */}
-                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
                         {upsell.imageUrl ? (
                           <img
                             src={upsell.imageUrl}
@@ -170,6 +170,12 @@ export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellPro
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <ShoppingBag className="w-6 h-6 text-white/30" />
+                          </div>
+                        )}
+                        {/* OFERTA Badge */}
+                        {upsell.discountPrice && Number(upsell.discountPrice) < Number(upsell.price) && (
+                          <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-[9px] font-bold text-center py-[1px] tracking-wider shadow-sm">
+                            -{Math.round((1 - Number(upsell.discountPrice) / Number(upsell.price)) * 100)}% OFF
                           </div>
                         )}
                       </div>

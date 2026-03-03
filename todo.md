@@ -1604,3 +1604,7 @@
 - [x] Exibir preço com desconto (preço riscado + novo preço) no UpsellModal da landing page
 - [x] Carrinho recebe effectivePrice (desconto ou original)
 - [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)
+
+## Selo Visual OFERTA no Order Bump
+- [x] Adicionar badge "-X% OFF" sobre a imagem do produto no UpsellModal quando há desconto
+- [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente)
