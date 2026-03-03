@@ -946,6 +946,7 @@ export async function getProductUpsells(productId: number) {
     price: products.price,
     imageUrl: products.imageUrl,
     tenantId: products.tenantId,
+    discountPrice: productUpsells.discountPrice,
   })
     .from(productUpsells)
     .innerJoin(products, eq(productUpsells.upsellProductId, products.id))
@@ -954,18 +955,24 @@ export async function getProductUpsells(productId: number) {
   return rows;
 }
 
-export async function getProductUpsellIds(productId: number): Promise<number[]> {
+export async function getProductUpsellIds(productId: number): Promise<{ upsellProductId: number; discountPrice: string | null }[]> {
   const db = await getDb();
   if (!db) return [];
   
-  const rows = await db.select({ upsellProductId: productUpsells.upsellProductId })
+  const rows = await db.select({
+    upsellProductId: productUpsells.upsellProductId,
+    discountPrice: productUpsells.discountPrice,
+  })
     .from(productUpsells)
     .where(eq(productUpsells.productId, productId));
   
-  return rows.map(r => r.upsellProductId);
+  return rows;
 }
 
-export async function setProductUpsells(productId: number, upsellProductIds: number[]) {
+export async function setProductUpsells(
+  productId: number,
+  upsellItems: Array<{ upsellProductId: number; discountPrice?: string | null }>
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
@@ -973,10 +980,14 @@ export async function setProductUpsells(productId: number, upsellProductIds: num
   await db.delete(productUpsells).where(eq(productUpsells.productId, productId));
   
   // Insert new upsells (filter out self-reference)
-  const validIds = upsellProductIds.filter(id => id !== productId);
-  if (validIds.length > 0) {
+  const validItems = upsellItems.filter(item => item.upsellProductId !== productId);
+  if (validItems.length > 0) {
     await db.insert(productUpsells).values(
-      validIds.map(upsellProductId => ({ productId, upsellProductId }))
+      validItems.map(item => ({
+        productId,
+        upsellProductId: item.upsellProductId,
+        discountPrice: item.discountPrice || null,
+      }))
     );
   }
 }

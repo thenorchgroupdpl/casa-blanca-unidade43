@@ -308,6 +308,7 @@ export const productUpsells = mysqlTable("product_upsells", {
   id: int("id").autoincrement().primaryKey(),
   productId: int("productId").notNull(),
   upsellProductId: int("upsellProductId").notNull(),
+  discountPrice: decimal("discountPrice", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

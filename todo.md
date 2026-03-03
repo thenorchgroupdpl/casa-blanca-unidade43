@@ -1594,3 +1594,13 @@
 - [x] Tema 24 — Materiais de Construção (Builder Pro) | Builder Yellow | Dark
 - [x] Layout já suporta 24 cards (max-h + scroll implementado anteriormente)
 - [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)
+
+## Campo de Desconto no Order Bump
+- [x] Auditar estrutura atual do Order Bump (schema, backend, frontend)
+- [x] Adicionar campo discountPrice (decimal 10,2) na tabela product_upsells + db:push
+- [x] Atualizar db.ts: getProductUpsells retorna discountPrice, getProductUpsellIds retorna {upsellProductId, discountPrice}, setProductUpsells aceita upsellItems com discountPrice
+- [x] Atualizar router: upsells.set aceita upsellItems ao invés de upsellProductIds
+- [x] Adicionar campo "Preço no Bump" com input R$ + badge de % desconto no Catalog.tsx
+- [x] Exibir preço com desconto (preço riscado + novo preço) no UpsellModal da landing page
+- [x] Carrinho recebe effectivePrice (desconto ou original)
+- [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)

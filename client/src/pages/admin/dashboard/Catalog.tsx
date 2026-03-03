@@ -141,7 +141,7 @@ export default function CatalogPage() {
   const [productForm, setProductForm] = useState<ProductFormData>(defaultProductForm);
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [upsellIds, setUpsellIds] = useState<number[]>([]);
+  const [upsellItems, setUpsellItems] = useState<Array<{ upsellProductId: number; discountPrice: string | null }>>([]);
 
   const utils = trpc.useUtils();
   
@@ -269,10 +269,10 @@ export default function CatalogPage() {
     onError: (error) => toast.error(`Erro ao salvar upsells: ${error.message}`),
   });
 
-  // Sync upsell IDs when editing product changes
+  // Sync upsell items when editing product changes
   useEffect(() => {
     if (currentUpsellIds) {
-      setUpsellIds(currentUpsellIds);
+      setUpsellItems(currentUpsellIds);
     }
   }, [currentUpsellIds]);
 
@@ -280,7 +280,7 @@ export default function CatalogPage() {
     setProductForm(defaultProductForm);
     setEditingProduct(null);
     setImagePreview(null);
-    setUpsellIds([]);
+    setUpsellItems([]);
   };
 
   const openEditCategory = (category: NonNullable<typeof categories>[number]) => {
@@ -384,7 +384,7 @@ export default function CatalogPage() {
           onSuccess: () => {
             // Save upsells after product update
             if (editingProduct) {
-              setUpsellsMutation.mutate({ productId: editingProduct, upsellProductIds: upsellIds });
+              setUpsellsMutation.mutate({ productId: editingProduct, upsellItems });
             }
           },
           onError: (error) => {
@@ -1076,50 +1076,87 @@ export default function CatalogPage() {
                   <p className="text-xs text-zinc-500">
                     Selecione produtos que serão sugeridos ao cliente ao adicionar este item ao carrinho.
                   </p>
-                  <div className="max-h-40 overflow-y-auto space-y-1 rounded-lg border border-zinc-700 p-2 bg-zinc-800/50">
+                  <div className="max-h-60 overflow-y-auto space-y-1 rounded-lg border border-zinc-700 p-2 bg-zinc-800/50">
                     {products && products
                       .filter(p => p.id !== editingProduct && p.isAvailable)
                       .map(p => {
-                        const isSelected = upsellIds.includes(p.id);
+                        const upsellItem = upsellItems.find(u => u.upsellProductId === p.id);
+                        const isSelected = !!upsellItem;
                         return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setUpsellIds(prev =>
+                          <div key={p.id} className="space-y-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setUpsellItems(prev =>
+                                  isSelected
+                                    ? prev.filter(u => u.upsellProductId !== p.id)
+                                    : [...prev, { upsellProductId: p.id, discountPrice: null }]
+                                );
+                              }}
+                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm transition-colors ${
                                 isSelected
-                                  ? prev.filter(id => id !== p.id)
-                                  : [...prev, p.id]
-                              );
-                            }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm transition-colors ${
-                              isSelected
-                                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-200'
-                                : 'hover:bg-zinc-700 text-zinc-300'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
-                              isSelected ? 'bg-amber-500 border-amber-500' : 'border-zinc-600'
-                            }`}>
-                              {isSelected && <Check className="w-3 h-3 text-black" />}
-                            </div>
-                            {p.imageUrl && (
-                              <img src={p.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                                  ? 'bg-amber-500/20 border border-amber-500/50 text-amber-200'
+                                  : 'hover:bg-zinc-700 text-zinc-300'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
+                                isSelected ? 'bg-amber-500 border-amber-500' : 'border-zinc-600'
+                              }`}>
+                                {isSelected && <Check className="w-3 h-3 text-black" />}
+                              </div>
+                              {p.imageUrl && (
+                                <img src={p.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                              )}
+                              <span className="truncate flex-1">{p.name}</span>
+                              <span className="text-xs text-zinc-500 flex-shrink-0">
+                                R$ {Number(p.price).toFixed(2)}
+                              </span>
+                            </button>
+                            {/* Discount Price Field - shown when product is selected */}
+                            {isSelected && (
+                              <div className="ml-7 flex items-center gap-2 px-3 pb-2">
+                                <label className="text-xs text-zinc-400 whitespace-nowrap">Preço no Bump:</label>
+                                <div className="relative flex-1 max-w-[160px]">
+                                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-zinc-500">R$</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder={Number(p.price).toFixed(2)}
+                                    value={upsellItem?.discountPrice ?? ''}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setUpsellItems(prev =>
+                                        prev.map(u =>
+                                          u.upsellProductId === p.id
+                                            ? { ...u, discountPrice: val === '' ? null : val }
+                                            : u
+                                        )
+                                      );
+                                    }}
+                                    className="w-full pl-8 pr-2 py-1 text-xs rounded bg-zinc-900 border border-zinc-600 text-zinc-200 placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none"
+                                  />
+                                </div>
+                                {upsellItem?.discountPrice && Number(upsellItem.discountPrice) < Number(p.price) && (
+                                  <span className="text-xs text-green-400">
+                                    -{Math.round((1 - Number(upsellItem.discountPrice) / Number(p.price)) * 100)}%
+                                  </span>
+                                )}
+                                {!upsellItem?.discountPrice && (
+                                  <span className="text-xs text-zinc-600">Sem desconto</span>
+                                )}
+                              </div>
                             )}
-                            <span className="truncate flex-1">{p.name}</span>
-                            <span className="text-xs text-zinc-500 flex-shrink-0">
-                              R$ {Number(p.price).toFixed(2)}
-                            </span>
-                          </button>
+                          </div>
                         );
                       })}
                     {(!products || products.filter(p => p.id !== editingProduct && p.isAvailable).length === 0) && (
                       <p className="text-xs text-zinc-500 text-center py-2">Nenhum outro produto disponível</p>
                     )}
                   </div>
-                  {upsellIds.length > 0 && (
+                  {upsellItems.length > 0 && (
                     <p className="text-xs text-amber-400">
-                      {upsellIds.length} produto{upsellIds.length > 1 ? 's' : ''} selecionado{upsellIds.length > 1 ? 's' : ''} como sugestão
+                      {upsellItems.length} produto{upsellItems.length > 1 ? 's' : ''} selecionado{upsellItems.length > 1 ? 's' : ''} como sugestão
                     </p>
                   )}
                 </div>

@@ -1,0 +1,1 @@
+ALTER TABLE `product_upsells` ADD `discountPrice` decimal(10,2);

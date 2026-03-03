@@ -148,6 +148,13 @@
       "when": 1772176140600,
       "tag": "0020_fixed_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1772561702867,
+      "tag": "0021_windy_scarecrow",
+      "breakpoints": true
     }
   ]
 }

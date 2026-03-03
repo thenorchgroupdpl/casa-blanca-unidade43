@@ -26,6 +26,7 @@ interface UpsellModalProps {
     price: string;
     imageUrl: string | null;
     tenantId: number;
+    discountPrice?: string | null;
   }>;
 }
 
@@ -53,11 +54,14 @@ export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellPro
   }, [isOpen]);
 
   const handleAddUpsell = (upsell: typeof upsellProducts[number]) => {
+    // Use discount price if available, otherwise original price
+    const effectivePrice = upsell.discountPrice ? parseFloat(upsell.discountPrice) : parseFloat(upsell.price);
+    
     // Convert to Product type for cart
     const product: Product = {
       id: String(upsell.id),
       name: upsell.name,
-      price: parseFloat(upsell.price),
+      price: effectivePrice,
       images: upsell.imageUrl ? [upsell.imageUrl] : [],
       description: '',
       available: true,
@@ -178,12 +182,31 @@ export default function UpsellModal({ triggerProduct, isOpen, onClose, upsellPro
                         >
                           {upsell.name}
                         </h4>
-                        <p
-                          className="font-semibold text-sm mt-0.5"
-                          style={{ color: upsellStyle?.iconCheckColor || '#f59e0b' }}
-                        >
-                          {formatPrice(parseFloat(upsell.price))}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {upsell.discountPrice && Number(upsell.discountPrice) < Number(upsell.price) ? (
+                            <>
+                              <p
+                                className="font-semibold text-sm"
+                                style={{ color: upsellStyle?.iconCheckColor || '#f59e0b' }}
+                              >
+                                {formatPrice(parseFloat(upsell.discountPrice))}
+                              </p>
+                              <p
+                                className="text-xs line-through opacity-50"
+                                style={{ color: upsellStyle?.subtitleColor || 'rgba(255,255,255,0.6)' }}
+                              >
+                                {formatPrice(parseFloat(upsell.price))}
+                              </p>
+                            </>
+                          ) : (
+                            <p
+                              className="font-semibold text-sm"
+                              style={{ color: upsellStyle?.iconCheckColor || '#f59e0b' }}
+                            >
+                              {formatPrice(parseFloat(upsell.price))}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
                       {/* Add Button */}

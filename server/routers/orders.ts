@@ -245,7 +245,10 @@ export const upsellsRouter = router({
   set: clientAdminProcedure
     .input(z.object({
       productId: z.number(),
-      upsellProductIds: z.array(z.number()),
+      upsellItems: z.array(z.object({
+        upsellProductId: z.number(),
+        discountPrice: z.string().nullable().optional(),
+      })),
     }))
     .mutation(async ({ ctx, input }) => {
       // Verify product ownership
@@ -258,7 +261,7 @@ export const upsellsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
       
-      await db.setProductUpsells(input.productId, input.upsellProductIds);
+      await db.setProductUpsells(input.productId, input.upsellItems);
       return { success: true };
     }),
 });
