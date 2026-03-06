@@ -23,6 +23,8 @@ export interface Address {
 export interface Contact {
   whatsapp: string;
   phone: string;
+  phone2?: string;
+  phone3?: string;
   instagram: string;
   facebook: string;
   youtube: string;

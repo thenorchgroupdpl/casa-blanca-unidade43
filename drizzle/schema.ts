@@ -120,6 +120,8 @@ export const storeSettings = mysqlTable("store_settings", {
   // Contact Info (editable by Client Admin)
   whatsapp: varchar("whatsapp", { length: 20 }),
   phone: varchar("phone", { length: 20 }),
+  phone2: varchar("phone2", { length: 20 }),
+  phone3: varchar("phone3", { length: 20 }),
   email: varchar("email", { length: 320 }),
   
   // Address (editable by Client Admin)

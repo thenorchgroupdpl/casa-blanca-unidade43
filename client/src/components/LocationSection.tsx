@@ -63,6 +63,10 @@ export default function LocationSection() {
   // Phone
   const phoneDisplay = s.phoneText || formatPhone(contact.phone);
   const phoneRaw = (s.phoneText || contact.phone).replace(/\D/g, '');
+  const phone2Display = contact.phone2 ? formatPhone(contact.phone2) : '';
+  const phone2Raw = contact.phone2 ? contact.phone2.replace(/\D/g, '') : '';
+  const phone3Display = contact.phone3 ? formatPhone(contact.phone3) : '';
+  const phone3Raw = contact.phone3 ? contact.phone3.replace(/\D/g, '') : '';
 
   // Address
   const addressOverride = s.addressText;
@@ -369,7 +373,7 @@ export default function LocationSection() {
             >
               <div className="flex items-start gap-4">
                 <div
-                  className="p-3 rounded-xl"
+                  className="p-3 rounded-xl flex-shrink-0"
                   style={{ backgroundColor: s.phoneIconBgColor || undefined }}
                 >
                   <Phone
@@ -377,23 +381,53 @@ export default function LocationSection() {
                     style={{ color: s.phoneIconColor || undefined }}
                   />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3
                     className={cn("font-medium mb-2", !s.phoneTitleColor && "text-lp-text")}
                     style={{ color: s.phoneTitleColor || undefined }}
                   >Telefone</h3>
-                  <a
-                    href={`tel:+55${phoneRaw}`}
-                    className={cn("hover:opacity-80 transition-colors", !s.phoneTextColor && "text-lp-text-muted hover:text-lp-highlight")}
-                    style={{
-                      color: s.phoneTextColor || undefined,
-                      fontFamily: s.phoneFont || undefined,
-                      fontSize: s.phoneFontSize ? `${s.phoneFontSize}px` : undefined,
-                      fontWeight: s.phoneFontWeight ? Number(s.phoneFontWeight) : undefined,
-                    }}
-                  >
-                    {phoneDisplay}
-                  </a>
+                  <div className="space-y-1">
+                    <a
+                      href={`tel:+55${phoneRaw}`}
+                      className={cn("block hover:opacity-80 transition-colors", !s.phoneTextColor && "text-lp-text-muted hover:text-lp-highlight")}
+                      style={{
+                        color: s.phoneTextColor || undefined,
+                        fontFamily: s.phoneFont || undefined,
+                        fontSize: s.phoneFontSize ? `${s.phoneFontSize}px` : undefined,
+                        fontWeight: s.phoneFontWeight ? Number(s.phoneFontWeight) : undefined,
+                      }}
+                    >
+                      {phoneDisplay}
+                    </a>
+                    {phone2Display && (
+                      <a
+                        href={`tel:+55${phone2Raw}`}
+                        className={cn("block hover:opacity-80 transition-colors", !s.phoneTextColor && "text-lp-text-muted hover:text-lp-highlight")}
+                        style={{
+                          color: s.phoneTextColor || undefined,
+                          fontFamily: s.phoneFont || undefined,
+                          fontSize: s.phoneFontSize ? `${s.phoneFontSize}px` : undefined,
+                          fontWeight: s.phoneFontWeight ? Number(s.phoneFontWeight) : undefined,
+                        }}
+                      >
+                        {phone2Display}
+                      </a>
+                    )}
+                    {phone3Display && (
+                      <a
+                        href={`tel:+55${phone3Raw}`}
+                        className={cn("block hover:opacity-80 transition-colors", !s.phoneTextColor && "text-lp-text-muted hover:text-lp-highlight")}
+                        style={{
+                          color: s.phoneTextColor || undefined,
+                          fontFamily: s.phoneFont || undefined,
+                          fontSize: s.phoneFontSize ? `${s.phoneFontSize}px` : undefined,
+                          fontWeight: s.phoneFontWeight ? Number(s.phoneFontWeight) : undefined,
+                        }}
+                      >
+                        {phone3Display}
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

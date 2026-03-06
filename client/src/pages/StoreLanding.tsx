@@ -888,6 +888,8 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     contact: {
       whatsapp: settings?.whatsapp || '',
       phone: settings?.phone || '',
+      phone2: settings?.phone2 || '',
+      phone3: settings?.phone3 || '',
       instagram: settings?.socialLinks?.instagram || '',
       facebook: settings?.socialLinks?.facebook || '',
       youtube: settings?.socialLinks?.youtube || '',

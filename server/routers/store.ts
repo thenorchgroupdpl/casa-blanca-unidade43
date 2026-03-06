@@ -65,6 +65,8 @@ export const storeRouter = router({
     .input(z.object({
       whatsapp: z.string().optional(),
       phone: z.string().optional(),
+      phone2: z.string().optional(),
+      phone3: z.string().optional(),
       email: z.string().email().optional().or(z.literal("")),
       address: z.string().optional(),
       city: z.string().optional(),
@@ -94,6 +96,8 @@ export const storeRouter = router({
       await db.upsertStoreSettings(tenantId, {
         whatsapp: input.whatsapp,
         phone: input.phone,
+        phone2: input.phone2 || null,
+        phone3: input.phone3 || null,
         email: input.email || null,
         address: input.address,
         city: input.city,

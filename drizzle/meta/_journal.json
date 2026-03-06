@@ -169,6 +169,13 @@
       "when": 1772563550186,
       "tag": "0023_mysterious_selene",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1772688397096,
+      "tag": "0024_majestic_wildside",
+      "breakpoints": true
     }
   ]
 }

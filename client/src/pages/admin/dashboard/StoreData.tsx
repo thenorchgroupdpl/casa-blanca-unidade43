@@ -29,6 +29,7 @@ import {
   Globe,
   BarChart3,
   MapPinned,
+  Phone,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
@@ -61,6 +62,8 @@ type SocialLinks = {
 type FormData = {
   whatsapp: string;
   phone: string;
+  phone2: string;
+  phone3: string;
   email: string;
   address: string;
   city: string;
@@ -130,6 +133,8 @@ const dayNames: Record<keyof OpeningHours, string> = {
 const defaultFormData: FormData = {
   whatsapp: "",
   phone: "",
+  phone2: "",
+  phone3: "",
   email: "",
   address: "",
   city: "",
@@ -184,6 +189,8 @@ export default function StoreDataPage() {
       setFormData({
         whatsapp: settings.whatsapp || "",
         phone: settings.phone || "",
+        phone2: (settings as any).phone2 || "",
+        phone3: (settings as any).phone3 || "",
         email: settings.email || "",
         address: settings.address || "",
         city: settings.city || "",
@@ -325,26 +332,78 @@ export default function StoreDataPage() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-zinc-300">Telefone (opcional)</Label>
-                      <Input
-                        value={formData.phone}
-                        onChange={(e) => handleChange("phone", e.target.value)}
-                        placeholder="(11) 3333-4444"
-                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                      />
+                  {/* Telefones - até 3 números */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-zinc-300 flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-zinc-400" />
+                        Telefones (opcional)
+                      </Label>
+                      <span className="text-xs text-zinc-500">{[formData.phone, formData.phone2, formData.phone3].filter(Boolean).length}/3 números</span>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-zinc-300">E-mail (opcional)</Label>
-                      <Input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleChange("email", e.target.value)}
-                        placeholder="contato@loja.com"
-                        className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
-                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-zinc-500 w-6 text-center">1</span>
+                        <Input
+                          value={formData.phone}
+                          onChange={(e) => handleChange("phone", e.target.value)}
+                          placeholder="(11) 3333-4444"
+                          className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 flex-1"
+                        />
+                      </div>
+                      {(formData.phone || formData.phone2) && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500 w-6 text-center">2</span>
+                          <Input
+                            value={formData.phone2}
+                            onChange={(e) => handleChange("phone2", e.target.value)}
+                            placeholder="(11) 4444-5555"
+                            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 flex-1"
+                          />
+                          {formData.phone2 && (
+                            <button
+                              type="button"
+                              onClick={() => handleChange("phone2", "")}
+                              className="text-zinc-500 hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {(formData.phone2 || formData.phone3) && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500 w-6 text-center">3</span>
+                          <Input
+                            value={formData.phone3}
+                            onChange={(e) => handleChange("phone3", e.target.value)}
+                            placeholder="(11) 5555-6666"
+                            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 flex-1"
+                          />
+                          {formData.phone3 && (
+                            <button
+                              type="button"
+                              onClick={() => handleChange("phone3", "")}
+                              className="text-zinc-500 hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
+                    <p className="text-xs text-zinc-500">Adicione até 3 números de telefone para contato</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-zinc-300">E-mail (opcional)</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      placeholder="contato@loja.com"
+                      className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500"
+                    />
                   </div>
                 </CardContent>
               </Card>

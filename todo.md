@@ -1629,3 +1629,12 @@
 - [x] Payload: event, title, text, order (id, customer, summary, total, items, zone, fee), timestamp
 - [x] Tratamento silencioso: console.error apenas, nunca bloqueia pedido
 - [x] 0 erros TypeScript, 569/570 testes (1 falha pré-existente de dados)
+
+## Múltiplos Telefones (até 3)
+- [x] Adicionar phone2 e phone3 no schema do banco (drizzle/schema.ts)
+- [x] Atualizar backend: store router (updateSettings) e StoreLanding (contact mapping)
+- [x] Atualizar tipos (types/index.ts): Contact interface
+- [x] Atualizar StoreData.tsx: campos phone2 e phone3 com botão adicionar/remover
+- [x] Atualizar LocationSection.tsx: exibir phone2 e phone3 quando preenchidos
+- [x] Atualizar Design System (Design.tsx): campos de texto para phone2 e phone3
+- [x] Rodar pnpm db:push para migrar schema

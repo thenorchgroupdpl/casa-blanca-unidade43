@@ -4464,14 +4464,19 @@ function InfoSection({
         </div>
 
         <Separator className="bg-zinc-800" />
-        <Label className="text-[10px] text-zinc-400 font-medium">Número de Telefone</Label>
-        <p className="text-[9px] text-zinc-600 italic">Formato: (XX) XXXXX-XXXX — será injetado em &lt;a href=&quot;tel:...&quot;&gt;</p>
-        <Input
-          value={data.phoneText || ""}
-          onChange={(e) => onChange("phoneText", e.target.value)}
-          placeholder="(11) 99999-9999"
-          className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs"
-        />
+        <Label className="text-[10px] text-zinc-400 font-medium">Números de Telefone (override)</Label>
+        <p className="text-[9px] text-zinc-600 italic">Deixe em branco para usar os números cadastrados na loja. Preencha para sobrescrever o texto exibido.</p>
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[9px] text-zinc-500 w-4 text-center shrink-0">1</span>
+            <Input
+              value={data.phoneText || ""}
+              onChange={(e) => onChange("phoneText", e.target.value)}
+              placeholder="(11) 99999-9999"
+              className="h-7 bg-zinc-900/60 border-zinc-700/50 focus:ring-1 focus:ring-amber-500/30 focus:border-amber-500/40 placeholder:text-zinc-600 text-xs flex-1"
+            />
+          </div>
+        </div>
         <TypoBlock fontField="phoneFont" sizeField="phoneFontSize" weightField="phoneFontWeight" defaultSize={14} defaultWeight="400" minSize={10} maxSize={24} />
 
         <Separator className="bg-zinc-800" />
