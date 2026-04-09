@@ -779,22 +779,24 @@ export default function StoreLanding() {
     
     const storeName = tenantData.tenant.name;
     const ld = (tenantData.settings as any)?.landingDesign;
-    const storeDescription = ld?.home?.subheadline || `${storeName} - Pedidos Online`;
+    // Use custom SEO title from design if set, otherwise just the store name
+    const seoTitle = ld?.seo?.pageTitle || storeName;
+    const storeDescription = ld?.seo?.pageDescription || ld?.home?.subheadline || storeName;
     const logoUrl = ld?.home?.logoUrl;
-    
+
     // Reinforce page title (SSR already set it, this ensures SPA navigation updates it)
-    document.title = `${storeName} | Pedidos Online`;
-    
+    document.title = seoTitle;
+
     // Update meta description with richer content from settings
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', storeDescription);
     }
-    
+
     // Update Open Graph tags with richer content
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
-      ogTitle.setAttribute('content', `${storeName} | Pedidos Online`);
+      ogTitle.setAttribute('content', seoTitle);
     }
     
     const ogDesc = document.querySelector('meta[property="og:description"]');
