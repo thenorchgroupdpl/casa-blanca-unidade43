@@ -34,6 +34,7 @@ import OrdersPage from "./pages/admin/dashboard/Orders";
 import OrderHistoryPage from "./pages/admin/dashboard/OrderHistory";
 import CouponsPage from "./pages/admin/dashboard/Coupons";
 import ClientIntegrationsPage from "./pages/admin/dashboard/Integrations";
+import GalleryPage from "./pages/admin/dashboard/Gallery";
 
 // Onboarding
 import OnboardingPage from "./pages/Onboarding";
@@ -41,11 +42,26 @@ import OnboardingPage from "./pages/Onboarding";
 // Shared Admin Pages
 import ProfilePage from "./pages/admin/Profile";
 
+// RootRoute: shows Home on main domain, StoreLanding on custom domains
+function RootRoute() {
+  const hostname = window.location.hostname;
+  const isMainDomain =
+    hostname === 'studiocasablanca.site' ||
+    hostname === 'www.studiocasablanca.site' ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.endsWith('.replit.dev') ||
+    hostname.endsWith('.repl.co') ||
+    hostname.endsWith('.hstgr.cloud');
+  if (isMainDomain) return <Home />;
+  return <StoreLanding />;
+}
+
 function Router() {
   return (
     <Switch>
-      {/* Home - Landing Page principal ou redirect */}
-      <Route path="/" component={Home} />
+      {/* Home - Landing Page principal ou domínio customizado */}
+      <Route path="/" component={RootRoute} />
       
       {/* Login Page */}
       <Route path="/login" component={Login} />
@@ -73,6 +89,7 @@ function Router() {
       <Route path="/admin/dashboard/orders" component={OrdersPage} />
       <Route path="/admin/dashboard/history" component={OrderHistoryPage} />
       <Route path="/admin/dashboard/coupons" component={CouponsPage} />
+      <Route path="/admin/dashboard/gallery" component={GalleryPage} />
       <Route path="/admin/dashboard/integrations" component={ClientIntegrationsPage} />
       
       {/* Shared Admin Routes */}

@@ -18,6 +18,7 @@ import { ordersRouter, upsellsRouter, upsellMessagesRouter, deliveryZonesRouter 
 import { onboardingRouter } from './routers/onboarding';
 import { analyticsRouter } from './routers/analytics';
 import { couponsRouter } from './routers/coupons';
+import { galleryRouter } from './routers/gallery';
 
 export const appRouter = router({
   // System routes
@@ -137,6 +138,9 @@ export const appRouter = router({
   // Coupons (Marketing)
   coupons: couponsRouter,
 
+  // Gallery (Portfolio / Gallery View)
+  gallery: galleryRouter,
+
   // ============================================
   // PUBLIC ROUTES (Landing Page)
   // ============================================
@@ -156,7 +160,7 @@ export const appRouter = router({
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
         const data = await db.getFullTenantDataBySlug(input.slug);
-        
+
         if (!data || !data.tenant.isActive) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Loja não encontrada" });
         }
@@ -165,6 +169,31 @@ export const appRouter = router({
         const { googleApiKey, ...tenantPublic } = data.tenant;
 
         // Cascade: inactive categories hide all their products
+        const activeCategories = data.categories.filter(c => c.isActive);
+        const activeCategoryIds = new Set(activeCategories.map(c => c.id));
+
+        return {
+          tenant: tenantPublic,
+          settings: data.settings,
+          categories: activeCategories,
+          products: data.products.filter(p => p.isAvailable && activeCategoryIds.has(p.categoryId)),
+          homeRows: data.homeRows,
+          reviews: data.reviews,
+        };
+      }),
+
+    // Resolve tenant by custom domain (for white-label domains)
+    getTenantByDomain: publicProcedure
+      .input(z.object({ hostname: z.string() }))
+      .query(async ({ input }) => {
+        const data = await db.getFullTenantDataByDomain(input.hostname);
+
+        if (!data || !data.tenant.isActive) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Loja não encontrada" });
+        }
+
+        const { googleApiKey, ...tenantPublic } = data.tenant;
+
         const activeCategories = data.categories.filter(c => c.isActive);
         const activeCategoryIds = new Set(activeCategories.map(c => c.id));
 

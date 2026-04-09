@@ -3,7 +3,7 @@
  * Carrega dados do tenant via API baseado no slug da URL
  */
 
-import { useEffect } from 'react';
+import { Component, useEffect, type ReactNode } from 'react';
 import { useParams, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { useSiteData, useCartStore } from '@/store/useStore';
@@ -22,6 +22,7 @@ import VitrineSection from '@/components/VitrineSection';
 import AboutSection from '@/components/AboutSection';
 import FeedbacksSection from '@/components/FeedbacksSection';
 import LocationSection from '@/components/LocationSection';
+import GallerySection from '@/components/GallerySection';
 
 // Overlay & Modal Components
 import OrderOverlay from '@/components/OrderOverlay';
@@ -31,6 +32,21 @@ import WhatsAppModal from '@/components/WhatsAppModal';
 import ScheduleModal from '@/components/ScheduleModal';
 import UpsellProvider from '@/components/UpsellProvider';
 
+
+// Error Boundary to isolate section failures
+class SectionErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 // Loading Component
 function LoadingScreen() {
@@ -96,7 +112,18 @@ function NotFoundScreen() {
 export default function StoreLanding() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
-  
+
+  // When no slug in URL (custom domain), resolve by hostname
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isCustomDomain = !slug &&
+    hostname !== 'studiocasablanca.site' &&
+    hostname !== 'www.studiocasablanca.site' &&
+    hostname !== 'localhost' &&
+    hostname !== '127.0.0.1' &&
+    !hostname.endsWith('.replit.dev') &&
+    !hostname.endsWith('.repl.co') &&
+    !hostname.endsWith('.hstgr.cloud');
+
   const { data: currentData, setData, setLoading, setError } = useSiteData();
   const { setTenantId } = useCartStore();
 
@@ -124,14 +151,28 @@ export default function StoreLanding() {
           applyLandingTheme(colors as LandingThemeColors, extras);
         }
         
-        // Apply fonts dynamically
-        if (fontFamily || fontDisplay) {
-          const fontsToLoad = [fontFamily, fontDisplay].filter(Boolean).map(f => f!.replace(/ /g, '+'));
-          if (fontsToLoad.length > 0) {
-            // Inject Google Fonts link if not already present
+        // Apply fonts dynamically — collect global + all section-level font overrides
+        {
+          const allFonts = new Set<string>();
+          if (fontFamily) allFonts.add(fontFamily);
+          if (fontDisplay) allFonts.add(fontDisplay);
+          if (design) {
+            for (const section of Object.values(design)) {
+              if (section && typeof section === 'object') {
+                for (const [key, val] of Object.entries(section as Record<string, unknown>)) {
+                  if (key.toLowerCase().includes('font') && typeof val === 'string' && val && val !== 'inherit') {
+                    allFonts.add(val);
+                  }
+                }
+              }
+            }
+          }
+          if (allFonts.size > 0) {
             const linkId = 'dynamic-google-fonts';
             let link = document.getElementById(linkId) as HTMLLinkElement | null;
-            const href = `https://fonts.googleapis.com/css2?${fontsToLoad.map(f => `family=${f}:wght@300;400;500;600;700`).join('&')}&display=swap`;
+            const href = `https://fonts.googleapis.com/css2?${Array.from(allFonts)
+              .map(f => `family=${f.replace(/ /g, '+')}:wght@300;400;500;600;700`)
+              .join('&')}&display=swap`;
             if (!link) {
               link = document.createElement('link');
               link.id = linkId;
@@ -371,6 +412,8 @@ export default function StoreLanding() {
             qtyBtnBgColor: m.qtyBtnBgColor,
             qtyBtnTextColor: m.qtyBtnTextColor,
             qtyNumberColor: m.qtyNumberColor,
+            showObservationsField: m.showObservationsField,
+            observationsPlaceholder: m.observationsPlaceholder,
           };
         }
 
@@ -539,6 +582,11 @@ export default function StoreLanding() {
             ctaBgColor: c.ctaBgColor,
             ctaTextColor: c.ctaTextColor,
             clearLinkColor: c.clearLinkColor,
+            leadFieldBgColor: c.leadFieldBgColor,
+            leadFieldBorderColor: c.leadFieldBorderColor,
+            leadFieldTextColor: c.leadFieldTextColor,
+            leadFieldLabelColor: c.leadFieldLabelColor,
+            leadFieldErrorColor: c.leadFieldErrorColor,
           };
         }
 
@@ -567,6 +615,11 @@ export default function StoreLanding() {
             ctaTextColor: c.ctaTextColor,
             clearLinkColor: c.clearLinkColor,
             headerIconColor: c.headerIconColor,
+            leadFieldBgColor: c.leadFieldBgColor,
+            leadFieldBorderColor: c.leadFieldBorderColor,
+            leadFieldTextColor: c.leadFieldTextColor,
+            leadFieldLabelColor: c.leadFieldLabelColor,
+            leadFieldErrorColor: c.leadFieldErrorColor,
           };
         }
 
@@ -581,11 +634,45 @@ export default function StoreLanding() {
           if (w.buttonTextColor !== undefined) updatedData.whatsapp_button_text_color = w.buttonTextColor;
         }
 
+        // Update sections visibility
+        if (design?.sections) {
+          updatedData.sections = design.sections;
+        }
+
+        // Update gallery design
+        if (design?.gallery) {
+          updatedData.gallery_design = design.gallery;
+        }
+
+        // Update upsell (Order Bump) style
+        if (design?.upsell) {
+          const u = design.upsell;
+          updatedData.upsell_style = {
+            ...updatedData.upsell_style,
+            bgColor: u.bgColor,
+            titleColor: u.titleColor,
+            subtitleColor: u.subtitleColor,
+            iconBgColor: u.iconBgColor,
+            iconCheckColor: u.iconCheckColor,
+            closeButtonColor: u.closeButtonColor,
+            cardBgColor: u.cardBgColor,
+            borderColor: u.borderColor,
+            ctaBgColor: u.ctaBgColor,
+            ctaTextColor: u.ctaTextColor,
+            title: u.title,
+            subtitle: u.subtitle,
+            iconName: u.iconName,
+            continueBgColor: u.continueBgColor,
+            continueTextColor: u.continueTextColor,
+            continueLabel: u.continueLabel,
+          };
+        }
+
         // Update section colors
         if (sectionColors || design?.sectionColors) {
           updatedData.section_colors = sectionColors || design?.sectionColors || {};
         }
-        
+
         setData(updatedData);
       }
     };
@@ -594,11 +681,25 @@ export default function StoreLanding() {
     return () => window.removeEventListener('message', handleMessage);
   }, [currentData, setData]);
   
-  // Fetch tenant data by slug
-  const { data: tenantData, isLoading, error } = trpc.public.getTenantBySlug.useQuery(
-    { slug: slug || '' },
-    { enabled: !!slug }
-  );
+  // Fetch tenant data — by slug (normal) or by domain (custom domain)
+  const { data: tenantDataBySlug, isLoading: isLoadingBySlug, error: errorBySlug } =
+    trpc.public.getTenantBySlug.useQuery(
+      { slug: slug || '' },
+      { enabled: !!slug }
+    );
+
+  const { data: tenantDataByDomain, isLoading: isLoadingByDomain, error: errorByDomain } =
+    trpc.public.getTenantByDomain.useQuery(
+      { hostname },
+      { enabled: isCustomDomain }
+    );
+
+  const tenantData = slug ? tenantDataBySlug : tenantDataByDomain;
+  const isLoading = slug ? isLoadingBySlug : isLoadingByDomain;
+  const error = slug ? errorBySlug : errorByDomain;
+
+  // Resolved slug (may come from tenant data when on custom domain)
+  const resolvedSlug = tenantData?.tenant?.slug || slug || '';
 
   // Inject marketing tracking scripts (Meta Pixel, GA4, GTM)
   useTrackingScripts({
@@ -620,15 +721,31 @@ export default function StoreLanding() {
       applyLandingTheme(colors, extras);
     }
 
-    // Apply saved fonts
+    // Apply saved fonts — collect global + section-level overrides
     const ff = tenantData?.tenant?.fontFamily;
     const fd = tenantData?.tenant?.fontDisplay;
-    if (ff || fd) {
-      const fontsToLoad = [ff, fd].filter(Boolean).map(f => f!.replace(/ /g, '+'));
-      if (fontsToLoad.length > 0) {
+    const landingDesignFonts = (tenantData?.settings as any)?.landingDesign;
+    {
+      const allFonts = new Set<string>();
+      if (ff) allFonts.add(ff);
+      if (fd) allFonts.add(fd);
+      if (landingDesignFonts) {
+        for (const section of Object.values(landingDesignFonts)) {
+          if (section && typeof section === 'object') {
+            for (const [key, val] of Object.entries(section as Record<string, unknown>)) {
+              if (key.toLowerCase().includes('font') && typeof val === 'string' && val && val !== 'inherit') {
+                allFonts.add(val);
+              }
+            }
+          }
+        }
+      }
+      if (allFonts.size > 0) {
         const linkId = 'dynamic-google-fonts';
         let link = document.getElementById(linkId) as HTMLLinkElement | null;
-        const href = `https://fonts.googleapis.com/css2?${fontsToLoad.map(f => `family=${f}:wght@300;400;500;600;700`).join('&')}&display=swap`;
+        const href = `https://fonts.googleapis.com/css2?${Array.from(allFonts)
+          .map(f => `family=${f.replace(/ /g, '+')}:wght@300;400;500;600;700`)
+          .join('&')}&display=swap`;
         if (!link) {
           link = document.createElement('link');
           link.id = linkId;
@@ -733,7 +850,7 @@ export default function StoreLanding() {
     return <NotFoundScreen />;
   }
 
-  const sectionColors = tenantData ? (useSiteData.getState().data?.section_colors || {}) : {};
+  const sectionColors = currentData?.section_colors || {};
 
   return (
     <UpsellProvider>
@@ -748,10 +865,21 @@ export default function StoreLanding() {
           <Hero />
         </div>
 
-        {/* Product Showcase (includes Intro header) */}
-        <div style={getSectionStyle(sectionColors.vitrine)}>
-          <VitrineSection />
-        </div>
+        {/* Product Showcase (includes Intro header) — hidden if showProducts === false */}
+        {tenantData && currentData?.sections?.showProducts !== false && (
+          <div style={getSectionStyle(sectionColors.vitrine)}>
+            <VitrineSection />
+          </div>
+        )}
+
+        {/* Gallery View Section — before About */}
+        {tenantData && currentData?.sections?.showGallery === true && (
+          <div id="galeria">
+            <SectionErrorBoundary>
+              <GallerySection slug={resolvedSlug} />
+            </SectionErrorBoundary>
+          </div>
+        )}
 
         {/* About Section */}
         <div style={getSectionStyle(sectionColors.about)}>
@@ -1103,6 +1231,8 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       qtyBtnBgColor: ld.menu.qtyBtnBgColor,
       qtyBtnTextColor: ld.menu.qtyBtnTextColor,
       qtyNumberColor: ld.menu.qtyNumberColor,
+      showObservationsField: ld.menu.showObservationsField,
+      observationsPlaceholder: ld.menu.observationsPlaceholder,
     } : undefined,
     toast_style: ld?.toast ? {
       bgColor: ld.toast.bgColor,
@@ -1134,6 +1264,11 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       ctaBgColor: ld.cartLanding.ctaBgColor,
       ctaTextColor: ld.cartLanding.ctaTextColor,
       clearLinkColor: ld.cartLanding.clearLinkColor,
+      leadFieldBgColor: ld.cartLanding.leadFieldBgColor,
+      leadFieldBorderColor: ld.cartLanding.leadFieldBorderColor,
+      leadFieldTextColor: ld.cartLanding.leadFieldTextColor,
+      leadFieldLabelColor: ld.cartLanding.leadFieldLabelColor,
+      leadFieldErrorColor: ld.cartLanding.leadFieldErrorColor,
     } : undefined,
     cart_menu_style: ld?.cartMenu ? {
       modalBgColor: ld.cartMenu.modalBgColor,
@@ -1156,6 +1291,11 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
       ctaTextColor: ld.cartMenu.ctaTextColor,
       clearLinkColor: ld.cartMenu.clearLinkColor,
       headerIconColor: ld.cartMenu.headerIconColor,
+      leadFieldBgColor: ld.cartMenu.leadFieldBgColor,
+      leadFieldBorderColor: ld.cartMenu.leadFieldBorderColor,
+      leadFieldTextColor: ld.cartMenu.leadFieldTextColor,
+      leadFieldLabelColor: ld.cartMenu.leadFieldLabelColor,
+      leadFieldErrorColor: ld.cartMenu.leadFieldErrorColor,
     } : undefined,
     feedbacks_style: ld?.reviews ? {
       label: ld.reviews.label,
@@ -1286,6 +1426,29 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     google_maps_link: settings?.googleMapsLink || '',
     // Show business hours toggle (for "Sob Encomenda" stores)
     show_business_hours: settings?.showBusinessHours ?? true,
+    // Sections visibility
+    sections: ld?.sections || {},
+    // Gallery design
+    gallery_design: ld?.gallery || {},
+    // Upsell (Order Bump) style
+    upsell_style: ld?.upsell ? {
+      bgColor: ld.upsell.bgColor,
+      titleColor: ld.upsell.titleColor,
+      subtitleColor: ld.upsell.subtitleColor,
+      iconBgColor: ld.upsell.iconBgColor,
+      iconCheckColor: ld.upsell.iconCheckColor,
+      closeButtonColor: ld.upsell.closeButtonColor,
+      cardBgColor: ld.upsell.cardBgColor,
+      borderColor: ld.upsell.borderColor,
+      ctaBgColor: ld.upsell.ctaBgColor,
+      ctaTextColor: ld.upsell.ctaTextColor,
+      title: ld.upsell.title,
+      subtitle: ld.upsell.subtitle,
+      iconName: ld.upsell.iconName,
+      continueBgColor: ld.upsell.continueBgColor,
+      continueTextColor: ld.upsell.continueTextColor,
+      continueLabel: ld.upsell.continueLabel,
+    } : undefined,
   };
 }
 

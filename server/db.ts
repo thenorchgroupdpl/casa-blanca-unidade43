@@ -14,7 +14,8 @@ import {
   productUpsells, ProductUpsell, InsertProductUpsell,
   upsellMessages, UpsellMessage, InsertUpsellMessage,
   deliveryZones, DeliveryZone, InsertDeliveryZone,
-  coupons, Coupon, InsertCoupon
+  coupons, Coupon, InsertCoupon,
+  galleryImages, GalleryImage, InsertGalleryImage
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -530,6 +531,25 @@ export async function getFullTenantData(tenantId: number) {
 
 export async function getFullTenantDataBySlug(slug: string) {
   const tenant = await getTenantBySlug(slug);
+  if (!tenant) return null;
+
+  return getFullTenantData(tenant.id);
+}
+
+export async function getTenantByDomain(domain: string): Promise<Tenant | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  // Normalize: strip www. prefix for comparison
+  const normalized = domain.replace(/^www\./, '');
+  const result = await db.select().from(tenants).where(
+    sql`REPLACE(${tenants.domainCustom}, 'www.', '') = ${normalized}`
+  ).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getFullTenantDataByDomain(domain: string) {
+  const tenant = await getTenantByDomain(domain);
   if (!tenant) return null;
 
   return getFullTenantData(tenant.id);
@@ -1854,4 +1874,70 @@ export async function incrementCouponUsage(id: number) {
     .update(coupons)
     .set({ usageCount: sql`${coupons.usageCount} + 1` })
     .where(eq(coupons.id, id));
+}
+
+// ============================================
+// GALLERY IMAGES
+// ============================================
+
+export async function getGalleryImages(tenantId: number) {
+  const db = (await getDb())!;
+  return db
+    .select()
+    .from(galleryImages)
+    .where(eq(galleryImages.tenantId, tenantId))
+    .orderBy(asc(galleryImages.order), asc(galleryImages.createdAt));
+}
+
+export async function addGalleryImage(tenantId: number, data: { imageUrl: string; caption?: string }) {
+  const db = (await getDb())!;
+  // Get current count
+  const existing = await db.select({ cnt: count() }).from(galleryImages).where(eq(galleryImages.tenantId, tenantId));
+  const currentCount = existing[0]?.cnt ?? 0;
+  if (currentCount >= 30) {
+    throw new Error("GALLERY_LIMIT_REACHED");
+  }
+  const result = await db.insert(galleryImages).values({
+    tenantId,
+    imageUrl: data.imageUrl,
+    caption: data.caption || null,
+    order: currentCount,
+  });
+  return { id: result[0].insertId };
+}
+
+export async function deleteGalleryImage(tenantId: number, imageId: number) {
+  const db = (await getDb())!;
+  await db
+    .delete(galleryImages)
+    .where(and(eq(galleryImages.id, imageId), eq(galleryImages.tenantId, tenantId)));
+}
+
+export async function reorderGalleryImages(tenantId: number, orderedIds: number[]) {
+  const db = (await getDb())!;
+  for (let i = 0; i < orderedIds.length; i++) {
+    await db
+      .update(galleryImages)
+      .set({ order: i })
+      .where(and(eq(galleryImages.id, orderedIds[i]), eq(galleryImages.tenantId, tenantId)));
+  }
+}
+
+export async function updateGalleryImageCaption(tenantId: number, imageId: number, caption: string) {
+  const db = (await getDb())!;
+  await db
+    .update(galleryImages)
+    .set({ caption })
+    .where(and(eq(galleryImages.id, imageId), eq(galleryImages.tenantId, tenantId)));
+}
+
+export async function getPublicGalleryImages(slug: string) {
+  const db = (await getDb())!;
+  const tenant = await getTenantBySlug(slug);
+  if (!tenant) return [];
+  return db
+    .select()
+    .from(galleryImages)
+    .where(eq(galleryImages.tenantId, tenant.id))
+    .orderBy(asc(galleryImages.order), asc(galleryImages.createdAt));
 }
