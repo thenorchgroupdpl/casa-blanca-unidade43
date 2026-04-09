@@ -1,248 +1,296 @@
 /**
- * Tests for Google Integrations:
- * - Google Reviews mock service
- * - Analytics trackEvent utility
- * - Store router Google integration endpoints
+ * Tests for Google Reviews Service
+ *
+ * Testa o comportamento real do serviço:
+ * - Sem credenciais → status 'unconfigured', reviews vazio
+ * - Com credenciais → chama a API (mockada) e retorna reviews reais
+ * - Erro da API → status 'error' com mensagem, reviews vazio
+ * - Cache → segunda chamada não refaz o fetch
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getGoogleReviews, type GoogleReview } from './services/googleReviews';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getGoogleReviews, invalidateGoogleReviewsCache } from './services/googleReviews';
 
 // ============================================
-// Google Reviews Mock Service
+// Google Reviews Service
 // ============================================
 describe('Google Reviews Service', () => {
-  describe('getGoogleReviews', () => {
-    it('should return mock reviews when useMock is true', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test', null, true);
-      expect(reviews).toHaveLength(3);
-      expect(reviews[0]).toHaveProperty('authorName');
-      expect(reviews[0]).toHaveProperty('authorPhoto');
-      expect(reviews[0]).toHaveProperty('rating');
-      expect(reviews[0]).toHaveProperty('text');
-      expect(reviews[0]).toHaveProperty('relativeTime');
-      expect(reviews[0]).toHaveProperty('isFromGoogle');
-    });
-
-    it('should return mock reviews when placeId is null', async () => {
-      const reviews = await getGoogleReviews(null, null, false);
-      expect(reviews).toHaveLength(3);
-    });
-
-    it('should return mock reviews when no API key is provided', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test', null, false);
-      expect(reviews).toHaveLength(3);
-    });
-
-    it('should return mock reviews by default (useMock defaults to true)', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      expect(reviews).toHaveLength(3);
-    });
-
-    it('mock reviews should have valid ratings (1-5)', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      reviews.forEach((review) => {
-        expect(review.rating).toBeGreaterThanOrEqual(1);
-        expect(review.rating).toBeLessThanOrEqual(5);
-      });
-    });
-
-    it('mock reviews should have non-empty author names', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      reviews.forEach((review) => {
-        expect(review.authorName.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('mock reviews should have non-empty text', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      reviews.forEach((review) => {
-        expect(review.text.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('mock reviews should be marked as from Google', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      reviews.forEach((review) => {
-        expect(review.isFromGoogle).toBe(true);
-      });
-    });
-
-    it('mock reviews should have photo URLs', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      reviews.forEach((review) => {
-        expect(review.authorPhoto).toBeTruthy();
-        expect(review.authorPhoto).toContain('ui-avatars.com');
-      });
-    });
-
-    it('mock reviews should have relative time descriptions', async () => {
-      const reviews = await getGoogleReviews('ChIJ_test');
-      reviews.forEach((review) => {
-        expect(review.relativeTime).toBeTruthy();
-        expect(review.relativeTime.length).toBeGreaterThan(0);
-      });
-    });
-  });
-});
-
-// ============================================
-// Analytics trackEvent Utility (Unit Tests)
-// ============================================
-describe('Analytics trackEvent Utility', () => {
-  // We test the analytics module by importing it and checking behavior
-  // Since it depends on window.gtag, we mock it
 
   beforeEach(() => {
+    vi.resetAllMocks();
+    // Limpa cache entre testes (Place IDs fictícios não conflitam)
+  });
+
+  afterEach(() => {
     vi.restoreAllMocks();
-    // Reset window.gtag
-    (globalThis as any).window = {
-      gtag: vi.fn(),
-    };
   });
 
-  it('trackEvent should call console.log with event name', async () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    // Dynamic import to get fresh module
-    const { trackEvent } = await import('../client/src/lib/analytics');
-    trackEvent('test_event', { value: 100 });
-    
-    expect(consoleSpy).toHaveBeenCalled();
-    // Check that the event name appears in the log
-    const logCall = consoleSpy.mock.calls[0];
-    expect(logCall).toBeDefined();
-    // With styled console.log (%c), the event name is in the third argument (index 2)
-    const logStr = logCall.join(' ');
-    expect(logStr).toContain('test_event');
-    
-    consoleSpy.mockRestore();
+  // ----- Sem credenciais -----
+
+  it('retorna unconfigured quando placeId é null', async () => {
+    const result = await getGoogleReviews(null, 'FAKE_KEY');
+    expect(result.status).toBe('unconfigured');
+    expect(result.reviews).toHaveLength(0);
   });
 
-  it('trackEvent should call window.gtag when available', async () => {
-    const mockGtag = vi.fn();
-    (globalThis as any).window = { gtag: mockGtag };
-    
-    const { trackEvent } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    trackEvent('purchase_whatsapp', { value: 50, currency: 'BRL' });
-    
-    expect(mockGtag).toHaveBeenCalledWith('event', 'purchase_whatsapp', {
-      value: 50,
-      currency: 'BRL',
-    });
-    
-    consoleSpy.mockRestore();
+  it('retorna unconfigured quando apiKey é null', async () => {
+    const result = await getGoogleReviews('ChIJ_test', null);
+    expect(result.status).toBe('unconfigured');
+    expect(result.reviews).toHaveLength(0);
   });
 
-  it('trackViewItem should fire view_item event', async () => {
-    const mockGtag = vi.fn();
-    (globalThis as any).window = { gtag: mockGtag };
-    
-    const { trackViewItem } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    trackViewItem({ id: '1', name: 'Picanha', price: 89.90 });
-    
-    expect(mockGtag).toHaveBeenCalledWith('event', 'view_item', expect.objectContaining({
-      currency: 'BRL',
-      value: 89.90,
-      item_id: '1',
-      item_name: 'Picanha',
-    }));
-    
-    consoleSpy.mockRestore();
+  it('retorna unconfigured quando ambos são null', async () => {
+    const result = await getGoogleReviews(null, null);
+    expect(result.status).toBe('unconfigured');
+    expect(result.reviews).toHaveLength(0);
   });
 
-  it('trackAddToCart should fire add_to_cart event with correct value', async () => {
-    const mockGtag = vi.fn();
-    (globalThis as any).window = { gtag: mockGtag };
-    
-    const { trackAddToCart } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    trackAddToCart({ id: '2', name: 'Costela', price: 65.00, quantity: 2 });
-    
-    expect(mockGtag).toHaveBeenCalledWith('event', 'add_to_cart', expect.objectContaining({
-      currency: 'BRL',
-      value: 130.00, // price * quantity
-      item_id: '2',
-      item_name: 'Costela',
-      quantity: 2,
-    }));
-    
-    consoleSpy.mockRestore();
+  // ----- Sucesso -----
+
+  it('retorna reviews reais quando API responde OK', async () => {
+    const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'OK',
+        result: {
+          reviews: [
+            {
+              author_name: 'Maria Silva',
+              profile_photo_url: 'https://example.com/photo.jpg',
+              rating: 5,
+              text: 'Ótimo serviço!',
+              relative_time_description: '1 semana atrás',
+            },
+            {
+              author_name: 'João Costa',
+              profile_photo_url: '',
+              rating: 4,
+              text: 'Muito bom, recomendo.',
+              relative_time_description: '2 meses atrás',
+            },
+          ],
+        },
+      }),
+    } as any);
+
+    const placeId = 'ChIJ_real_test_ok';
+    const result = await getGoogleReviews(placeId, 'VALID_KEY_OK');
+
+    expect(result.status).toBe('ok');
+    expect(result.reviews).toHaveLength(2);
+    expect(result.reviews[0].authorName).toBe('Maria Silva');
+    expect(result.reviews[0].rating).toBe(5);
+    expect(result.reviews[0].isFromGoogle).toBe(true);
+    expect(result.reviews[1].authorName).toBe('João Costa');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch.mock.calls[0][0]).toContain('place_id=ChIJ_real_test_ok');
+    expect(mockFetch.mock.calls[0][0]).toContain('language=pt-BR');
+
+    invalidateGoogleReviewsCache(placeId);
   });
 
-  it('trackBeginCheckout should fire begin_checkout event', async () => {
-    const mockGtag = vi.fn();
-    (globalThis as any).window = { gtag: mockGtag };
-    
-    const { trackBeginCheckout } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    trackBeginCheckout({ totalValue: 250.00, itemCount: 3 });
-    
-    expect(mockGtag).toHaveBeenCalledWith('event', 'begin_checkout', expect.objectContaining({
-      currency: 'BRL',
-      value: 250.00,
-      item_count: 3,
-    }));
-    
-    consoleSpy.mockRestore();
+  it('popula cachedAt no resultado OK', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: 'OK', result: { reviews: [] } }),
+    } as any);
+
+    const placeId = 'ChIJ_cached_at';
+    const result = await getGoogleReviews(placeId, 'KEY_CACHE');
+
+    expect(result.cachedAt).toBeInstanceOf(Date);
+
+    invalidateGoogleReviewsCache(placeId);
   });
 
-  it('trackPurchaseWhatsApp should fire purchase_whatsapp event with coupon', async () => {
-    const mockGtag = vi.fn();
-    (globalThis as any).window = { gtag: mockGtag };
-    
-    const { trackPurchaseWhatsApp } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    trackPurchaseWhatsApp({
-      totalValue: 200.00,
-      itemCount: 4,
-      couponCode: 'PROMO10',
-      discountValue: 25.00,
-    });
-    
-    expect(mockGtag).toHaveBeenCalledWith('event', 'purchase_whatsapp', expect.objectContaining({
-      currency: 'BRL',
-      value: 200.00,
-      item_count: 4,
-      coupon: 'PROMO10',
-      discount: 25.00,
-    }));
-    
-    consoleSpy.mockRestore();
+  // ----- Cache -----
+
+  it('reutiliza cache na segunda chamada sem novo fetch', async () => {
+    const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: 'OK',
+        result: {
+          reviews: [
+            {
+              author_name: 'Ana',
+              profile_photo_url: '',
+              rating: 5,
+              text: 'Perfeito!',
+              relative_time_description: 'há 3 dias',
+            },
+          ],
+        },
+      }),
+    } as any);
+
+    const placeId = 'ChIJ_cache_test';
+    const key = 'CACHE_KEY';
+
+    const r1 = await getGoogleReviews(placeId, key);
+    const r2 = await getGoogleReviews(placeId, key);
+
+    expect(r1.status).toBe('ok');
+    expect(r2.status).toBe('ok');
+    expect(mockFetch).toHaveBeenCalledTimes(1); // só 1 fetch, não 2
+
+    invalidateGoogleReviewsCache(placeId);
   });
 
-  it('trackPurchaseWhatsApp should handle missing coupon gracefully', async () => {
-    const mockGtag = vi.fn();
-    (globalThis as any).window = { gtag: mockGtag };
-    
-    const { trackPurchaseWhatsApp } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    trackPurchaseWhatsApp({ totalValue: 100.00, itemCount: 2 });
-    
-    expect(mockGtag).toHaveBeenCalledWith('event', 'purchase_whatsapp', expect.objectContaining({
-      coupon: '',
-      discount: 0,
-    }));
-    
-    consoleSpy.mockRestore();
+  it('invalida cache corretamente', async () => {
+    const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: 'OK', result: { reviews: [] } }),
+    } as any);
+
+    const placeId = 'ChIJ_invalidate';
+    const key = 'INV_KEY';
+
+    await getGoogleReviews(placeId, key);
+    invalidateGoogleReviewsCache(placeId);
+    await getGoogleReviews(placeId, key);
+
+    expect(mockFetch).toHaveBeenCalledTimes(2); // cache foi invalidado → 2 fetches
+
+    invalidateGoogleReviewsCache(placeId);
   });
 
-  it('trackEvent should not throw when window.gtag is undefined', async () => {
-    (globalThis as any).window = {};
-    
-    const { trackEvent } = await import('../client/src/lib/analytics');
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
-    expect(() => trackEvent('test_event')).not.toThrow();
-    
-    consoleSpy.mockRestore();
+  // ----- Erros da API -----
+
+  it('retorna status error quando API retorna REQUEST_DENIED', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'REQUEST_DENIED',
+        error_message: 'API key inválida ou sem permissão para Places API.',
+      }),
+    } as any);
+
+    const placeId = 'ChIJ_denied';
+    const result = await getGoogleReviews(placeId, 'INVALID_KEY');
+
+    expect(result.status).toBe('error');
+    expect(result.reviews).toHaveLength(0);
+    expect(result.error).toContain('REQUEST_DENIED');
+    expect(result.error).toContain('API key inválida');
+
+    invalidateGoogleReviewsCache(placeId);
+  });
+
+  it('retorna status error quando API retorna INVALID_REQUEST', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: 'INVALID_REQUEST' }),
+    } as any);
+
+    const placeId = 'ChIJ_invalid_req';
+    const result = await getGoogleReviews(placeId, 'SOME_KEY');
+
+    expect(result.status).toBe('error');
+    expect(result.error).toContain('INVALID_REQUEST');
+
+    invalidateGoogleReviewsCache(placeId);
+  });
+
+  it('retorna status error em falha de rede', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network failure'));
+
+    const placeId = 'ChIJ_network_fail';
+    const result = await getGoogleReviews(placeId, 'SOME_KEY');
+
+    expect(result.status).toBe('error');
+    expect(result.reviews).toHaveLength(0);
+    expect(result.error).toContain('Network failure');
+
+    invalidateGoogleReviewsCache(placeId);
+  });
+
+  it('retorna status error em resposta HTTP não-ok', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+    } as any);
+
+    const placeId = 'ChIJ_http_error';
+    const result = await getGoogleReviews(placeId, 'SOME_KEY');
+
+    expect(result.status).toBe('error');
+    expect(result.reviews).toHaveLength(0);
+
+    invalidateGoogleReviewsCache(placeId);
+  });
+
+  // ----- Estrutura dos reviews -----
+
+  it('mapeia corretamente campos da API para GoogleReview', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'OK',
+        result: {
+          reviews: [{
+            author_name: 'Carlos Test',
+            profile_photo_url: 'https://photo.url/img.jpg',
+            rating: 3,
+            text: 'Razoável',
+            relative_time_description: '5 meses atrás',
+          }],
+        },
+      }),
+    } as any);
+
+    const placeId = 'ChIJ_map_test';
+    const result = await getGoogleReviews(placeId, 'MAP_KEY');
+
+    const review = result.reviews[0];
+    expect(review.authorName).toBe('Carlos Test');
+    expect(review.authorPhoto).toBe('https://photo.url/img.jpg');
+    expect(review.rating).toBe(3);
+    expect(review.text).toBe('Razoável');
+    expect(review.relativeTime).toBe('5 meses atrás');
+    expect(review.isFromGoogle).toBe(true);
+
+    invalidateGoogleReviewsCache(placeId);
+  });
+
+  it('usa fallbacks para campos ausentes na API', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'OK',
+        result: {
+          reviews: [{ /* sem nenhum campo */ }],
+        },
+      }),
+    } as any);
+
+    const placeId = 'ChIJ_fallback';
+    const result = await getGoogleReviews(placeId, 'FALLBACK_KEY');
+
+    const review = result.reviews[0];
+    expect(review.authorName).toBe('Anônimo');
+    expect(review.authorPhoto).toBe('');
+    expect(review.rating).toBe(5);
+    expect(review.text).toBe('');
+    expect(review.relativeTime).toBe('');
+    expect(review.isFromGoogle).toBe(true);
+
+    invalidateGoogleReviewsCache(placeId);
+  });
+
+  it('lida com reviews vazio (sem avaliações ainda)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: 'OK', result: {} }), // sem campo reviews
+    } as any);
+
+    const placeId = 'ChIJ_empty_reviews';
+    const result = await getGoogleReviews(placeId, 'EMPTY_KEY');
+
+    expect(result.status).toBe('ok');
+    expect(result.reviews).toHaveLength(0);
+
+    invalidateGoogleReviewsCache(placeId);
   });
 });

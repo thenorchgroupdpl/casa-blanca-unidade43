@@ -316,12 +316,26 @@ export const storeRouter = router({
     const tenantId = getTenantIdFromUser(ctx.user);
     const tenant = await db.getTenantById(tenantId);
     if (!tenant) throw new TRPCError({ code: "NOT_FOUND", message: "Tenant não encontrado" });
+
+    // Testa as credenciais do Google Places em tempo real (usa cache de 5 min se já verificou)
+    let googleReviewsStatus: 'ok' | 'error' | 'unconfigured' = 'unconfigured';
+    let googleReviewsError: string | undefined;
+
+    if (tenant.googleApiKey && tenant.googlePlaceId) {
+      const { getGoogleReviews } = await import('../services/googleReviews');
+      const result = await getGoogleReviews(tenant.googlePlaceId, tenant.googleApiKey);
+      googleReviewsStatus = result.status;
+      googleReviewsError = result.error;
+    }
+
     return {
       googleApiKey: tenant.googleApiKey || '',
       googlePlaceId: tenant.googlePlaceId || '',
       metaPixelId: tenant.metaPixelId || '',
       ga4MeasurementId: tenant.ga4MeasurementId || '',
       gtmContainerId: tenant.gtmContainerId || '',
+      googleReviewsStatus,
+      googleReviewsError: googleReviewsError || null,
     };
   }),
 
@@ -334,6 +348,14 @@ export const storeRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const tenantId = getTenantIdFromUser(ctx.user);
+
+      // Invalida cache do Google Reviews ao trocar Place ID
+      const oldTenant = await db.getTenantById(tenantId);
+      if (oldTenant?.googlePlaceId && input.googlePlaceId !== oldTenant.googlePlaceId) {
+        const { invalidateGoogleReviewsCache } = await import('../services/googleReviews');
+        invalidateGoogleReviewsCache(oldTenant.googlePlaceId);
+      }
+
       await db.updateTenant(tenantId, {
         googlePlaceId: input.googlePlaceId || null,
         metaPixelId: input.metaPixelId || null,

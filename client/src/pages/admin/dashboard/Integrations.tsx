@@ -73,6 +73,9 @@ export default function IntegrationsPage() {
   const hasTrackingConfig = !!(formData.metaPixelId || formData.ga4MeasurementId || formData.gtmContainerId);
   const trackingCount = [formData.metaPixelId, formData.ga4MeasurementId, formData.gtmContainerId].filter(Boolean).length;
 
+  const googleStatus = integrations?.googleReviewsStatus;
+  const googleError = integrations?.googleReviewsError;
+
   return (
     <ClientAdminLayout>
       <div className="space-y-6">
@@ -187,6 +190,38 @@ export default function IntegrationsPage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Status das avaliações do Google */}
+                {hasGoogleConfig && !isLoading && (
+                  <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${
+                    googleStatus === 'ok'
+                      ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400'
+                      : googleStatus === 'error'
+                      ? 'bg-red-500/5 border-red-500/20 text-red-400'
+                      : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-400'
+                  }`}>
+                    {googleStatus === 'ok' && <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />}
+                    {googleStatus === 'error' && <XCircle className="h-4 w-4 mt-0.5 shrink-0" />}
+                    {googleStatus === 'unconfigured' && <XCircle className="h-4 w-4 mt-0.5 shrink-0" />}
+                    <div>
+                      {googleStatus === 'ok' && (
+                        <span>Avaliações do Google conectadas com sucesso.</span>
+                      )}
+                      {googleStatus === 'error' && (
+                        <>
+                          <span className="font-medium">Erro ao buscar avaliações do Google:</span>
+                          <span className="block text-red-300/80 text-xs mt-0.5">{googleError}</span>
+                          <span className="block text-zinc-500 text-xs mt-1">
+                            Verifique se a API Key tem a "Places API" habilitada no Google Cloud Console e se o Place ID está correto.
+                          </span>
+                        </>
+                      )}
+                      {googleStatus === 'unconfigured' && (
+                        <span>Configure a API Key e o Place ID para exibir avaliações reais do Google.</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

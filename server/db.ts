@@ -517,7 +517,39 @@ export async function getFullTenantData(tenantId: number) {
   const categoriesList = await getCategoriesByTenant(tenantId);
   const productsList = await getProductsByTenant(tenantId);
   const homeRowsList = await getHomeRowsByTenant(tenantId);
-  const reviewsList = await getReviewsByTenant(tenantId);
+  const dbReviews = await getReviewsByTenant(tenantId);
+
+  // Se o tenant tem Google Places configurado, busca avaliações reais
+  let finalReviews: Review[] = dbReviews;
+  let googleReviewsStatus: 'ok' | 'error' | 'unconfigured' = 'unconfigured';
+  let googleReviewsError: string | undefined;
+
+  if (tenant.googleApiKey && tenant.googlePlaceId) {
+    const { getGoogleReviews } = await import('./services/googleReviews');
+    const result = await getGoogleReviews(tenant.googlePlaceId, tenant.googleApiKey);
+    googleReviewsStatus = result.status;
+    googleReviewsError = result.error;
+
+    if (result.status === 'ok' && result.reviews.length > 0) {
+      // Converte GoogleReview[] para o mesmo formato de Review do banco
+      finalReviews = result.reviews.map((r, idx) => ({
+        id: -(idx + 1),          // IDs negativos para reviews do Google (não persistidos)
+        tenantId,
+        authorName: r.authorName,
+        authorPhoto: r.authorPhoto,
+        rating: r.rating,
+        text: r.text,
+        relativeTime: r.relativeTime,
+        isFromGoogle: true,
+        googleReviewId: null,
+        photos: [],
+        isVisible: true,
+        createdAt: result.cachedAt ?? new Date(),
+        updatedAt: result.cachedAt ?? new Date(),
+      }));
+    }
+    // Se status === 'error' ou 'unconfigured', mantém reviews do banco (dbReviews)
+  }
 
   return {
     tenant,
@@ -525,7 +557,9 @@ export async function getFullTenantData(tenantId: number) {
     categories: categoriesList,
     products: productsList,
     homeRows: homeRowsList,
-    reviews: reviewsList,
+    reviews: finalReviews,
+    googleReviewsStatus,
+    googleReviewsError,
   };
 }
 
