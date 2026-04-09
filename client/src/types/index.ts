@@ -297,6 +297,9 @@ export interface MenuStyleOverrides {
   qtyBtnBgColor?: string;
   qtyBtnTextColor?: string;
   qtyNumberColor?: string;
+  // 3.5 Campo de Observações do Carrinho
+  showObservationsField?: boolean;
+  observationsPlaceholder?: string;
 }
 
 export interface FeedbacksStyleOverrides {
@@ -437,6 +440,8 @@ export interface SiteData {
   business_hours: BusinessHours;
   sections_content: SectionsContent;
   feedbacks: Feedback[];
+  /** Google Place ID para montar o link de "Ver no Google Maps" */
+  google_place_id?: string;
   catalog: Category[];
   menu_style?: MenuStyleOverrides;
   feedbacks_style?: FeedbacksStyleOverrides;
@@ -481,6 +486,12 @@ export interface SiteData {
     ctaBgColor?: string;
     ctaTextColor?: string;
     clearLinkColor?: string;
+    // Lead capture fields (Nome + Telefone)
+    leadFieldBgColor?: string;
+    leadFieldBorderColor?: string;
+    leadFieldTextColor?: string;
+    leadFieldLabelColor?: string;
+    leadFieldErrorColor?: string;
   };
   // Cart style — Cardápio
   cart_menu_style?: {
@@ -504,6 +515,12 @@ export interface SiteData {
     ctaTextColor?: string;
     clearLinkColor?: string;
     headerIconColor?: string;
+    // Lead capture fields (Nome + Telefone)
+    leadFieldBgColor?: string;
+    leadFieldBorderColor?: string;
+    leadFieldTextColor?: string;
+    leadFieldLabelColor?: string;
+    leadFieldErrorColor?: string;
   };
   // WhatsApp Popup attendant info
   whatsapp_avatar?: string;
@@ -529,6 +546,10 @@ export interface SiteData {
     ctaTextColor?: string;
     title?: string;
     subtitle?: string;
+    iconName?: string;
+    continueBgColor?: string;
+    continueTextColor?: string;
+    continueLabel?: string;
   };
   // Delivery fee
   delivery_fee?: number;
@@ -536,6 +557,51 @@ export interface SiteData {
   google_maps_link?: string;
   // Show business hours toggle (for "Sob Encomenda" stores)
   show_business_hours?: boolean;
+  // Gallery View
+  gallery_images?: GalleryImage[];
+  gallery_design?: GalleryDesign;
+  // Sections visibility
+  sections?: SectionsConfig;
+}
+
+// Gallery types
+export interface GalleryImage {
+  id: number;
+  imageUrl: string;
+  caption?: string | null;
+  order: number;
+}
+
+export interface GalleryDesign {
+  headline?: string;
+  subheadline?: string;
+  showCta?: boolean;
+  ctaLabel?: string;
+  ctaBgColor?: string;
+  ctaTextColor?: string;
+  ctaBorderRadius?: number;
+  photoBorderRadius?: number;
+  photoGap?: number;
+  showCaptions?: boolean;
+  lightboxBg?: string;
+  lightboxControls?: string;
+  // Typography — headline
+  headlineFont?: string;
+  headlineFontSize?: number;
+  headlineFontWeight?: string;
+  headlineColor?: string;
+  // Typography — subheadline
+  subheadlineFont?: string;
+  subheadlineFontSize?: number;
+  subheadlineFontWeight?: string;
+  subheadlineColor?: string;
+  // Layout
+  layout?: 'carousel' | 'mosaic';
+}
+
+export interface SectionsConfig {
+  showProducts?: boolean;
+  showGallery?: boolean;
 }
 
 // Cart types
