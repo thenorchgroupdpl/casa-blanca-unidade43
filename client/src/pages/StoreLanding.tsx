@@ -1157,6 +1157,7 @@ function transformTenantDataToSiteData(tenantData: any): SiteData {
     },
     feedbacks: transformedFeedbacks,
     google_place_id: (tenantData.tenant as any).googlePlaceId || undefined,
+    google_reviews_total: ld?.reviews?.totalCount || undefined,
     catalog: transformedCatalog,
     menu_style: ld?.menu ? {
       menuSectionTitle: ld.menu.menuSectionTitle,

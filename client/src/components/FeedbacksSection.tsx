@@ -202,7 +202,8 @@ export default function FeedbacksSection() {
 
   if (!data) return null;
 
-  const { feedbacks, google_place_id } = data;
+  const { feedbacks, google_place_id, google_reviews_total } = data;
+  const displayTotal = google_reviews_total || feedbacks.length;
 
   // Oculta a seção se não há avaliações para exibir
   if (feedbacks.length === 0) return null;
@@ -333,7 +334,7 @@ export default function FeedbacksSection() {
                 className="text-sm text-lp-text-muted"
                 style={style.ratingTotalColor ? { color: style.ratingTotalColor } : undefined}
               >
-                ({feedbacks.length} avaliações)
+                ({displayTotal} avaliações)
               </span>
             </div>
           </motion.div>

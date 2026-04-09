@@ -442,6 +442,8 @@ export interface SiteData {
   feedbacks: Feedback[];
   /** Google Place ID para montar o link de "Ver no Google Maps" */
   google_place_id?: string;
+  /** Total real de avaliações no Google (para exibir o número correto mesmo com reviews parciais no DB) */
+  google_reviews_total?: number;
   catalog: Category[];
   menu_style?: MenuStyleOverrides;
   feedbacks_style?: FeedbacksStyleOverrides;
